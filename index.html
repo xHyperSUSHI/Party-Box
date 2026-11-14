@@ -2740,7 +2740,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.18';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.19';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4909,7 +4909,7 @@ function dsEdge(t,r,c){
 /* ---------- Stadt, Land, Fluss ---------- */
 const SLFA=['Stadt','Land','Fluss','Tier','Beruf','Vorname','Pflanze','Essen','Getränk','Gegenstand','Farbe','Sportart','Film / Serie','Marke','Körperteil','Berg','Musik'],SLFL='ABDEFGHKLMNPRSTW'.split('');
 function slfSave(){try{localStorage.setItem('pb_slfc',JSON.stringify({sel:OPT.slf.sel,custom:OPT.slf.custom}))}catch(e){}}
-OPT.slf={rounds:5,timer:0,mode:'zettel',dtimer:90,sel:{Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1},custom:[]};
+OPT.slf={rounds:5,timer:0,mode:'zettel',dtimer:90,stop:true,sel:{Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1},custom:[]};
 try{const x=JSON.parse(localStorage.getItem('pb_slfc')||'null');if(x&&x.sel&&Array.isArray(x.custom)){OPT.slf.sel=x.sel;OPT.slf.custom=x.custom.filter(c=>typeof c==='string').slice(0,4)}}catch(e){}
 const slfAll=()=>SLFA.filter(c=>OPT.slf.sel[c]).concat(OPT.slf.custom);
 function slfTog(i,el){
@@ -4928,8 +4928,8 @@ function slfAddCat(){
 function slfDelCat(i){OPT.slf.custom.splice(i,1);slfSave();gameSetup('slf')}
 GAMES.slf={name:'Stadt, Land, Fluss',e:'✏️',tag:'Mit Zettel oder digital',c:['#22c55e','#16a34a'],min:2,teams:false,
   desc:'Ein Buchstabe, eure Kategorien: wer findet die meisten Wörter? Kategorien frei wählbar, mit Zettel und Stift oder direkt im Handy eingetippt.',
-  rules:'<b>Digital:</b> Der Buchstabe steht oben, jeder tippt zu jeder Kategorie je ein Wort ein (Zeitlimit). Danach zeigt die App alle Antworten und berechnet die Punkte (10 / 5 / 20, siehe unten). Wörter, die nicht stimmen, tippt ihr an und streicht sie. <b>Mit Zettel:</b> Jeder braucht <b>Zettel und Stift</b>. Die App nennt einen Buchstaben. Schreibt zu jeder gewählten Kategorie (Standard: Stadt, Land, Fluss, Tier, Beruf; ihr könnt auch eigene erfinden) je ein Wort, das damit anfängt. Wer fertig ist, ruft „Stopp!“ (oder die Zeit läuft ab). Danach werden die Wörter verglichen und Punkte eingetragen: <b>10</b> für ein eigenes Wort, <b>5</b> wenn ein anderer das gleiche hat, <b>20</b> wenn nur du eins hast, 0 für nichts. Wer am Ende die meisten Punkte hat, gewinnt.',
-  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (<span id="slfcnt">${slfAll().length}</span> gewählt, 3 bis 10)</p><div class="chips">${SLFA.map((c,i)=>`<span class="chip ${OPT.slf.sel[c]?'on':''}" onclick="slfTog(${i},this)">${esc(c)}</span>`).join('')}${OPT.slf.custom.map((c,i)=>`<span class="chip on" onclick="slfDelCat(${i})">${esc(c)} ✕</span>`).join('')}</div><div class="row" style="margin-top:10px"><input id="slfn" class="txt" type="text" maxlength="20" autocomplete="off" placeholder="Eigene Kategorie …" style="margin:0;flex:1"><button class="sec ib" onclick="slfAddCat()" aria-label="Kategorie hinzufügen" style="margin:0">＋</button></div><p class="sm" style="margin:14px 0 8px">Spielweise</p>${seg('slf','mode',['zettel','digital'],v=>v==='zettel'?'✏️ Zettel & Stift':'⌨️ Digital tippen')}<p class="sm" style="margin:14px 0 8px">Runden</p>${seg('slf','rounds',[3,5,8])}${OPT.slf.mode==='digital'?`<p class="sm" style="margin:14px 0 8px">Zeit zum Tippen</p>${seg('slf','dtimer',[60,90,120],v=>v+' s')}<p class="sm" style="margin:8px 0 0">Online tippen alle gleichzeitig auf dem eigenen Gerät. An einem Gerät kommt jeder nacheinander dran (die anderen schauen weg). Die Punkte werden automatisch berechnet, falsche Wörter streicht ihr danach mit einem Tipp.</p>`:`<p class="sm" style="margin:14px 0 8px">Zeitlimit</p>${seg('slf','timer',[0,60,90],v=>v?v+' s':'Aus')}`}`,
+  rules:'<b>Digital:</b> Der Buchstabe steht oben, jeder tippt zu jeder Kategorie je ein Wort ein (Zeitlimit). Danach zeigt die App alle Antworten und berechnet die Punkte (10 / 5 / 20, siehe unten). Wer als Erster alle Felder ausgefüllt hat, ruft „Stopp“: Dann ist die Runde für alle bald zu Ende (abschaltbar). Wörter, die nicht stimmen, tippt ihr an und streicht sie. <b>Mit Zettel:</b> Jeder braucht <b>Zettel und Stift</b>. Die App nennt einen Buchstaben. Schreibt zu jeder gewählten Kategorie (Standard: Stadt, Land, Fluss, Tier, Beruf; ihr könnt auch eigene erfinden) je ein Wort, das damit anfängt. Wer fertig ist, ruft „Stopp!“ (oder die Zeit läuft ab). Danach werden die Wörter verglichen und Punkte eingetragen: <b>10</b> für ein eigenes Wort, <b>5</b> wenn ein anderer das gleiche hat, <b>20</b> wenn nur du eins hast, 0 für nichts. Wer am Ende die meisten Punkte hat, gewinnt.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (<span id="slfcnt">${slfAll().length}</span> gewählt, 3 bis 10)</p><div class="chips">${SLFA.map((c,i)=>`<span class="chip ${OPT.slf.sel[c]?'on':''}" onclick="slfTog(${i},this)">${esc(c)}</span>`).join('')}${OPT.slf.custom.map((c,i)=>`<span class="chip on" onclick="slfDelCat(${i})">${esc(c)} ✕</span>`).join('')}</div><div class="row" style="margin-top:10px"><input id="slfn" class="txt" type="text" maxlength="20" autocomplete="off" placeholder="Eigene Kategorie …" style="margin:0;flex:1"><button class="sec ib" onclick="slfAddCat()" aria-label="Kategorie hinzufügen" style="margin:0">＋</button></div><p class="sm" style="margin:14px 0 8px">Spielweise</p>${seg('slf','mode',['zettel','digital'],v=>v==='zettel'?'✏️ Zettel & Stift':'⌨️ Digital tippen')}<p class="sm" style="margin:14px 0 8px">Runden</p>${seg('slf','rounds',[3,5,8])}${OPT.slf.mode==='digital'?`<p class="sm" style="margin:14px 0 8px">Zeit zum Tippen</p>${seg('slf','dtimer',[60,90,120],v=>v+' s')}<p class="sm" style="margin:14px 0 8px">Stopp-Regel</p>${seg('slf','stop',[true,false],v=>v?'✋ Erster fertig beendet':'Aus')}<p class="sm" style="margin:8px 0 0">Mit Stopp-Regel kann man erst „Fertig“ sagen, wenn alle Felder ausgefüllt sind – dann beendet das die Runde für alle (online: noch 4 Sekunden, an einem Gerät: die Folgenden haben nur so lange Zeit wie der Erste gebraucht hat, mindestens 20 s).</p><p class="sm" style="margin:8px 0 0">Online tippen alle gleichzeitig auf dem eigenen Gerät. An einem Gerät kommt jeder nacheinander dran (die anderen schauen weg). Die Punkte werden automatisch berechnet, falsche Wörter streicht ihr danach mit einem Tipp.</p>`:`<p class="sm" style="margin:14px 0 8px">Zeitlimit</p>${seg('slf','timer',[0,60,90],v=>v?v+' s':'Aus')}`}`,
   start:slfStart};
 function slfStart(){
   let cats=slfAll();if(cats.length<3){cats=SLFA.slice(0,5);toast('Zu wenige Kategorien – es gelten Stadt, Land, Fluss, Tier, Beruf')}
@@ -4957,31 +4957,55 @@ function slfScore(){
 /* --- Digital tippen --- */
 const slfDProg=()=>prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`);
 function slfDRound(){
-  G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=G.cats.map(()=>S.P.map(()=>false));G.i=0;
+  G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=G.cats.map(()=>S.P.map(()=>false));G.i=0;G.stopT=null;G.stopBy=null;
   if(NET.host){slfDPar();return}
   hand(G.i,'Gleich siehst du den Buchstaben – tippe deine Wörter!',slfDType,slfDProg());
 }
 function slfForm(pi,online){
   const n=G.cats.length,f=G.cats.map((c,k)=>`<label class="sm" style="display:block;margin:10px 0 4px">${esc(c)}</label><input class="txt" type="text" maxlength="30" autocomplete="off" autocapitalize="words" ${online?`data-f="c${k}"`:`id="sf${k}"`} ${k<n-1?'data-nx="1"':(online?'data-enter="w"':'')} placeholder="${esc(c)} mit ${G.lt} …">`).join('');
   return `<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:4px">${av(pi)}<span class="sm">${esc(S.P[pi])} tippt</span></div>
-  <div style="text-align:center"><div class="sm">Der Buchstabe ist</div><div class="slfl" style="font-size:84px;margin:0 0 4px">${G.lt}</div></div>${f}<div class="err" id="e"></div>
+  <div style="text-align:center"><div class="sm">Der Buchstabe ist</div><div class="slfl" style="font-size:84px;margin:0 0 4px">${G.lt}</div></div>${G.o.stop?`<p class="sm" style="margin:0;text-align:center">${!online&&G.stopT!=null?`⏱ ${esc(S.P[G.stopBy])} hat „Stopp“ gerufen – du hast ${G.stopT} s.`:'✋ Alle Felder ausgefüllt? Dann „Fertig“ – das beendet die Runde für alle.'}</p>`:''}${f}<div class="err" id="e"></div>
   <button ${online?'data-sub="w"':'onclick="slfDSubmit()"'}>Fertig ✓</button></div>`;
 }
 function slfDType(){
   scr(`${slfDProg()}${slfForm(G.i,false)}`);
   const l=$('sf'+(G.cats.length-1));if(l)l.addEventListener('keydown',e=>{if(e.key==='Enter')slfDSubmit()});
   setTimeout(()=>{const f=$('sf0');if(f)f.focus()},80);
-  if(G.o.dtimer)tmrShow(G.o.dtimer*1000,slfDUp);
+  G.t0=Date.now();
+  const lim=(G.o.stop&&G.stopT!=null)?Math.min(G.stopT,G.o.dtimer):G.o.dtimer;
+  if(lim)tmrShow(lim*1000,slfDUp);
 }
 function slfDRead(){return G.cats.map((_,k)=>{const e=$('sf'+k);return e?String(e.value).trim().slice(0,30):''})}
-function slfDSubmit(){tmrHide();G.ans[G.i]=slfDRead();slfDNext()}
+function slfDSubmit(){
+  const v=slfDRead();
+  if(G.o.stop&&G.stopT==null){
+    if(v.some(x=>!x)){const e=$('e');if(e)e.textContent='Stopp-Regel: Erst wenn alle Felder ausgefüllt sind, kannst du „Fertig“ sagen.';vib(60);return}
+    G.stopT=Math.max(20,Math.round((Date.now()-G.t0)/1000));G.stopBy=G.i;
+  }
+  tmrHide();G.ans[G.i]=v;slfDNext();
+}
 function slfDUp(){tmrHide();sfx.bad();vib([60,40,60]);G.ans[G.i]=slfDRead();toast('⏰ Zeit um');slfDNext()}
 function slfDNext(){G.i++;if(G.i<S.P.length)hand(G.i,'Gleich siehst du den Buchstaben – tippe deine Wörter!',slfDType,slfDProg());else slfReview()}
 function slfDPar(){
   parBegin({head:slfDProg,dur:[G.o.dtimer*1000],msg:'Alle tippen gleichzeitig …',steps:[
     {k:'w',timeout:pi=>{G.ans[pi]=G.ans[pi]||G.cats.map(()=>'')},html:pi=>slfForm(pi,true),
-     sub:(pi,d)=>{G.ans[pi]=G.cats.map((_,k)=>String((d.f||{})['c'+k]||'').trim().slice(0,30));return true}}
+     sub:(pi,d)=>{
+       const v=G.cats.map((_,k)=>String((d.f||{})['c'+k]||'').trim().slice(0,30)),auto=d.v==='auto',first=G.o.stop&&!auto&&G.stopBy==null;
+       if(first&&v.some(x=>!x))return 'Stopp-Regel: Erst wenn alle Felder ausgefüllt sind, kannst du „Fertig“ sagen.';
+       G.ans[pi]=v;
+       if(first){G.stopBy=pi;slfStopNow(pi)}
+       return true;
+     }}
   ],done:slfReview});
+}
+const SLF_STOP_MS=4000;
+function slfStopNow(pi){   // erster fertig: allen anderen bleiben nur noch ein paar Sekunden
+  if(!PAR||!PAR.dur)return;
+  if(PAR.st.filter(x=>x<PAR.steps.length).length<=1)return;   // sonst war es der Letzte
+  PAR.end=Math.min(PAR.end,Date.now()+SLF_STOP_MS);
+  const ms=Math.max(0,PAR.end-Date.now()),msg='✋ Stopp! '+S.P[pi]+' ist fertig';
+  tmrShow(ms,()=>autoSub('#hw'));toast(msg);
+  NET.m.forEach((m,i)=>{if(i>0&&isOpen(m)){sendTo(m,{t:'tm',ms});sendTo(m,{t:'err',m:msg})}});
 }
 function slfValid(w){const t=String(w||'').trim();if(!t)return false;const m=t.match(/[A-Za-zÄÖÜäöüß]/);return !!m&&m[0].toUpperCase()===G.lt}
 function slfCalc(){
@@ -4998,7 +5022,7 @@ function slfReview(){
     const w=(G.ans[i]||[])[k]||'';if(!String(w).trim())return `<span class="chip" style="opacity:.45">${esc(p)}: –</span>`;
     const v=slfValid(w),bad=G.bad[k][i]||!v;
     return `<span class="chip ${bad?'':'on'}" style="${bad?'text-decoration:line-through;opacity:.6':''}" ${v?`onclick="slfBad(${k},${i})"`:''}>${esc(p)}: ${esc(w)}${c.det[k][i]?` <b>+${c.det[k][i]}</b>`:''}</span>`}).join('')}</div></div>`).join('');
-  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}<p class="sm" style="margin:4px 0 0">Stimmt ein Wort nicht (z. B. keine echte Stadt)? Tippe es an, dann zählt es nicht. Farbig = zählt, durchgestrichen = zählt nicht.</p>${rows}
+  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}${G.stopBy!=null?`<p class="sm" style="margin:4px 0 0">✋ Stopp gerufen von <b style="color:var(--tx)">${esc(S.P[G.stopBy])}</b></p>`:''}<p class="sm" style="margin:4px 0 0">Stimmt ein Wort nicht (z. B. keine echte Stadt)? Tippe es an, dann zählt es nicht. Farbig = zählt, durchgestrichen = zählt nicht.</p>${rows}
   ${boardHTML(c.pts,{label:'Punkte in dieser Runde',unit:' P'})}
   <button onclick="slfDCommit()">${last?'Endergebnis 🏆':'Runde werten'}</button>`);
 }
@@ -5437,7 +5461,7 @@ function autoSub(sel){   // Zeit abgelaufen: eingetippten Wert (auch aus mehrere
   const fs=[...box.querySelectorAll('input[data-f]')];
   if(!fs.some(f=>String(f.value).trim()))return;
   const b=box.querySelector('[data-sub="'+(fs[fs.length-1].getAttribute('data-enter')||fs[0].getAttribute('data-enter')||'')+'"]');
-  if(b)subGo(b);
+  if(b){if(!b.hasAttribute('data-v'))b.setAttribute('data-v','auto');subGo(b)}
 }
 function parTick(){
   if(!PAR||!PAR.dur||Date.now()<PAR.end+1500)return;   // 1,5 s Kulanz für automatisch abgeschickte Eingaben
