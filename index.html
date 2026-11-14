@@ -3974,13 +3974,15 @@ function netOnConn(c){
     if(!d||typeof d!=='object'||!NET.host)return;
     if(d.t==='hi'){
       if(mem)return;
-      const nm0=cleanName(d.n,'Gast');
-      let m=NET.m.find((x,i)=>i>0&&x.name===nm0&&!isOpen(x));
-      if(m){try{m.conn&&m.conn.close()}catch(e){}}
+      const nm0=cleanName(d.n,'Gast'),cid=(typeof d.id==='string'&&d.id)?d.id.slice(0,40):'';
+      // 1) dasselbe Gerät (gleiche ID) übernimmt seinen Platz, auch wenn die alte Verbindung noch offen wirkt
+      // 2) sonst darf ein getrennter Spieler mit gleichem Namen zurück (alte Clients ohne ID)
+      let m=(cid&&NET.m.find((x,i)=>i>0&&x.cid===cid))||NET.m.find((x,i)=>i>0&&x.name===nm0&&!isOpen(x));
+      if(m){const oc=m.conn;m.conn=null;try{oc&&oc.close()}catch(e){}if(cid)m.cid=cid}
       else{
         if(NET.m.length>=10){try{c.send({t:'bye',why:'Die Lobby ist voll (max. 10).'})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},400);return}
         let nm=nm0,k=2;while(NET.m.some(x=>x.name===nm))nm=nm0.slice(0,13)+' '+(k++);
-        m={name:nm};NET.m.push(m);
+        m={name:nm,cid};NET.m.push(m);
       }
       m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;m.oh=null;mem=m;
       sendTo(m,{t:'welcome',idx:NET.m.indexOf(m),name:m.name,code:NET.code});
@@ -4099,19 +4101,29 @@ function netJoinStart(code){
   if(!window.Peer){toast('Online ist hier nicht verfügbar');return}
   setMyName(nm);netJoin(code,nm);
 }
+function myCid(){
+  if(NET.cid)return NET.cid;
+  try{let c=localStorage.getItem('pb_cid');if(!c){c=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('pb_cid',c)}return NET.cid=c}
+  catch(e){return NET.cid=Math.random().toString(36).slice(2)+Date.now().toString(36)}
+}
 function netJoin(code,name){
   lostInfo=null;
+  // Ein früherer Versuch/eine frühere Verbindung desselben Geräts wird beendet, sonst steht man doppelt in der Lobby
+  const oc=NET.conn,op=NET.peer;NET.conn=null;NET.peer=null;hbStop();
+  try{oc&&oc.close()}catch(e){}try{op&&op.destroy()}catch(e){}
+  const jid=NET.jid=(NET.jid||0)+1;
   netStatus('Verbinde mit Lobby '+esc(code)+' …');
   NET.on=true;NET.client=true;NET.host=false;NET.code=code;NET.name=name;NET.perm=true;NET.lastHost=Date.now();NET.got=false;
   document.body.classList.add('cl');
   let p;try{p=new Peer(undefined,{debug:0})}catch(e){netClientFail('Verbindung nicht möglich.');return}
   NET.peer=p;
-  const to=setTimeout(()=>{if(!NET.got)netClientFail('Keine Verbindung zur Lobby.<br><span class="sm">Code falsch, Host weg oder Netzwerk blockiert.</span>')},15000);
-  p.on('error',e=>{if(!NET.got){clearTimeout(to);netClientFail('Verbindung fehlgeschlagen ('+((e&&e.type)||'Fehler')+').<br><span class="sm">Stimmt der Code? Läuft die Lobby noch?</span>')}});
+  const to=setTimeout(()=>{if(jid===NET.jid&&!NET.got)netClientFail('Keine Verbindung zur Lobby.<br><span class="sm">Code falsch, Host weg oder Netzwerk blockiert.</span>')},15000);
+  p.on('error',e=>{if(jid===NET.jid&&!NET.got){clearTimeout(to);netClientFail('Verbindung fehlgeschlagen ('+((e&&e.type)||'Fehler')+').<br><span class="sm">Stimmt der Code? Läuft die Lobby noch?</span>')}});
   p.on('open',()=>{
+    if(jid!==NET.jid)return;
     const c=p.connect(PRE+code,{reliable:true,serialization:'json'});NET.conn=c;
-    c.on('open',()=>{clearTimeout(to);NET.lastHost=Date.now();c.send({t:'hi',n:name});hbStart();wake()});
-    c.on('data',netClientData);
+    c.on('open',()=>{clearTimeout(to);NET.lastHost=Date.now();c.send({t:'hi',n:name,id:myCid()});hbStart();wake()});
+    c.on('data',d=>{if(NET.conn===c)netClientData(d)});
     c.on('close',()=>{if(NET.client&&NET.conn===c)netClientLost()});
     c.on('error',()=>{});
   });
