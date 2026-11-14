@@ -320,6 +320,15 @@ button.bc.lst{outline:2px solid #ffd166;outline-offset:-2px;animation:bslast 1.1
 .fl.ok i{background:var(--ok)}
 .fl.sk{opacity:.75;background:rgba(255,46,77,.14)}
 .fl.sk i{background:#d4483f}
+/* Buchstaben-Rad (Stadt, Land, Fluss) */
+.slfw{position:relative;height:calc(var(--h)*3.1);margin:12px auto 8px;max-width:260px;perspective:760px;overflow:hidden;border-radius:22px;background:linear-gradient(180deg,#141829,#1d2240 50%,#141829);border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(0,0,0,.45),inset 0 0 40px rgba(0,0,0,.5)}
+.slfw::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(8,10,20,.88) 0%,rgba(8,10,20,0) 34%,rgba(8,10,20,0) 66%,rgba(8,10,20,.88) 100%)}
+.slfd{position:absolute;left:0;right:0;top:0;bottom:0;transform-style:preserve-3d;transform:rotateX(var(--fin));animation:slfspin 4.2s cubic-bezier(.1,.72,.18,1) both}
+@keyframes slfspin{from{transform:rotateX(var(--from))}}
+.slfi{position:absolute;left:14%;right:14%;top:50%;height:var(--h);margin-top:calc(var(--h)/-2);display:grid;place-items:center;font-size:54px;font-weight:900;color:#fff;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.18);text-shadow:0 2px 10px rgba(0,0,0,.5)}
+.slfm{position:absolute;left:6%;right:6%;top:50%;height:calc(var(--h)*1.18);transform:translateY(-50%);z-index:4;pointer-events:none;border:3px solid var(--gold);border-radius:16px;box-shadow:0 0 28px rgba(255,200,61,.55),inset 0 0 18px rgba(255,200,61,.25);animation:slfglow .5s 4.2s both}
+@keyframes slfglow{from{opacity:0;transform:translateY(-50%) scale(1.15)}}
+body.calm .slfd,body.calm .slfm{animation:none}
 .slfl{font-size:110px;font-weight:900;line-height:1;margin:6px 0 12px;background:linear-gradient(135deg,var(--gold),var(--red2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .stp{display:flex;align-items:center;gap:8px}.stp b{min-width:34px;text-align:center;font-size:20px}
 .stp .ib{width:40px;height:40px;margin:0}
@@ -2740,7 +2749,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.21';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.22';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4939,7 +4948,24 @@ function slfRound(){
   G.lt=G.pool[G.r];mark('g',G.lt);G.sc=S.P.map(()=>0);
   scr(`${prg(G.r,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card hand"><div class="big" style="font-size:26px">Zettel und Stift bereit?</div><p>Gleich kommt der Buchstabe. Alle fangen gleichzeitig an.</p><button onclick="slfPlay()">Buchstabe aufdecken</button></div>`);
 }
-function slfPlay(){
+/* Buchstaben-Rad: 3D-Walze, nur die vordere Hälfte ist sichtbar; dreht, bremst ab und rastet beim Buchstaben ein */
+function slfReelHTML(letter){
+  const n=SLFL.length,th=360/n,h=74,r=Math.round(h/2/Math.tan(Math.PI/n)),idx=Math.max(0,SLFL.indexOf(letter)),fin=idx*th;
+  return `<div class="slfw" style="--h:${h}px"><div class="slfd" style="--fin:${fin}deg;--from:${fin+1440}deg">${SLFL.map((c,i)=>`<div class="slfi" style="transform:rotateX(${(-i*th).toFixed(2)}deg) translateZ(${r}px)">${c}</div>`).join('')}</div><div class="slfm"></div></div>`;
+}
+function slfReelScreen(){
+  scr(`${prg(G.r,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card" style="text-align:center"><div class="sm">Der Buchstabe wird gezogen …</div>${slfReelHTML(G.lt)}<button class="sec" onclick="slfReelGo()">Überspringen</button></div>`);
+}
+function slfReel(next){
+  G.reelNext=next;G.reelOn=true;const g=G,T=4200,n=14;
+  slfReelScreen();
+  for(let i=1;i<=n;i++)setTimeout(()=>{if(G===g&&g.reelOn)sfx.pop()},T*Math.pow(i/n,1.8));
+  setTimeout(()=>{if(G===g&&g.reelOn){sfx.win();vib([40,30,40]);confetti(60,GOLD)}},T+100);
+  setTimeout(()=>{if(G===g&&g.reelOn)slfReelGo()},T+1900);
+}
+function slfReelGo(){if(!G.reelOn)return;G.reelOn=false;const f=G.reelNext;G.reelNext=null;if(f)f()}
+function slfPlay(){slfReel(slfShow)}
+function slfShow(){
   scr(`${prg(G.r,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card ans" style="text-align:center"><div class="sm">Der Buchstabe ist</div><div class="slfl">${G.lt}</div>
   <div class="chips" style="justify-content:center">${G.cats.map(c=>`<span class="chip on">${esc(c)}</span>`).join('')}</div>
   <p class="sm">Schreibt zu jeder Kategorie ein Wort mit ${G.lt}. Wer fertig ist, ruft „Stopp!“.</p><button onclick="slfStop()">✋ Stopp! Wir werten</button></div>`);
@@ -4958,8 +4984,10 @@ function slfScore(){
 const slfDProg=()=>prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`);
 function slfDRound(){
   G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=G.cats.map(()=>S.P.map(()=>false));G.i=0;G.stopT=null;G.stopBy=null;G.fix=G.cats.map(()=>S.P.map(()=>null));G.edit=null;
-  if(NET.host){slfDPar();return}
-  hand(G.i,'Gleich siehst du den Buchstaben – tippe deine Wörter!',slfDType,slfDProg());
+  slfReel(()=>{
+    if(NET.host){slfDPar();return}
+    hand(G.i,'Der Buchstabe steht fest – tippe deine Wörter!',slfDType,slfDProg());
+  });
 }
 function slfForm(pi,online){
   const n=G.cats.length,f=G.cats.map((c,k)=>`<label class="sm" style="display:block;margin:10px 0 4px">${esc(c)}</label><input class="txt" type="text" maxlength="30" autocomplete="off" autocapitalize="words" ${online?`data-f="c${k}"`:`id="sf${k}"`} ${k<n-1?'data-nx="1"':(online?'data-enter="w"':'')} placeholder="${esc(c)} mit ${G.lt} …">`).join('');
@@ -5557,7 +5585,7 @@ window.hand=function(pi,msg,go,pr,tag){
   ACT=pi;PERM=null;WAIT=waitHTML(pi,pr,tag);HF=go;
   go();syncViews();
 };
-const PUBW=['neResult','kiTurn','kiShow','kiEnd','moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round','mmScreen','hgScreen','ckResult','ttScreen','dsScreen','slfRound','slfPlay','slfScore','slfReview','bsTurn'];
+const PUBW=['neResult','kiTurn','kiShow','kiEnd','moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round','mmScreen','hgScreen','ckResult','ttScreen','dsScreen','slfRound','slfPlay','slfScore','slfReview','slfReelScreen','slfShow','bsTurn'];
 const PERMS={
   spyTalk:()=>'all',
   waGuess:()=>'all',
