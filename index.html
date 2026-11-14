@@ -271,6 +271,12 @@ main#app::-webkit-scrollbar,#hw::-webkit-scrollbar{display:none}
 #hm:hover{border-color:var(--red)}
 body.live #hm{display:block}
 body.live .screen{padding-top:calc(env(safe-area-inset-top,0px) + 50px)}
+.row .qm,.qm{width:32px;height:32px;padding:0;margin:0 0 0 auto;border-radius:50%;font-size:17px;font-weight:800;flex:none;box-shadow:none;background:var(--glass);border:1px solid var(--line)}
+.qm::after{display:none}
+.qm.on{background:linear-gradient(135deg,#8f6cff,#3f7bff);border-color:transparent}
+.qinfo{background:rgba(143,108,255,.14);border:1px solid rgba(143,108,255,.4);border-radius:14px;padding:12px 14px;margin:12px 0 0;font-size:14px;line-height:1.45;color:var(--tx)}
+.qinfo[hidden]{display:none}
+.qinfo small{display:block;color:var(--mu);font-size:11px;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -2682,15 +2688,15 @@ function stopAll(){tmrHide();['iv','iv2'].forEach(k=>{if(G&&G[k]){clearInterval(
 
 /* ---------- Hauptmenü-Knopf (nur während eines laufenden Spiels; Client-Geräte nutzen "Lobby verlassen") ---------- */
 let LIVE=false;
-function setLive(v){LIVE=!!v;document.body.classList.toggle('live',LIVE&&!NET.client)}
+function setLive(v){LIVE=!!v;document.body.classList.toggle('live',LIVE||NET.client)}
 function hmAsk(){
   if(document.getElementById('hmc'))return;
   const d=document.createElement('div');d.className='pk';d.id='hmc';d.style.zIndex=70;
-  d.innerHTML=`<div><h2>Zurück ins Hauptmenü?</h2><p style="margin-top:-4px">Das laufende Spiel wird beendet${NET.host?' – für alle Mitspieler':''}.</p><button onclick="hmGo()">Ja, ins Hauptmenü</button><button class="sec" onclick="hmNo()">Weiter spielen</button></div>`;
+  d.innerHTML=`<div><h2>Zurück ins Hauptmenü?</h2><p style="margin-top:-4px">${NET.client?'Du verlässt die Lobby, die anderen spielen weiter.':'Das laufende Spiel wird beendet'+(NET.host?' – für alle Mitspieler':'')+'.'}</p><button onclick="hmGo()">${NET.client?'Ja, Lobby verlassen':'Ja, ins Hauptmenü'}</button><button class="sec" onclick="hmNo()">Weiter spielen</button></div>`;
   document.body.appendChild(d);
 }
 function hmNo(){const d=document.getElementById('hmc');if(d)d.remove()}
-function hmGo(){hmNo();home()}
+function hmGo(){hmNo();if(NET.client)netLeave();else home()}
 
 /* ---------- Timer-Anzeige (oben mittig, auch auf den Handys der Mitspieler) ---------- */
 let TM=null;
@@ -2857,34 +2863,34 @@ function genDist(){
   const h=Math.sin(dp/2)**2+Math.cos(r(a[1]))*Math.cos(r(b[1]))*Math.sin(dl/2)**2;
   let d=2*6371*Math.asin(Math.sqrt(h));
   d=d<100?Math.round(d):d<1000?Math.round(d/5)*5:Math.round(d/10)*10;
-  return [`Wie weit ist es in Luftlinie von ${a[0]} nach ${b[0]}?`,d,'km'];
+  return [`Wie weit ist es in Luftlinie von ${a[0]} nach ${b[0]}?`,d,'km',`${a[0]}: ${CITYI[a[0]]||''}. ${b[0]}: ${CITYI[b[0]]||''}. „Luftlinie“ heißt: die kürzeste Verbindung über die Erdoberfläche, nicht die Straße.`];
 }
 function genDiff(list,what){
   let a=pick(list),b=pick(list);while(a===b)b=pick(list);if(a[1]<b[1])[a,b]=[b,a];
-  return [`Wie viele Meter ist ${a[0]} höher als ${b[0]}?`,a[1]-b[1],'m'];
+  return [`Wie viele Meter ist ${a[0]} höher als ${b[0]}?`,a[1]-b[1],'m',`${cap(a[0])}: ${MI[a[0]]||''}. ${cap(b[0])}: ${MI[b[0]]||''}. Gefragt ist der Unterschied der beiden Höhen.`];
 }
 function genDates(){
   const t0=Date.UTC(2000,0,1),t1=Date.UTC(2026,11,31);
   let x=t0+Math.floor(Math.random()*(t1-t0)),y=t0+Math.floor(Math.random()*(t1-t0));if(x>y)[x,y]=[y,x];
   const f=t=>{const d=new Date(t);return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}`};
   const days=Math.round((y-x)/864e5);if(days<30)return genDates();
-  return [`Wie viele Tage liegen zwischen dem ${f(x)} und dem ${f(y)}?`,days,'Tage'];
+  return [`Wie viele Tage liegen zwischen dem ${f(x)} und dem ${f(y)}?`,days,'Tage','Tipp: Ein Jahr hat 365 Tage (im Schaltjahr 366), ein Monat im Schnitt etwa 30. Rechne Jahre, Monate und Tage getrennt.'];
 }
-function genAgo(){const e=pick(EV),now=new Date().getFullYear();return [`Wie viele Jahre ist es her, dass ${e[1]}?`,now-e[2],'Jahre']}
-function genGap(){let a=pick(EV),b=pick(EV);while(a===b||a[2]===b[2])b=pick(EV);return [`Wie viele Jahre liegen zwischen dem Jahr, in dem ${a[1]}, und dem Jahr, in dem ${b[1]}?`,Math.abs(a[2]-b[2]),'Jahre']}
-function genAge(){const p=pick(PEOPLE);return [`Wie alt wurde ${p[0]}?`,p[1],'Jahre']}
+function genAgo(){const e=pick(EV),now=new Date().getFullYear();return [`Wie viele Jahre ist es her, dass ${e[1]}?`,now-e[2],'Jahre',`Worum geht es: ${EVI[e[0]]||''}. Überlege, in welchem Jahr das war, und rechne bis heute.`]}
+function genGap(){let a=pick(EV),b=pick(EV);while(a===b||a[2]===b[2])b=pick(EV);return [`Wie viele Jahre liegen zwischen dem Jahr, in dem ${a[1]}, und dem Jahr, in dem ${b[1]}?`,Math.abs(a[2]-b[2]),'Jahre',`Erstes Ereignis: ${EVI[a[0]]||''}. Zweites Ereignis: ${EVI[b[0]]||''}. Gefragt ist der Abstand der beiden Jahreszahlen.`]}
+function genAge(){const p=pick(PEOPLE);return [`Wie alt wurde ${p[0]}?`,p[1],'Jahre',`${p[0]}: ${PEOPLEI[p[0]]||''}.`]}
 function genConv(){
   const c=pick([[[2,3,5,7,10,12,14,30],'Tage','Sekunden',86400],[[2,5,12,24,36],'Stunden','Sekunden',3600],[[2,3,4,6],'Wochen','Minuten',10080],[[2,3,5],'Jahre (ohne Schaltjahre)','Stunden',8760],[[3,7,10,30],'Tage','Minuten',1440]]);
-  const n=pick(c[0]);return [`Wie viele ${c[2]} sind ${n} ${c[1]}?`,n*c[3],c[2]];
+  const n=pick(c[0]);return [`Wie viele ${c[2]} sind ${n} ${c[1]}?`,n*c[3],c[2],'Tipp: Rechne Schritt für Schritt von der großen zur kleinen Einheit (zum Beispiel Tage → Stunden → Minuten → Sekunden).'];
 }
 function genMath(){
   const k=rnd(0,4);
-  if(k===0){const a=rnd(12,99),b=rnd(12,99);return [`Was ergibt ungefähr ${a} × ${b}?`,a*b,'']}
-  if(k===1){const a=rnd(6,19),b=rnd(6,19),c=rnd(6,19);return [`Was ergibt ungefähr ${a} × ${b} × ${c}?`,a*b*c,'']}
-  if(k===2){const N=pick([200,300,500,1000,2000]);let c=0;for(let i=2;i<N;i++){let p=true;for(let j=2;j*j<=i;j++)if(i%j===0){p=false;break}if(p)c++}return [`Wie viele Primzahlen gibt es unter ${N}?`,c,'']}
-  if(k===3){if(Math.random()<.5){const e=rnd(40,300);return [`Wie viele Ziffern hat die Zahl 2 hoch ${e}?`,Math.floor(e*Math.log10(2))+1,'']}
-    const n=rnd(10,40);let f=1n;for(let i=2n;i<=BigInt(n);i++)f*=i;return [`Wie viele Ziffern hat ${n}! (${n} Fakultät)?`,String(f).length,'']}
-  const r=rnd(3,30);return [`Wie groß ist die Fläche eines Kreises mit ${r} m Radius?`,Math.round(Math.PI*r*r),'m²'];
+  if(k===0){const a=rnd(12,99),b=rnd(12,99);return [`Was ergibt ungefähr ${a} × ${b}?`,a*b,'','Tipp: Runde die Zahlen (zum Beispiel 38 auf 40) und rechne im Kopf.']}
+  if(k===1){const a=rnd(6,19),b=rnd(6,19),c=rnd(6,19);return [`Was ergibt ungefähr ${a} × ${b} × ${c}?`,a*b*c,'','Tipp: Runde die Zahlen und multipliziere zuerst zwei davon.']}
+  if(k===2){const N=pick([200,300,500,1000,2000]);let c=0;for(let i=2;i<N;i++){let p=true;for(let j=2;j*j<=i;j++)if(i%j===0){p=false;break}if(p)c++}return [`Wie viele Primzahlen gibt es unter ${N}?`,c,'','Eine Primzahl ist nur durch 1 und durch sich selbst teilbar (2, 3, 5, 7, 11 …).']}
+  if(k===3){if(Math.random()<.5){const e=rnd(40,300);return [`Wie viele Ziffern hat die Zahl 2 hoch ${e}?`,Math.floor(e*Math.log10(2))+1,'','„2 hoch n“ heißt: n-mal die 2 mit sich selbst multipliziert. Gefragt ist, wie viele Stellen das Ergebnis hat.']}
+    const n=rnd(10,40);let f=1n;for(let i=2n;i<=BigInt(n);i++)f*=i;return [`Wie viele Ziffern hat ${n}! (${n} Fakultät)?`,String(f).length,'','„n!“ (Fakultät) heißt: 1 × 2 × 3 × … × n. Gefragt ist, wie viele Stellen das Ergebnis hat.']}
+  const r=rnd(3,30);return [`Wie groß ist die Fläche eines Kreises mit ${r} m Radius?`,Math.round(Math.PI*r*r),'m²','Tipp: Kreisfläche = π × Radius × Radius, mit π ≈ 3,14.'];
 }
 const GEN=[genDist,genDist,genDist,()=>genDiff(MOUNT,''),()=>genDiff(MOUNT,''),()=>genDiff(BUILD,''),genDates,genDates,genAgo,genAgo,genGap,genAge,genConv,genConv,genMath,genMath,genMath];
 
@@ -2961,6 +2967,114 @@ const QGEN={
 'Jahreszahlen 📅':[genAgo,genAgo,genGap],
 'Rechnen & Orte 🧮':[genDist,genDist,genDist,()=>genDiff(MOUNT,''),()=>genDiff(MOUNT,''),()=>genDiff(BUILD,''),genDates,genDates,genConv,genConv,genMath,genMath,genMath]
 };
+
+/* ---------- Info-Texte (Fragezeichen-Knopf): erklären, was oder wer gemeint ist – ohne die Antwort zu verraten ---------- */
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+const INFO={
+"Wie hoch ist die Zugspitze?":"Die Zugspitze ist ein Berg im Wettersteingebirge an der Grenze zwischen Bayern (Deutschland) und Tirol (Österreich).",
+"Wie hoch ist der Mount Everest?":"Der Mount Everest liegt im Himalaya an der Grenze zwischen Nepal und China (Tibet).",
+"Wie lang ist der Rhein?":"Der Rhein entspringt in den Schweizer Alpen, fließt durch Deutschland und die Niederlande und mündet in die Nordsee.",
+"Wie viele Stufen hat der Südturm des Kölner Doms?":"Der Kölner Dom ist eine große gotische Kathedrale in Köln. Gefragt sind die Stufen der Wendeltreppe hinauf zum Südturm.",
+"Wie alt wurde Jeanne Calment, die älteste dokumentierte Person?":"Jeanne Calment war eine Französin aus Arles. Gefragt ist ihr Lebensalter in Jahren.",
+"Wie viele Länder sind Mitglied der Vereinten Nationen?":"Die Vereinten Nationen (UNO) sind ein Zusammenschluss von Staaten mit Sitz in New York, gegründet nach dem Zweiten Weltkrieg.",
+"Wie viele Elemente hat das Periodensystem?":"Das Periodensystem ordnet alle bekannten chemischen Elemente (zum Beispiel Wasserstoff, Sauerstoff, Gold) nach ihrer Ordnungszahl.",
+"Wie viele Sitze hat der aktuelle Bundestag?":"Der Bundestag ist das Parlament Deutschlands in Berlin. Die Zahl der Abgeordneten schwankt je nach Wahlergebnis.",
+"Wie hoch ist der Burj Khalifa?":"Der Burj Khalifa ist ein Wolkenkratzer in Dubai (Vereinigte Arabische Emirate).",
+"Wie viele Zuschauer fasst die Allianz Arena ungefähr?":"Die Allianz Arena ist das Fußballstadion des FC Bayern München, bekannt für ihre leuchtende Außenhülle.",
+"Wie lang ist der Gotthard-Basistunnel?":"Der Gotthard-Basistunnel ist ein Eisenbahntunnel durch die Schweizer Alpen zwischen Nord- und Südschweiz.",
+"Wie tief ist der Bodensee an der tiefsten Stelle?":"Der Bodensee liegt an der Grenze von Deutschland, Österreich und der Schweiz.",
+"Wie viele Liter fasst ein olympisches Schwimmbecken (50 × 25 × 2 m)?":"Tipp: Volumen = Länge × Breite × Tiefe. Ein Kubikmeter entspricht 1000 Litern.",
+"Wie alt wurde Mozart?":"Wolfgang Amadeus Mozart war ein österreichischer Komponist aus Salzburg („Die Zauberflöte“, „Eine kleine Nachtmusik“).",
+"Wie viele Sinfonien hat Beethoven komponiert?":"Ludwig van Beethoven war ein deutscher Komponist aus Bonn („Für Elise“, „Ode an die Freude“).",
+"Wie lange dauert ein siderischer Mondumlauf um die Erde?":"Siderisch heißt: gemessen relativ zu den Fixsternen, also bis der Mond wieder an derselben Stelle am Sternenhimmel steht.",
+"Wie schnell ist der 100-m-Weltrekord der Männer?":"Gefragt ist die Laufzeit in Sekunden über 100 Meter.",
+"Wie hoch ist der Hochsprung-Weltrekord der Männer?":"Beim Hochsprung wird eine Latte übersprungen. Gefragt ist die Rekordhöhe in Metern.",
+"Wie viele Tore schoss Miroslav Klose bei Weltmeisterschaften?":"Miroslav Klose ist ein ehemaliger deutscher Nationalstürmer, der bei mehreren Weltmeisterschaften spielte.",
+"Wie viele Bundesliga-Tore schoss Gerd Müller?":"Gerd Müller war ein legendärer Stürmer des FC Bayern München, genannt „Der Bomber der Nation“.",
+"Wie schnell fährt ein ICE in Deutschland maximal?":"Der ICE ist der Hochgeschwindigkeitszug der Deutschen Bahn.",
+"In welchem Jahr fiel die Berliner Mauer?":"Die Berliner Mauer teilte Berlin in Ost und West. Gefragt ist, wann die Grenze geöffnet wurde.",
+"In welchem Jahr sank die Titanic?":"Die Titanic war ein britisches Passagierschiff, das auf seiner ersten Fahrt von England nach New York mit einem Eisberg kollidierte.",
+"In welchem Jahr landete der erste Mensch auf dem Mond?":"Die US-Mission Apollo 11 brachte Neil Armstrong und Buzz Aldrin zum Mond.",
+"In welchem Jahr erreichte Kolumbus Amerika?":"Christoph Kolumbus war ein Seefahrer aus Genua im Dienst der spanischen Krone und suchte einen Seeweg nach Indien.",
+"In welchem Jahr war die Katastrophe von Tschernobyl?":"In Tschernobyl (heute Ukraine) explodierte ein Reaktor eines Atomkraftwerks, radioaktive Wolken zogen über Europa.",
+"In welchem Jahr wurde Google gegründet?":"Google ist eine Internet-Suchmaschine, gegründet von den Studenten Larry Page und Sergey Brin in den USA.",
+"In welchem Jahr kam das erste iPhone auf den Markt?":"Das iPhone ist das Smartphone von Apple. Gefragt ist das Erscheinungsjahr des allerersten Modells.",
+"In welchem Jahr wurde der Euro als Bargeld eingeführt?":"Der Euro ist die gemeinsame Währung vieler EU-Staaten. Gefragt ist, wann Münzen und Scheine ausgegeben wurden, nicht wann er als Buchgeld startete.",
+"In welchem Jahr wurde der Mount Everest erstmals bestiegen?":"Den Gipfel erreichten als Erste der Neuseeländer Edmund Hillary und der Sherpa Tenzing Norgay.",
+"In welchem Jahr begann der Bau von Schloss Neuschwanstein?":"Neuschwanstein ist ein Märchenschloss bei Füssen im Allgäu, gebaut für König Ludwig II. von Bayern.",
+"In welchem Jahr wurde der FC Bayern München gegründet?":"Der FC Bayern ist ein Fußballverein aus München und einer der erfolgreichsten Deutschlands.",
+"In welchem Jahr wurde die Berliner Mauer gebaut?":"Die DDR riegelte damals Ost-Berlin gegen West-Berlin ab.",
+"In welchem Jahr begann die Französische Revolution?":"In Frankreich erhob sich das Volk gegen den König. Berühmt ist der Sturm auf die Bastille.",
+"In welchem Jahr wurde der Flughafen BER eröffnet?":"BER ist der Hauptstadtflughafen Berlin Brandenburg. Seine Eröffnung wurde mehrfach verschoben.",
+"In welchem Jahr wurde YouTube gegründet?":"YouTube ist eine Videoplattform, die später von Google gekauft wurde.",
+"Wie tief ist das Challengertief im Marianengraben?":"Das Challengertief ist die tiefste bekannte Stelle der Weltmeere, im Pazifik östlich der Philippinen.",
+"Wie hoch ist der Olympus Mons auf dem Mars?":"Der Olympus Mons ist ein riesiger Schildvulkan auf dem Planeten Mars.",
+"Bei wie viel °C schmilzt Eisen?":"Eisen ist ein Metall. Gefragt ist die Schmelztemperatur, also ab wann es flüssig wird.",
+"Wie viel °C hat der absolute Nullpunkt?":"Der absolute Nullpunkt ist die tiefstmögliche Temperatur, bei der sich Teilchen kaum noch bewegen.",
+"Wie groß ist die Fläche des Bodensees?":"Der Bodensee liegt an der Grenze von Deutschland, Österreich und der Schweiz.",
+"Wie viele Zeitzonen hat Russland?":"Russland ist das flächenmäßig größte Land der Erde und erstreckt sich über Europa und Asien.",
+"Wie viele Kantone hat die Schweiz?":"Ein Kanton ist ein „Bundesland“ der Schweiz, zum Beispiel Bern, Zürich oder Tessin.",
+"Wie viele Mitgliedsstaaten hat die EU?":"Die Europäische Union ist ein Bund europäischer Staaten mit gemeinsamem Binnenmarkt.",
+"Wie lang ist die Isar?":"Die Isar entspringt in Tirol und fließt unter anderem durch Bad Tölz und München in die Donau.",
+"Wie viele Pixel hat ein Full-HD-Bild (1920 × 1080)?":"Ein Pixel ist ein einzelner Bildpunkt. Tipp: Breite × Höhe.",
+"Wie viele Billionen Kilometer ist ein Lichtjahr lang?":"Ein Lichtjahr ist die Strecke, die Licht in einem Jahr zurücklegt.",
+"Wie viele Stunden schläft ein Koala am Tag?":"Koalas sind in Australien lebende Beuteltiere, die fast nur Eukalyptusblätter fressen.",
+"Wie groß ist ein Kaiserpinguin?":"Der Kaiserpinguin ist die größte Pinguinart und lebt in der Antarktis.",
+"Wie hoch hängt ein Basketballkorb?":"Gefragt ist die Höhe des Rings über dem Boden bei Spielen von Erwachsenen.",
+"Wie weit ist der Weitsprung-Weltrekord der Männer?":"Beim Weitsprung springt man nach dem Anlauf möglichst weit in eine Sandgrube.",
+"Wie oft wurde Deutschland Fußball-Weltmeister der Männer?":"Gemeint sind die Weltmeisterschaften der Männer-Nationalmannschaft, zum Beispiel das „Wunder von Bern“.",
+"Wie viele Spiele hat eine Bundesliga-Saison pro Verein?":"Die Bundesliga ist die höchste deutsche Fußballliga. Gespielt wird mit Hin- und Rückrunde, jeder gegen jeden.",
+"Wie hoch ist die Mona Lisa?":"Die Mona Lisa ist ein berühmtes Gemälde von Leonardo da Vinci im Louvre in Paris.",
+"In welchem Jahr wurde die erste E-Mail verschickt?":"Der Ingenieur Ray Tomlinson verschickte die erste E-Mail zwischen zwei Rechnern im ARPANET, dem Vorläufer des Internets.",
+"In welchem Jahr wurde die erste SMS verschickt?":"Eine SMS ist eine Textnachricht per Mobilfunk. Gefragt ist die allererste, die an ein Handy geschickt wurde.",
+"In welchem Jahr kam der erste Game Boy auf den Markt?":"Der Game Boy ist eine tragbare Spielkonsole von Nintendo (mit dem Spiel Tetris).",
+"In welchem Jahr wurde BMW gegründet?":"BMW (Bayerische Motoren Werke) ist ein Autohersteller aus München, der mit Flugzeugmotoren begann.",
+"In welchem Jahr wurde Volkswagen gegründet?":"Volkswagen („Wagen fürs Volk“) ist ein Autohersteller aus Wolfsburg, berühmt durch den Käfer.",
+"In welchem Jahr erschien das Ford Model T?":"Das Model T war ein Auto des US-Herstellers Ford und eines der ersten in Fließbandfertigung massenhaft gebauten.",
+"In welchem Jahr fand die erste Tour de France statt?":"Die Tour de France ist das berühmteste Radrennen der Welt und führt durch Frankreich.",
+"In welchem Jahr wurden die Kinder- und Hausmärchen der Brüder Grimm erstmals veröffentlicht?":"Jacob und Wilhelm Grimm sammelten Märchen wie Hänsel und Gretel, Rotkäppchen und Schneewittchen.",
+"In welchem Jahr wurde das Brandenburger Tor fertiggestellt?":"Das Brandenburger Tor ist ein klassizistisches Stadttor in Berlin und ein Wahrzeichen Deutschlands.",
+"In welchem Jahr endete die Weltumsegelung von Magellans Expedition?":"Ferdinand Magellan war ein portugiesischer Seefahrer in spanischen Diensten. Er selbst starb unterwegs, ein Schiff seiner Flotte kehrte zurück.",
+"In welchem Jahr wurde München gegründet?":"München ist die Hauptstadt Bayerns. Gefragt ist das Jahr der Gründung durch Heinrich den Löwen.",
+"In welchem Jahr wurde das Römische Weltreich im Westen formal beendet?":"Das Weströmische Reich endete, als sein letzter Kaiser abgesetzt wurde. Damit gilt die Antike als beendet.",
+"In welchem Jahr fand die Schlacht bei Hastings statt?":"In der Schlacht bei Hastings in England besiegte der Normannenherzog Wilhelm (der Eroberer) den englischen König Harold.",
+"In welchem Jahr wurde die Magna Carta unterzeichnet?":"Die Magna Carta („Große Urkunde“) beschränkte in England die Macht des Königs und gilt als Grundstein für Bürgerrechte.",
+"In welchem Jahr veröffentlichte Einstein die Spezielle Relativitätstheorie?":"Albert Einstein war ein deutscher Physiker. Die Relativitätstheorie beschreibt Raum, Zeit und die Lichtgeschwindigkeit.",
+"In welchem Jahr begannen die Terroranschläge vom 11. September?":"Entführte Flugzeuge wurden in die Türme des World Trade Center in New York gelenkt.",
+"Wie viele Kalorien hat 100 g Vollmilchschokolade ungefähr?":"Kalorien (kcal) messen die Energie, die ein Lebensmittel liefert.",
+"Wie viele Kalorien hat 100 g Gummibärchen ungefähr?":"Kalorien (kcal) messen die Energie, die ein Lebensmittel liefert.",
+"Wie viele Kalorien hat 100 g Nutella ungefähr?":"Nutella ist eine Nuss-Nougat-Creme. Kalorien (kcal) messen die Energie, die ein Lebensmittel liefert.",
+"Wie viele Kalorien hat 100 g Butter ungefähr?":"Kalorien (kcal) messen die Energie, die ein Lebensmittel liefert.",
+"Wie viele Kalorien hat eine Dose Cola (0,33 l) ungefähr?":"Kalorien (kcal) messen die Energie, die ein Lebensmittel oder Getränk liefert.",
+"Wie viele Kalorien hat ein Liter Pils ungefähr?":"Pils ist eine helle, herbe Biersorte. Kalorien (kcal) messen die Energie, die ein Getränk liefert.",
+"Wie viele Liter Milch braucht man ungefähr für ein Kilo Butter?":"Butter entsteht aus dem Fett (Rahm) der Milch.",
+"Wie hoch ist der höchste bekannte Baum der Welt (Hyperion)?":"Hyperion ist ein Küstenmammutbaum in einem Nationalpark in Kalifornien (USA).",
+"Wie lang wird ein Blauwal höchstens ungefähr?":"Der Blauwal ist ein Meeressäuger und gilt als das größte Tier, das heute lebt.",
+"Wie lang ist die Donau?":"Die Donau entspringt im Schwarzwald und fließt durch viele Länder bis ins Schwarze Meer.",
+"Wie lang ist die Elbe?":"Die Elbe entspringt in Tschechien und fließt durch Dresden und Hamburg in die Nordsee.",
+"Wie schnell kann ein Gepard maximal laufen?":"Der Gepard ist eine Großkatze in Afrika und gilt als schnellstes Landtier.",
+"Wie viele Eier legt eine Legehenne ungefähr pro Jahr?":"Eine Legehenne ist ein Huhn, das für die Eierproduktion gehalten wird.",
+"Wie viele Äpfel (je 150 g) wiegen zusammen drei Kilo?":"Tipp: Drei Kilo sind 3000 Gramm. Teile durch das Gewicht eines einzelnen Apfels.",
+"Wie viele Tage sind eine Million Sekunden?":"Tipp: Ein Tag hat 24 Stunden, eine Stunde 60 Minuten, eine Minute 60 Sekunden.",
+"Wie oft schlägt das Herz an einem Tag, wenn es 70-mal pro Minute schlägt?":"Tipp: Ein Tag hat 24 Stunden mit je 60 Minuten.",
+"Wie oft atmet man an einem Tag, wenn man 15-mal pro Minute atmet?":"Tipp: Ein Tag hat 24 Stunden mit je 60 Minuten.",
+"Wie viele Euro sind eine Million 1-Cent-Münzen wert?":"Tipp: 100 Cent sind ein Euro.",
+"Wie viele Augen hat ein Würfel auf allen sechs Seiten zusammen?":"Ein normaler Würfel zeigt auf seinen sechs Seiten die Augenzahlen 1 bis 6.",
+"Wie viele Steine hat ein Domino-Spiel (Doppel-Sechs)?":"Im Doppel-Sechs-Satz kommt jede Augenkombination von 0 bis 6 genau einmal vor.",
+"Wie viele Karten hat ein Skatblatt?":"Skat ist ein deutsches Kartenspiel für drei Personen, gespielt mit einem kleineren Blatt als Poker.",
+"Wie viele Kilo wiegt ein Kubikmeter Luft?":"Ein Kubikmeter ist ein Würfel mit einem Meter Kantenlänge (1000 Liter).",
+"Wie viele Kilo wiegt ein Liter Honig?":"Ein Liter Wasser wiegt ein Kilo. Honig ist dichter als Wasser."
+};
+// Mehrfach genutzter Tipp für die "Kilo"-Fragen
+["Wie viele Hühnereier (Größe M, ca. 58 g) braucht man ungefähr für ein Kilo?","Wie viele 2-Euro-Münzen (je 8,5 g) wiegen zusammen ein Kilo?","Wie viele 1-Cent-Münzen (je 2,3 g) wiegen zusammen ein Kilo?","Wie viele Tischtennisbälle (je 2,7 g) wiegen zusammen ein Kilo?","Wie viele Brötchen (je 50 g) ergeben ein Kilo?"].forEach(k=>{INFO[k]="Tipp: Ein Kilo sind 1000 Gramm. Teile durch das Gewicht eines einzelnen Stücks."});
+const CITYI={"München":"Landeshauptstadt von Bayern (Deutschland)","Berlin":"Hauptstadt Deutschlands","Hamburg":"große Hafenstadt in Norddeutschland an der Elbe","Köln":"Stadt am Rhein in Nordrhein-Westfalen mit dem berühmten Dom","Frankfurt":"Finanzstadt in Hessen am Main","Stuttgart":"Landeshauptstadt von Baden-Württemberg","Dresden":"Hauptstadt Sachsens an der Elbe","Wien":"Hauptstadt Österreichs","Zürich":"größte Stadt der Schweiz","Rom":"Hauptstadt Italiens","Paris":"Hauptstadt Frankreichs","London":"Hauptstadt des Vereinigten Königreichs","Madrid":"Hauptstadt Spaniens","Lissabon":"Hauptstadt Portugals am Atlantik","Athen":"Hauptstadt Griechenlands","Moskau":"Hauptstadt Russlands","New York":"Millionenstadt an der Ostküste der USA","Tokio":"Hauptstadt Japans","Sydney":"größte Stadt Australiens","Kapstadt":"Stadt in Südafrika am Kap der Guten Hoffnung","Rio de Janeiro":"Küstenstadt in Brasilien, bekannt für Zuckerhut und Karneval","Peking":"Hauptstadt Chinas","Dubai":"Wüstenmetropole in den Vereinigten Arabischen Emiraten","Reykjavik":"Hauptstadt Islands","Kairo":"Hauptstadt Ägyptens am Nil","Innsbruck":"Hauptstadt Tirols in den österreichischen Alpen","Bad Tölz":"Kurstadt in Oberbayern an der Isar","Los Angeles":"Millionenstadt an der Westküste der USA (Kalifornien)","Bangkok":"Hauptstadt Thailands","Istanbul":"Metropole in der Türkei am Bosporus, zwischen Europa und Asien","Oslo":"Hauptstadt Norwegens","Amsterdam":"Hauptstadt der Niederlande"};
+const MI={"die Zugspitze":"Berg im Wettersteingebirge an der Grenze zwischen Bayern und Tirol","der Watzmann":"Berg in den Berchtesgadener Alpen (Bayern)","der Großglockner":"Berg in den österreichischen Hohen Tauern","der Mont Blanc":"Berg in den Westalpen an der Grenze zwischen Frankreich und Italien","das Matterhorn":"markanter Pyramidenberg an der Grenze zwischen der Schweiz und Italien","der Eiger":"Berg in den Berner Alpen (Schweiz) mit berühmter Nordwand","der Kilimandscharo":"Vulkanberg in Tansania (Afrika)","der Aconcagua":"Berg in den Anden in Argentinien","der Mount Everest":"Berg im Himalaya an der Grenze zwischen Nepal und China","der K2":"Berg im Karakorum an der Grenze zwischen Pakistan und China","der Fuji":"Vulkan bei Tokio, heiliger Berg Japans","der Elbrus":"Vulkanberg im Kaukasus (Russland)","der Ben Nevis":"Berg in den schottischen Highlands",
+"der Eiffelturm (mit Antenne)":"Eisenturm in Paris","der Kölner Dom":"gotische Kathedrale in Köln","der Berliner Fernsehturm":"Fernsehturm am Alexanderplatz in Berlin","der Burj Khalifa":"Wolkenkratzer in Dubai","der Shanghai Tower":"Wolkenkratzer in Shanghai (China)","das Empire State Building (mit Antenne)":"Wolkenkratzer in New York (Manhattan)","das Taipei 101":"Wolkenkratzer in Taipeh (Taiwan)","der CN Tower":"Fernsehturm in Toronto (Kanada)","das Ulmer Münster":"gotische Kirche in Ulm","der Schiefe Turm von Pisa":"schiefer Glockenturm in Pisa (Italien)"};
+const EVI={"fiel die Berliner Mauer":"Öffnung der Grenze zwischen Ost- und Westberlin","sank die Titanic":"britisches Passagierschiff, nach Kollision mit einem Eisberg auf seiner ersten Fahrt","landeten Menschen erstmals auf dem Mond":"Apollo-11-Mission der USA mit Neil Armstrong","erreichte Kolumbus Amerika":"Seefahrt des Christoph Kolumbus im Auftrag der spanischen Krone","wurde Google gegründet":"Internet-Suchmaschine, gegründet von Larry Page und Sergey Brin","kam das erste iPhone auf den Markt":"erstes Smartphone von Apple","wurde der Euro als Bargeld eingeführt":"Ausgabe der Münzen und Scheine der gemeinsamen EU-Währung","wurde der Mount Everest erstmals bestiegen":"Erstbesteigung durch Edmund Hillary und Tenzing Norgay","wurde der FC Bayern München gegründet":"Fußballverein aus München","wurde die Berliner Mauer gebaut":"Abriegelung West-Berlins durch die DDR","begann die Französische Revolution":"Aufstand gegen den König in Frankreich, berühmt ist der Sturm auf die Bastille","wurde YouTube gegründet":"Videoplattform, später von Google gekauft","wurde Facebook gegründet":"soziales Netzwerk, von Mark Zuckerberg an der Harvard-Universität gegründet","wurde Apple gegründet":"Computer- und Elektronikfirma (Mac, iPhone), gegründet unter anderem von Steve Jobs und Steve Wozniak","wurde Microsoft gegründet":"Softwarefirma (Windows, Office), gegründet von Bill Gates und Paul Allen","wurde Amazon gegründet":"Online-Händler, von Jeff Bezos zunächst als Buchladen gegründet","wurde der Eiffelturm eröffnet":"Eisenturm in Paris, gebaut für eine Weltausstellung","begann der Erste Weltkrieg":"Krieg, ausgelöst nach dem Attentat von Sarajevo auf den österreichischen Thronfolger","begann der Zweite Weltkrieg":"Krieg, der mit dem deutschen Überfall auf Polen begann","flog Juri Gagarin als erster Mensch ins All":"sowjetischer Kosmonaut mit dem Raumschiff Wostok 1","fand die erste Fußball-WM statt":"erstes Weltmeisterschafts-Turnier im Fußball, ausgetragen in Südamerika","startete die erste Bundesliga-Saison":"Beginn der höchsten deutschen Fußballliga","wurde Penicillin entdeckt":"erstes Antibiotikum, von Alexander Fleming zufällig entdeckt","wurde das Schaf Dolly geboren":"erstes aus einer Körperzelle geklontes Säugetier, geboren in Schottland","wurde das erste Oktoberfest gefeiert":"Volksfest in München, ursprünglich zur Hochzeit von Kronprinz Ludwig und Therese","fiel Konstantinopel":"Eroberung der Hauptstadt des Byzantinischen Reichs (heute Istanbul) durch die Osmanen","wurde die Bundesrepublik Deutschland gegründet":"Gründung des westdeutschen Staates mit dem Grundgesetz","wurde Deutschland wiedervereinigt":"Zusammenschluss von Bundesrepublik und DDR","wurde das erste Auto von Carl Benz patentiert":"Benz Patent-Motorwagen, oft als erstes Automobil bezeichnet","wurde Lego gegründet":"dänischer Spielzeughersteller (Klemmbausteine)","wurde der Flughafen BER eröffnet":"Hauptstadtflughafen Berlin Brandenburg, Eröffnung mehrfach verschoben","wurde der Kölner Dom fertiggestellt":"gotische Kathedrale in Köln, deren Bau sehr lange dauerte","wurde John F. Kennedy erschossen":"Attentat auf den US-Präsidenten in Dallas","wurde Nintendo gegründet":"japanisches Unternehmen, zunächst für Spielkarten (heute Super Mario, Pokémon-Spiele)","wurde die Röntgenstrahlung entdeckt":"Wilhelm Conrad Röntgen, Physiker in Würzburg; die Strahlen durchleuchten den Körper"};
+const PEOPLEI={"Ludwig van Beethoven":"deutscher Komponist aus Bonn („Für Elise“, „Ode an die Freude“), der später taub wurde","Albert Einstein":"Physiker (Relativitätstheorie, E = mc²) und Nobelpreisträger","Johann Wolfgang von Goethe":"deutscher Dichter aus Frankfurt („Faust“, „Die Leiden des jungen Werthers“), lebte lange in Weimar","Friedrich Schiller":"deutscher Dichter („Die Räuber“, „Wilhelm Tell“), befreundet mit Goethe","Vincent van Gogh":"niederländischer Maler („Sternennacht“, „Sonnenblumen“)","Johann Sebastian Bach":"deutscher Komponist des Barock („Brandenburgische Konzerte“, Toccata und Fuge)","Isaac Newton":"englischer Physiker und Mathematiker (Gravitationsgesetz, Apfel-Anekdote)","Marie Curie":"polnisch-französische Physikerin und Chemikerin, erforschte die Radioaktivität, zwei Nobelpreise","Pablo Picasso":"spanischer Maler und Bildhauer (Kubismus, „Guernica“)","Charles Darwin":"britischer Naturforscher (Evolutionstheorie, „Die Entstehung der Arten“)","Winston Churchill":"britischer Premierminister im Zweiten Weltkrieg","Nikola Tesla":"serbisch-amerikanischer Erfinder (Wechselstrom, Tesla-Spule)","Sigmund Freud":"österreichischer Arzt, Begründer der Psychoanalyse","Abraham Lincoln":"Präsident der USA zur Zeit des Bürgerkriegs, beendete die Sklaverei","Leonardo da Vinci":"italienischer Maler, Erfinder und Forscher („Mona Lisa“, „Das letzte Abendmahl“)","Napoleon Bonaparte":"französischer Feldherr und Kaiser","Immanuel Kant":"deutscher Philosoph aus Königsberg („Kritik der reinen Vernunft“)"};
+const qInfo=q=>q[3]||INFO[q[0]]||'';
+const qBtn=q=>qInfo(q)?'<button class="qm" data-tg="qi" aria-label="Info" title="Info">?</button>':'';
+const qBox=q=>qInfo(q)?`<div class="qinfo" hidden><small>Info – verrät nicht die Antwort</small>${esc(qInfo(q))}</div>`:'';
 
 const PW={
 'Tiere 🐧':['Pinguin','Giraffe','Kuh','Faultier','Krake','Känguru','Hahn','Flamingo','Schlange','Elefant','Eichhörnchen','Frosch','Gorilla','Fledermaus','Krokodil','Schildkröte','Biene','Adler','Pfau','Hund beim Gassi','Katze, die vom Tisch schubst','Wal','Schwein im Schlamm','Seepferdchen','Bär beim Honigklauen','Murmeltier','Papagei','Nilpferd','Hamster im Laufrad','Löwe','Krebs','Spinne','Chamäleon','Seehund','Storch','Maulwurf','Kolibri','Wolf beim Heulen','Dackel','Esel','Qualle'],
@@ -3260,8 +3374,8 @@ let ARTIP_MS=10000;   // Online: Zeit zum Tippen nach Ablauf der Schätzzeit
 function arPar(){
   const q=G.q;
   parBegin({head:arProg,dur:G.o.timer?[G.o.timer*1000,ARTIP_MS].slice(0,G.tip?2:1):null,msg:G.tip?'Alle schätzen und tippen gleichzeitig auf ihrem Gerät …':'Beide schätzen gleichzeitig auf ihrem Gerät …',steps:[
-    {k:'g',timeout:pi=>{G.g[pi]=null},html:pi=>`<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(pi)}<span class="sm">${esc(S.P[pi])} schätzt</span></div>
-      <div class="q">${esc(q[0])}</div>${q[2]?`<div style="margin-top:8px" class="sm">Einheit: <span class="unit">${esc(q[2])}</span></div>`:''}
+    {k:'g',timeout:pi=>{G.g[pi]=null},html:pi=>`<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(pi)}<span class="sm">${esc(S.P[pi])} schätzt</span>${qBtn(q)}</div>
+      <div class="q">${esc(q[0])}</div>${q[2]?`<div style="margin-top:8px" class="sm">Einheit: <span class="unit">${esc(q[2])}</span></div>`:''}${qBox(q)}
       <input data-f="g" data-enter="g" class="num" type="text" inputmode="decimal" autocomplete="off" placeholder="?"><button data-sub="g">${G.tip?'Weiter zum Tippen':'Abschicken'}</button></div>`,
      sub:(pi,d)=>{const v=arParse(d.f.g);if(v==null)return 'Bitte eine Zahl eingeben.';G.g[pi]=v;return true}},
     {k:'t',timeout:pi=>{G.t[pi]=null},html:pi=>`<div class="card"><div class="sm">Deine Schätzung ist gespeichert. Jetzt tippen:</div><div class="q" style="margin:8px 0 6px">Wer liegt am weitesten daneben?</div><p style="margin:0 0 6px;font-size:14px">${esc(q[0])}</p>
@@ -3275,8 +3389,8 @@ function arRound(){
   hand(G.i,arMsg(),arGuess,arProg());
 }
 function arGuess(){
-  scr(`${arProg()}<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(G.i)}<span class="sm">${esc(S.P[G.i])} schätzt</span></div>
-  <div class="q">${esc(G.q[0])}</div>${G.q[2]?`<div style="margin-top:8px" class="sm">Einheit: <span class="unit">${esc(G.q[2])}</span></div>`:''}
+  scr(`${arProg()}<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(G.i)}<span class="sm">${esc(S.P[G.i])} schätzt</span>${qBtn(G.q)}</div>
+  <div class="q">${esc(G.q[0])}</div>${G.q[2]?`<div style="margin-top:8px" class="sm">Einheit: <span class="unit">${esc(G.q[2])}</span></div>`:''}${qBox(G.q)}
   <input id="g" class="num" type="text" inputmode="decimal" autocomplete="off" placeholder="?">
   <div class="err" id="e"></div><button onclick="arSubmit()">${G.tip?'Weiter zum Tippen':'Abschicken'}</button></div>`);
   const g=$('g');g.addEventListener('keydown',e=>{if(e.key==='Enter')arSubmit()});setTimeout(()=>g.focus(),80);
@@ -4338,7 +4452,7 @@ function netJoin(code,name){
   const jid=NET.jid=(NET.jid||0)+1;
   netStatus('Verbinde mit Lobby '+esc(code)+' …','netLeave()');
   NET.on=true;NET.client=true;NET.host=false;NET.code=code;NET.name=name;NET.perm=true;NET.lastHost=Date.now();NET.got=false;
-  document.body.classList.add('cl');
+  document.body.classList.add('cl','live');
   let p;try{p=new Peer(undefined,{debug:0})}catch(e){netClientFail('Verbindung nicht möglich.');return}
   NET.peer=p;
   const to=setTimeout(()=>{if(jid===NET.jid&&!NET.got)netClientFail('Keine Verbindung zur Lobby.<br><span class="sm">Code falsch, Host weg oder Netzwerk blockiert.</span>')},15000);
@@ -4373,7 +4487,7 @@ function netCleanup(){
   try{NET.conn&&NET.conn.close()}catch(e){}
   try{NET.peer&&NET.peer.destroy()}catch(e){}
   NET.on=false;NET.client=false;NET.conn=null;NET.peer=null;NET.got=false;
-  document.body.classList.remove('cl','noperm');$('lv').style.display='none';
+  document.body.classList.remove('cl','noperm','live');$('lv').style.display='none';
 }
 /* HTML vom Host einsetzen: Handler entschärfen (Klicks gehen an den Host) */
 function strip(root){
@@ -4516,6 +4630,13 @@ document.addEventListener('click',e=>{
   if(!e.target.closest||!e.target.closest('.logo'))return;
   const n=Date.now();lgN=(n-lgT<1500)?lgN+1:1;lgT=n;
   if(lgN>=5){lgN=0;diag()}
+});
+
+/* Fragezeichen: Info ein-/ausblenden (rein lokal auf dem jeweiligen Gerät) */
+document.addEventListener('click',e=>{
+  const t=e.target.closest&&e.target.closest('[data-tg="qi"]');if(!t)return;
+  const c=t.closest('.card'),i=c&&c.querySelector('.qinfo');if(!i)return;
+  i.hidden=!i.hidden;t.classList.toggle('on',!i.hidden);
 });
 
 /* Eigene Screens (parallele Eingaben): Buttons mit data-sub, Felder mit data-f, Container mit data-p (Spielerindex) */
