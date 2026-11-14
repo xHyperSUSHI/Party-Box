@@ -2698,7 +2698,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.7';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.8';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2709,7 +2709,7 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const pad=n=>String(n).padStart(2,'0');
 const dec=n=>{const s=String(n);return s.includes('.')?s.split('.')[1].length:0};
 
-let C={days:15,fx:true,vib:true,sound:true,theme:'feuer',drink:true};
+let C={days:15,fx:true,vib:true,sound:true,theme:'feuer',drink:true,sips:true};
 let S={names:['Spieler 1','Spieler 2','Spieler 3'],mode:'solo',nt:2,P:null,tm:null,tmKey:''};
 let G={},CUR=null,HF=null,TH=['var(--red2)','var(--red)'];
 const NET={on:false,host:false,client:false,code:'',m:[],inGame:false,scr:null,peer:null,conn:null,perm:true,idx:-1,localNames:null,syn:false};
@@ -3312,7 +3312,7 @@ function statsScreen(sel){
 
 /* ---------- Einstellungen ---------- */
 const tg=(k,l,sub)=>`<div class="trow" onclick="setC('${k}',${!C[k]})"><span>${l}${sub?`<br><span class="sm">${sub}</span>`:''}</span><i class="sw ${C[k]?'on':''}"></i></div>`;
-function setC(k,v){C[k]=v;saveCfg();applyTheme();if(k==='sound'&&v)sfx.ok();settings()}
+function setC(k,v){C[k]=v;if(k==='sips'&&!v&&typeof DRKV!=='undefined')DRKV.forEach(g=>{OPT[g].drink=false});saveCfg();applyTheme();if(k==='sound'&&v)sfx.ok();settings()}
 async function checkUpdate(){
   const e=$('upd');if(!e)return;e.textContent='Prüfe …';
   try{
@@ -3333,7 +3333,7 @@ function settings(){
   <div class="row">${[0,3,7,15,30].map(d=>`<button class="${C.days===d?'':'sec'} sg" onclick="setC('days',${d})">${d?d+' Tage':'Aus'}</button>`).join('')}</div>
   <p class="sm" style="margin:12px 0 0">Gerade gesperrt: <b style="color:var(--tx)">${blocked()}</b> Einträge</p>
   <button class="sec" onclick="clearHist();toast('Verlauf zurückgesetzt');settings()">Verlauf zurücksetzen</button></div>
-  <div class="card"><h2>Trinkspiele</h2>${tg('drink','Trinkspiele anzeigen (ab 18)','Aus = Kategorie, Spiele und Trink-Varianten verschwinden')}</div>
+  <div class="card"><h2>Trinkspiele (ab 18)</h2>${tg('drink','Kategorie „Trinkspiele“ anzeigen','Aus = Ich hab noch nie und Königsrunde verschwinden von der Startseite')}${tg('sips','Funktion „Schlucke verteilen“','Aus = keine Trink-Variante bei Arschkarte, Bluff, Wer würde am ehesten, Bombe, Reflex')}</div>
   <div class="card"><h2>Tastatur</h2><p class="sm" style="margin-top:-4px">Mit Magic Keyboard am iPad, am Mac und am PC:</p>
   <div class="sm" style="line-height:2.1">
   <span class="kbd">Tab</span> springt durch Knöpfe, <span class="kbd">Enter</span> / <span class="kbd">Leertaste</span> löst aus<br>
@@ -3438,6 +3438,7 @@ function startSession(id){
   const d=GAMES[id];setLive(true);
   S.P=S.names.map((n,i)=>n.trim()||'Spieler '+(i+1));
   CUR=id;TH=d.c;
+  if(!sipsOn()&&OPT[id]&&OPT[id].drink)OPT[id].drink=false;
   G={id,def:d,o:OPT[id],team:false};
   if(d.teams&&teamOn()){
     if(!validTm()){wheel(()=>startSession(id),"Los geht's");return}
@@ -4888,12 +4889,12 @@ function slfCommit(){
 }
 
 /* ================= Kategorien & Trinkspiele (ab 18) ================= */
-const CATS=[{id:'quiz',n:'Quiz & Schätzen',s:'Quiz',e:'🧠',c:['#ff7a45','#ff2e4d']},{id:'party',n:'Party & Raten',s:'Party',e:'🎭',c:['#8f6cff','#3f7bff']},{id:'group',n:'Gruppe & Abstimmen',s:'Gruppe',e:'🗳️',c:['#c026d3','#ec4899']},{id:'brain',n:'Knobeln & Solo',s:'Knobeln',e:'🧩',c:['#14b8a6','#0ea5e9']},{id:'duel',n:'Duell & Klassiker',s:'Duell',e:'⚔️',c:['#3b82f6','#6366f1']},{id:'action',n:'Action & Reflex',s:'Action',e:'⚡',c:['#22c55e','#06b6d4']},{id:'drink',n:'Trinkspiele (ab 18)',s:'Trinken',e:'🍻',c:['#f59e0b','#ef4444']}];
-const GCAT={arsch:'quiz',bluff:'quiz',hilo:'quiz',pant:'party',taboo:'party',wave:'party',slf:'party',spy:'group',most:'group',memo:'brain',hang:'brain',code:'brain',c4:'duel',ttt:'duel',dots:'duel',react:'action',bomb:'action',never:'drink',kings:'drink'};
+const CATS=[{id:'quiz',n:'Quiz & Schätzen',s:'Quiz',e:'🧠',c:['#ff7a45','#ff2e4d']},{id:'party',n:'Party & Raten',s:'Party',e:'🎭',c:['#8f6cff','#3f7bff']},{id:'group',n:'Gruppe & Abstimmen',s:'Gruppe',e:'🗳️',c:['#c026d3','#ec4899']},{id:'brain',n:'Knobeln & Duell',s:'Knobeln',e:'🧩',c:['#14b8a6','#0ea5e9']},{id:'action',n:'Action & Reflex',s:'Action',e:'⚡',c:['#22c55e','#06b6d4']},{id:'drink',n:'Trinkspiele (ab 18)',s:'Trinken',e:'🍻',c:['#f59e0b','#ef4444']}];
+const GCAT={arsch:'quiz',bluff:'quiz',hilo:'quiz',pant:'party',taboo:'party',wave:'party',slf:'party',spy:'group',most:'group',memo:'brain',hang:'brain',code:'brain',c4:'brain',ttt:'brain',dots:'brain',react:'action',bomb:'action',never:'drink',kings:'drink'};
 const DRKV=['arsch','bluff','most','bomb','react'];   // Spiele mit optionaler Trink-Variante
 OPT.arsch.drink=OPT.bluff.drink=OPT.most.drink=OPT.bomb.drink=OPT.react.drink=false;
 let HCAT='all',DNEXT=null;try{HCAT=localStorage.getItem('pb_cat')||'all'}catch(e){}
-const drinkOn=()=>C.drink!==false;
+const drinkOn=()=>C.drink!==false,sipsOn=()=>C.sips!==false;
 function setHCat(id){HCAT=id;try{localStorage.setItem('pb_cat',id)}catch(e){}home()}
 function randomGame(){
   const n=S.names.length,ids=Object.keys(GAMES).filter(id=>GAMES[id].min<=n&&(HCAT==='all'?GAMES[id].cat!=='drink':GAMES[id].cat===HCAT));
@@ -4912,7 +4913,7 @@ function drinkGate(go){
 function dnoteNo(){const d=document.getElementById('dnote');if(d)d.remove();DNEXT=null}
 function dnoteYes(){const d=document.getElementById('dnote');if(d)d.remove();try{localStorage.setItem('pb_dnote','1')}catch(e){}const f=DNEXT;DNEXT=null;if(f)f()}
 function drinkTog(g,el){drinkGate(()=>{OPT[g].drink=!OPT[g].drink;el.classList.toggle('on',OPT[g].drink)})}
-const drinkChip=g=>drinkOn()?`<p class="sm" style="margin:16px 0 8px">Trink-Variante (ab 18)</p><div class="chips"><span class="chip ${OPT[g].drink?'on':''}" onclick="drinkTog('${g}',this)">🍻 Schlucke verteilen</span></div><p class="sm" style="margin:8px 0 0">Nach jeder Runde stehen Vorschläge, wer wie viele Schlucke trinkt. Alkoholfrei geht genauso.</p>`:'';
+const drinkChip=g=>sipsOn()?`<p class="sm" style="margin:16px 0 8px">Trink-Variante (ab 18)</p><div class="chips"><span class="chip ${OPT[g].drink?'on':''}" onclick="drinkTog('${g}',this)">🍻 Schlucke verteilen</span></div><p class="sm" style="margin:8px 0 0">Nach jeder Runde stehen Vorschläge, wer wie viele Schlucke trinkt. Alkoholfrei geht genauso.</p>`:'';
 const drinkBox=l=>l.length?`<div class="card" style="border-color:rgba(255,200,61,.55);background:rgba(255,200,61,.08)"><div class="sm">🍻 Schlucke (Vorschläge – alkoholfrei geht auch)</div>${l.map(x=>`<div style="margin-top:6px;font-weight:700">${x}</div>`).join('')}</div>`:'';
 function rxDrink(idx){const bad=idx.filter(pi=>G.times[pi]===Infinity),l=bad.length?bad:[idx[idx.length-1]];return l.map(pi=>`${esc(S.P[pi])} trinkt 1 Schluck ${G.times[pi]===Infinity?'🙈':'🐢'}`)}
 function bDrink(){return S.P.map((p,vi)=>{const k=G.votes[vi],o=k==null?null:G.opts[k];return o&&!o.real?`${esc(p)} trinkt 1 Schluck (auf „${esc(o.text)}“ hereingefallen)`:''}).filter(Boolean)}
