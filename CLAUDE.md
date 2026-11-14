@@ -66,7 +66,7 @@ Jedes Spiel ist `GAMES.<id>={name,e,tag,c,min,teams,desc,rules,opts(),start()}` 
 
 - Reflex online: Zeit wird auf dem Gerät des Spielers gemessen, ist aber nicht manipulationssicher (Grenzen siehe oben). Die Verzögerung vom Host zum Handy (bis Grün erscheint) bleibt unberücksichtigt.
 - Reihum statt parallel laufen online noch Pantomime, Wellenlänge, Reflex, Bombe (inhaltlich Reihum) – Arschkarte, Bluff, Spion sind parallel.
-- Kein TURN-Relay: über Mobilfunk (CGNAT) kann die Verbindung scheitern.
+- TURN: Die eingebettete PeerJS-Version bringt Standard-ICE-Server mit (Google-STUN plus die öffentlichen PeerJS-TURN-Server `turn:eu-0/us-0.turn.peerjs.com`, Zugang `peerjs`/`peerjsp`); `new Peer(id,{debug:0})` übernimmt sie. Mobilfunk (CGNAT) sollte damit über den Relay laufen, ist aber **nicht über echtes Mobilfunknetz getestet**, und der kostenlose öffentliche TURN ist Best-Effort. Eigene TURN-Zugangsdaten (z. B. Cloudflare/Metered) wären nötig, wenn es dennoch scheitert – sie lägen im öffentlichen Quelltext.
 - Host muss die App offen lassen.
 
 ## Testen
