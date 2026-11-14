@@ -3062,8 +3062,26 @@ function arStart(){
   G.rounds=G.o.rounds;G.cards=G.ents.map(()=>0);G.deck=buildDeck(G.rounds);G.r=0;arRound();
 }
 function arProg(){return prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}
+function arParse(s){
+  const raw=String(s==null?'':s).trim().replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');
+  const v=parseFloat(raw);return isFinite(v)?v:null;
+}
+// Online: alle schätzen und tippen gleichzeitig auf dem eigenen Gerät
+function arPar(){
+  const q=G.q;
+  parBegin({head:arProg,msg:'Alle schätzen und tippen gleichzeitig auf ihrem Gerät …',steps:[
+    {k:'g',html:pi=>`<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(pi)}<span class="sm">${esc(S.P[pi])} schätzt</span></div>
+      <div class="q">${esc(q[0])}</div>${q[2]?`<div style="margin-top:8px" class="sm">Einheit: <span class="unit">${esc(q[2])}</span></div>`:''}
+      <input data-f="g" data-enter="g" class="num" type="text" inputmode="decimal" autocomplete="off" placeholder="?"><button data-sub="g">Weiter zum Tippen</button></div>`,
+     sub:(pi,d)=>{const v=arParse(d.f.g);if(v==null)return 'Bitte eine Zahl eingeben.';G.g[pi]=v;return true}},
+    {k:'t',html:pi=>`<div class="card"><div class="sm">Deine Schätzung ist gespeichert. Jetzt tippen:</div><div class="q" style="margin:8px 0 6px">Wer liegt am weitesten daneben?</div><p style="margin:0 0 6px;font-size:14px">${esc(q[0])}</p>
+      ${S.P.map((p,i)=>i===pi?'':`<button class="opt" style="--k:${i}" data-sub="t" data-v="${i}">${av(i)}<span>${esc(p)}</span></button>`).join('')}</div>`,
+     sub:(pi,d)=>{const t=Number(d.v);if(d.v==null||!Number.isInteger(t)||t<0||t>=S.P.length||t===pi)return 'Ungültige Wahl.';G.t[pi]=t;return true}}
+  ],done:arResult});
+}
 function arRound(){
   G.q=G.deck[G.r];mark('q',G.q[0]);G.g=[];G.t=[];G.i=0;
+  if(NET.host){arPar();return}
   hand(G.i,'Schätzen und tippen – niemand schaut mit!',arGuess,arProg());
 }
 function arGuess(){
@@ -3075,9 +3093,8 @@ function arGuess(){
 }
 function arSubmit(){
   const g=$('g');
-  const raw=g.value.trim().replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');
-  const v=parseFloat(raw);
-  if(!isFinite(v)){$('e').textContent='Bitte eine Zahl eingeben.';g.classList.remove('shake');void g.offsetWidth;g.classList.add('shake');vib(80);return}
+  const v=arParse(g.value);
+  if(v==null){$('e').textContent='Bitte eine Zahl eingeben.';g.classList.remove('shake');void g.offsetWidth;g.classList.add('shake');vib(80);return}
   G.g[G.i]=v;arTip();
 }
 function arTip(){
@@ -3225,9 +3242,20 @@ GAMES.spy={name:'Der Spion',e:'🕵️',tag:'Einer weiß den Ort nicht',c:['#14b
   start:spyStart};
 function spyStart(){G.r=0;G.rounds=G.o.rounds;G.locs=ordered(LOCS,l=>l[0],'l');spyRound()}
 function spyProg(){return prg(G.r,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}
+// Online: jeder sieht seine Karte gleichzeitig auf dem eigenen Gerät
+function spyPar(){
+  parBegin({head:spyProg,msg:'Alle schauen heimlich auf ihre Karte …',steps:[
+    {k:'ok',html:pi=>{const sp=pi===G.spy;return `<div class="card word flipin" style="margin-top:14px">${sp
+      ?`<small>Deine Rolle</small><div style="font-size:70px">🕵️</div><span>Du bist der Spion!</span><p>Finde heraus, wo ihr seid – ohne aufzufallen.</p>`
+      :`<small>Der geheime Ort</small><div style="font-size:70px">${G.loc[1]}</div><span>${G.loc[0]}</span><p>Du bist kein Spion. Stelle clevere Fragen, ohne den Ort zu verraten.</p>`}</div>
+      <button data-sub="ok">Verdecken &amp; fertig</button>`},
+     sub:()=>true}
+  ],done:spyTalk});
+}
 function spyRound(){
   G.loc=G.locs[G.r%G.locs.length];mark('l',G.loc[0]);
   G.spy=rnd(0,S.P.length-1);G.i=0;
+  if(NET.host){spyPar();return}
   hand(G.i,'Schau dir deine Karte an – niemand sonst!',spyShow,spyProg());
 }
 function spyShow(){
@@ -3364,7 +3392,7 @@ GAMES.bluff={name:'Bluff',e:'🤥',tag:'Lügen erwünscht',c:['#ec4899','#8b5cf6
 const norm=t=>t.toLowerCase().replace(/[^a-z0-9äöüß]/g,'');
 function bStart(){G.r=0;G.rounds=G.o.rounds;G.qs=ordered(BQ,q=>q[0],'b').slice(0,G.rounds);bRound()}
 function bProg(){return prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}
-function bRound(){G.q=G.qs[G.r%G.qs.length];mark('b',G.q[0]);G.fk=[];G.i=0;hand(G.i,'Schreibe eine falsche Antwort – niemand schaut mit!',bInput,bProg())}
+function bRound(){G.q=G.qs[G.r%G.qs.length];mark('b',G.q[0]);G.fk=[];G.i=0;if(NET.host){bPar();return}hand(G.i,'Schreibe eine falsche Antwort – niemand schaut mit!',bInput,bProg())}
 function bInput(){
   scr(`${bProg()}<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(G.i)}<span class="sm">${esc(S.P[G.i])} schreibt</span></div>
   <div class="q">${esc(G.q[0])}</div><input id="bt" class="txt" type="text" autocomplete="off" maxlength="60" placeholder="Deine falsche Antwort"><div class="err" id="e"></div><button onclick="bSubmit()">Abschicken</button></div>`);
@@ -3376,11 +3404,31 @@ function bSubmit(){
   G.fk.push({pi:G.i,text:v,n:norm(v)});G.i++;
   if(G.i<S.P.length)hand(G.i,'Schreibe eine falsche Antwort – niemand schaut mit!',bInput,bProg());else bPrepare();
 }
-function bPrepare(){
+function bBuild(){
   const map={};
   G.fk.forEach(f=>{(map[f.n]=map[f.n]||{text:f.text,real:false,authors:[]}).authors.push(f.pi)});
   G.opts=shuffle(Object.values(map).concat([{text:G.q[1],real:true,authors:[]}]));
-  G.votes=[];G.i=0;hand(G.i,'Welche Antwort ist die echte?',bVote,bProg());
+  G.votes=[];G.i=0;
+}
+function bPrepare(){bBuild();hand(G.i,'Welche Antwort ist die echte?',bVote,bProg())}
+// Online: alle schreiben gleichzeitig, danach stimmen alle gleichzeitig ab
+function bPar(){
+  parBegin({head:bProg,msg:'Alle schreiben gleichzeitig ihre falsche Antwort …',steps:[
+    {k:'w',html:pi=>`<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(pi)}<span class="sm">${esc(S.P[pi])} schreibt</span></div>
+      <div class="q">${esc(G.q[0])}</div><input data-f="w" data-enter="w" class="txt" type="text" autocomplete="off" maxlength="60" placeholder="Deine falsche Antwort"><button data-sub="w">Abschicken</button></div>`,
+     sub:(pi,d)=>{
+       const v=String(d.f.w==null?'':d.f.w).trim().slice(0,60);
+       if(!v)return 'Schreib etwas hin.';
+       if(!norm(v)||norm(v)===norm(G.q[1]))return 'Zu nah an der echten Antwort – lass dir was anderes einfallen!';
+       G.fk.push({pi,text:v,n:norm(v)});return true}}
+  ],done:()=>{bBuild();bVotePar()}});
+}
+function bVotePar(){
+  parBegin({head:bProg,msg:'Alle wählen gleichzeitig die echte Antwort …',steps:[
+    {k:'v',html:pi=>`<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:10px">${av(pi)}<span class="sm">${esc(S.P[pi])} wählt</span></div><div class="q" style="font-size:20px">${esc(G.q[0])}</div>
+      ${G.opts.map((o,k)=>o.authors.includes(pi)?'':`<button class="opt" style="--k:${k}" data-sub="v" data-v="${k}"><span>${esc(o.text)}</span></button>`).join('')}</div>`,
+     sub:(pi,d)=>{const k=Number(d.v);if(d.v==null||!Number.isInteger(k)||!G.opts[k]||G.opts[k].authors.includes(pi))return 'Ungültige Wahl.';G.votes[pi]=k;return true}}
+  ],done:bResult});
 }
 function bVote(){
   scr(`${bProg()}<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:10px">${av(G.i)}<span class="sm">${esc(S.P[G.i])} wählt</span></div><div class="q" style="font-size:20px">${esc(G.q[0])}</div>
@@ -3697,7 +3745,7 @@ function c4Draw(){
 /* ================= Online-Modus (PeerJS, Host-Spiel + Spiegelung) =================
    Das Spiel läuft nur auf dem Host. Alle anderen Handys zeigen eine Spiegelung des Bildschirms
    (nur wenn sie dran sein dürfen) und schicken ihre Eingaben an den Host.            */
-let ACT=null,PERM=null,WAIT='';
+let ACT=null,PERM=null,WAIT='',PAR=null;
 const PRE='pbox-',APP_CODE_LEN=5;
 let UID=0;
 const hwEl=$('hw');
@@ -3722,7 +3770,7 @@ function permOf(){
   if(p==='all')return 'all';
   return devIdx(p);
 }
-function canAct(mi){const p=permOf();return p==='all'||(p==='host'?mi===0:p===mi)}
+function canAct(mi){if(PAR&&parOwn(mi)!=null)return true;const p=permOf();return p==='all'||(p==='host'?mi===0:p===mi)}
 
 /* ---------- Spiegelung: Host → Clients ---------- */
 function tagAll(){app.querySelectorAll('*').forEach(e=>{if(!e.hasAttribute('data-n'))e.setAttribute('data-n',++UID)})}
@@ -3767,8 +3815,13 @@ function flush(){
   targets.forEach(m=>sendTo(m,pkt));
   sendPerms();
 }
+let hwO=null;
+function hostOwn(h){
+  app.style.visibility='hidden';hwEl.style.display='block';
+  if(hwO!==h){hwO=h;hwEl.innerHTML=h;setTimeout(()=>{const i=hwEl.querySelector('input[data-f]');if(i)try{i.focus()}catch(e){}},80)}
+}
 function hostView(el){
-  app.style.visibility=el?'':'hidden';
+  hwO=null;app.style.visibility=el?'':'hidden';
   hwEl.style.display=el?'none':'block';
   if(!el)hwEl.innerHTML=WAIT;
 }
@@ -3776,16 +3829,50 @@ function syncViews(){
   if(!NET.host)return;
   flush();
   NET.m.forEach((m,i)=>{
-    const el=eligible(i),want=el?'mirror':'wait';
-    if(i===0){hostView(el);m.view=want;return}
+    const own=PAR?parOwn(i):null;
+    const el=eligible(i),want=own!=null?'own':(el?'mirror':'wait');
+    if(i===0){if(own!=null)hostOwn(own);else hostView(el);m.view=want;return}
     if(!isOpen(m)){m.view='none';return}
-    if(want==='mirror'&&m.view!=='mirror'){tagAll();sendTo(m,{t:'full',html:app.innerHTML});m.view='mirror'}
+    if(want==='own'){if(m.view!=='own'||m.oh!==own){sendTo(m,{t:'own',html:own});m.view='own';m.oh=own}}
+    else if(want==='mirror'&&m.view!=='mirror'){tagAll();sendTo(m,{t:'full',html:app.innerHTML});m.view='mirror'}
     else if(want==='wait'&&(m.view!=='wait'||m.wh!==WAIT)){sendTo(m,{t:'wait',html:WAIT});m.view='wait';m.wh=WAIT}
   });
   sendPerms();
 }
 function sendPerms(){
   NET.m.forEach((m,i)=>{if(i===0||!isOpen(m))return;const p=canAct(i);if(m.perm!==p){m.perm=p;sendTo(m,{t:'perm',ok:p})}});
+}
+/* ---------- Parallele Eingaben (nur Online-Host) ----------
+   Jeder Spieler bekommt auf seinem Gerät einen eigenen Screen (Packet 'own'); der gemeinsame Screen zeigt nur den Stand.
+   Clients schicken keine DOM-Klicks, sondern Daten {ty:'sub',p,k,v,f}. Der Host prüft sie in step.sub(). */
+function parOwn(mi){
+  if(!PAR)return null;
+  for(let p=0;p<PAR.st.length;p++){
+    if(PAR.st[p]<PAR.steps.length&&devIdx(p)===mi)
+      return `<div class="screen own" data-p="${p}" style="--g1:${TH[0]};--g2:${TH[1]}">${PAR.steps[PAR.st[p]].html(p)}</div>`;
+  }
+  return null;
+}
+function parScreen(){
+  return PAR.head()+`<div class="card"><div class="sm" style="margin-bottom:6px">${esc(PAR.msg)}</div>${S.P.map((n,i)=>`<div class="row" style="align-items:center;margin-top:8px">${av(i,'',34)}<b style="flex:1">${esc(n)}</b><span>${PAR.st[i]>=PAR.steps.length?'✅':'⏳'}</span></div>`).join('')}</div>`;
+}
+function parBegin(cfg){
+  stopAll();ACT=null;PERM=null;NET.scr=null;
+  PAR={steps:cfg.steps,st:S.P.map(()=>0),head:cfg.head,msg:cfg.msg,done:cfg.done};
+  scr(parScreen());syncViews();
+}
+function parErr(mi,msg){if(mi===0){toast(msg);vib(60)}else sendTo(NET.m[mi],{t:'err',m:msg})}
+function parSub(mi,d){
+  if(!PAR||!d||typeof d!=='object'||d.p==null)return;
+  const p=+d.p;
+  if(!Number.isInteger(p)||p<0||p>=PAR.st.length||devIdx(p)!==mi)return;
+  const step=PAR.steps[PAR.st[p]];
+  if(!step||d.k!==step.k)return;
+  let r;try{r=step.sub(p,{v:d.v,f:(d.f&&typeof d.f==='object')?d.f:{}})}catch(e){r='Das hat nicht geklappt.'}
+  if(r!==true){if(typeof r==='string')parErr(mi,r);return}
+  PAR.st[p]++;
+  if(PAR.st.every(x=>x>=PAR.steps.length)){const c=PAR;PAR=null;c.done();return}
+  scr(parScreen());syncViews();
 }
 function fxSend(o){if(!NET.host)return;NET.m.forEach((m,i)=>{if(i>0&&m.view==='mirror'&&isOpen(m))sendTo(m,{t:'fx',k:o.k,a:o.a})})}
 function waitHTML(pi,pr,tag){
@@ -3811,7 +3898,7 @@ const MENU=['home','settings','gameSetup'];
 function wrapPub(n,permFn){
   const f=window[n];if(typeof f!=='function')return;
   window[n]=function(){
-    ACT=null;PERM=permFn?permFn():null;
+    ACT=null;PAR=null;PERM=permFn?permFn():null;
     if(n==='startSession')NET.inGame=true;
     if(MENU.indexOf(n)>=0){NET.inGame=false;NET.scr=(n==='home')?'home':null;netPrune()}
     else NET.scr=null;
@@ -3883,7 +3970,7 @@ function netOnConn(c){
         let nm=nm0,k=2;while(NET.m.some(x=>x.name===nm))nm=nm0.slice(0,13)+' '+(k++);
         m={name:nm};NET.m.push(m);
       }
-      m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;mem=m;
+      m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;m.oh=null;mem=m;
       sendTo(m,{t:'welcome',idx:NET.m.indexOf(m),name:m.name,code:NET.code});
       netMembersChanged();
       return;
@@ -3908,7 +3995,7 @@ function netPrune(){
   S.names=NET.m.map(x=>x.name);
 }
 function lobbyScreen(){
-  ACT=null;PERM=null;NET.scr='lobby';TH=['var(--red2)','var(--red)'];stopAll();S.P=null;
+  ACT=null;PAR=null;PERM=null;NET.scr='lobby';TH=['var(--red2)','var(--red)'];stopAll();S.P=null;
   const link=location.href.split('#')[0]+'#'+NET.code;
   let qr='';try{const q=qrcode(0,'M');q.addData(link);q.make();qr=q.createSvgTag({cellSize:6,margin:0,scalable:true})}catch(e){}
   scr(`<button class="sec back" onclick="home()">← Spiele</button>${logo('Lobby')}
@@ -3932,13 +4019,15 @@ function netStop(){
     if(NET.localNames)S.names=NET.localNames;
   }
   NET.on=false;NET.host=false;NET.m=[];NET.peer=null;NET.localNames=null;NET.inGame=false;NET.scr=null;NET.code='';
-  ACT=null;PERM=null;hostView(true);
+  ACT=null;PAR=null;PERM=null;hostView(true);
 }
 
 /* ---------- Host: Eingaben der Clients ---------- */
 function netEvent(m,d){
   const idx=NET.m.indexOf(m);
-  if(idx<0||!canAct(idx))return;
+  if(idx<0)return;
+  if(d.ty==='sub'){parSub(idx,d);return}
+  if(!canAct(idx))return;
   if(d.vals&&typeof d.vals==='object'){
     for(const k in d.vals){
       const el=app.querySelector('[data-n="'+(+k)+'"]');
@@ -4069,6 +4158,11 @@ function netClientData(d){
       }
     }
   }
+  else if(d.t==='own'){
+    parseInto(app,String(d.html||''));window.scrollTo(0,0);
+    setTimeout(()=>{const i=app.querySelector('input[data-f]');if(i)try{i.focus()}catch(e){}},120);
+  }
+  else if(d.t==='err'){toast(String(d.m||'Ungültig'));vib(60)}
   else if(d.t==='perm'){NET.perm=!!d.ok;document.body.classList.toggle('noperm',!NET.perm)}
   else if(d.t==='fx'){
     try{
@@ -4148,6 +4242,22 @@ fsSync();
   const m=document.createElement('link');m.rel='manifest';m.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(man));document.head.appendChild(m);
   const a=document.createElement('link');a.rel='apple-touch-icon';a.href=url;document.head.appendChild(a);
 }catch(e){}})();
+
+/* Eigene Screens (parallele Eingaben): Buttons mit data-sub, Felder mit data-f, Container mit data-p (Spielerindex) */
+function subGo(t){
+  const box=t.closest('[data-p]');if(!box)return;
+  const f={};box.querySelectorAll('[data-f]').forEach(e=>{f[e.getAttribute('data-f')]=String(e.value).slice(0,200)});
+  const d={p:+box.getAttribute('data-p'),k:t.getAttribute('data-sub'),v:t.getAttribute('data-v'),f};
+  if(NET.host){if(hwEl.contains(t))parSub(0,d)}
+  else if(NET.client&&app.contains(t))sendC(Object.assign({ty:'sub'},d));
+}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-sub]');if(t)subGo(t)});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;const t=e.target;
+  if(!t||!t.getAttribute||!t.getAttribute('data-enter'))return;
+  const box=t.closest('[data-p]'),b=box&&box.querySelector('[data-sub="'+t.getAttribute('data-enter')+'"]');
+  if(b)subGo(b);
+});
 
 applyTheme();
 (function(){const hh=(location.hash||'').replace('#','').toUpperCase().replace(/[^A-Z0-9]/g,'');if(hh.length===APP_CODE_LEN&&window.Peer)joinScreen(hh);else home()})();
