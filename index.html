@@ -2612,7 +2612,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.4';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.5';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3256,7 +3256,7 @@ function settings(){
   <span class="kbd">Leertaste</span> Reflex tippen, Bombe weitergeben<br>
   4 Gewinnt: <span class="kbd">1</span>–<span class="kbd">7</span> Spalte, oder <span class="kbd">←</span> <span class="kbd">→</span> und <span class="kbd">↓</span><br>
   Wellenlänge: <span class="kbd">←</span> <span class="kbd">→</span> Marker (mit <span class="kbd">Shift</span> in 5er-Schritten)<br>
-  <span class="kbd">I</span> Info (?), <span class="kbd">S</span> Überspringen, <span class="kbd">T</span> Tabu<br>
+  <span class="kbd">I</span> Info (?), <span class="kbd">S</span> Überspringen, <span class="kbd">T</span> Tabu, <span class="kbd">F</span> Falsch (Bombe)<br>
   <span class="kbd">Esc</span> Hauptmenü / Fenster schließen</div></div>
   <div class="card"><h2>Effekte</h2>${tg('fx','Animationen &amp; Konfetti','Aus = ruhiger und akkuschonender')}${tg('vib','Vibration')}${tg('sound','Ton','Ticken, Knall &amp; Jingles')}</div>
   <div class="card"><h2>App &amp; Fragen</h2><p class="sm" style="margin-top:-4px">Version <b style="color:var(--tx)">${APP_VERSION}</b> · ${[].concat(Q,...Object.values(QX)).length} feste Fragen plus automatisch erzeugte · ${BQ.length} Bluff-Fragen · ${Object.values(PW).reduce((a,l)=>a+l.length,0)} Pantomime-Begriffe</p>
@@ -3788,8 +3788,25 @@ function waLock(){
   if(G.team&&G.tm.length>1){
     const ot=(G.e+1)%G.tm.length;G.ot=ot;
     scr(`<div class="card ans"><div class="sm">Bonuspunkt</div><div class="q">Team ${TN[ot][0]} ${TN[ot][1]} entscheidet:</div><p>Liegt der geheime Punkt weiter links oder rechts vom Tipp?</p></div>
-    <div class="row"><button class="sec" onclick="waReveal('L')">◀ Weiter links</button><button class="sec" onclick="waReveal('R')">Weiter rechts ▶</button></div>`);
+    <div class="row"><button class="sec" onclick="waSide('L')">◀ Weiter links</button><button class="sec" onclick="waSide('R')">Weiter rechts ▶</button></div><div id="wlr" style="margin-top:12px"></div>`);
+    if(NET.host){G.lr={};waSideUI()}
   }else waReveal(null);
+}
+// Online: Alle (verbundenen) Mitglieder des entscheidenden Teams tippen selbst; es geht weiter, sobald alle dasselbe gewählt haben
+const waSideReq=()=>(G.tm[G.ot]||[]).filter(p=>p===0||isOpen(NET.m[p]));
+function waSide(dir){
+  if(!NET.host){waReveal(dir);return}                         // ein Gerät: wie bisher sofort
+  const who=NET.who==null?0:NET.who,req=waSideReq();
+  if(req.length&&!req.includes(who)){if(who===0)toast(`Das entscheidet Team ${TN[G.ot][1]}`);return}
+  if(!req.length){waReveal(dir);return}
+  G.lr[who]=dir;sfx.pop();waSideUI();
+  const vs=req.map(p=>G.lr[p]);
+  if(vs.every(v=>v)&&vs.every(v=>v===vs[0]))waReveal(vs[0]);
+}
+function waSideUI(){
+  const e=$('wlr');if(!e)return;const req=waSideReq(),vs=req.map(p=>G.lr[p]);
+  const split=vs.every(v=>v)&&req.length>1&&!vs.every(v=>v===vs[0]);
+  e.innerHTML=req.map(p=>`<span class="chip ${G.lr[p]?'on':''}" style="margin:2px 4px 2px 0;cursor:default">${G.lr[p]?(G.lr[p]==='L'?'◀':'▶'):'⏳'} ${esc(S.P[p])}</span>`).join('')+`<div class="sm" style="margin-top:6px">${split?'⚠️ Noch nicht einig – wer umentscheidet, tippt die andere Seite.':'Alle im Team müssen dieselbe Seite wählen.'}</div>`;
 }
 function waReveal(dir){
   const diff=Math.abs(G.guess-G.target),pts=diff<=4?4:diff<=9?3:diff<=15?2:0;
@@ -4030,7 +4047,7 @@ function boRound(){
   scr(`${prg(G.r,G.rounds,`Bombe ${G.r+1} von ${G.rounds}`)}<div class="card hand"><div style="font-size:70px">💣</div><p style="margin:0">Gleich geht's los. Fangen soll</p><div class="big">${esc(S.P[G.hold])}</div>${G.team?`<p style="margin:0">${TN[eOf(G.hold)][0]} Team ${TN[eOf(G.hold)][1]}</p>`:''}<p>Sag die Antwort laut, bevor du weitergibst!</p><button onclick="boLight()">Zündschnur anzünden 🔥</button></div>`);
 }
 function boLight(){
-  G.end=Date.now()+G.total;G.nextBeat=0;G.beats=0;sfx.go();
+  G.bst=[];G.end=Date.now()+G.total;G.nextBeat=0;G.beats=0;sfx.go();
   boScreen();
   clearInterval(G.iv);G.iv=setInterval(boTick,60);
 }
@@ -4038,7 +4055,8 @@ function boScreen(){
   scr(`${prg(G.r,G.rounds,`Bombe ${G.r+1} von ${G.rounds}`)}<div class="card ans"><div class="sm">Kategorie</div><div class="q" style="font-size:26px;margin:6px 0">${esc(G.cat)}</div></div>
   <div class="bomb" id="bb" style="--bd:1s">💣<span class="spark">✨</span></div>
   <div class="card hand" style="padding:16px;margin-top:0"><div class="sm">Dran ist</div><div class="big" id="hn">${esc(S.P[G.hold])}</div><div class="sm" id="ht">${G.team?TN[eOf(G.hold)][0]+' Team '+TN[eOf(G.hold)][1]:''}</div></div>
-  <button onclick="boPass()" style="font-size:20px;padding:20px">Weitergeben ➜</button>`);
+  <button onclick="boPass()" style="font-size:20px;padding:20px">Weitergeben ➜</button>
+  <button class="sec" id="bk" onclick="boBack()" style="opacity:.45">↩ Falsch / schon genannt</button>`);
 }
 function boTick(){
   const left=G.end-Date.now();
@@ -4050,12 +4068,23 @@ function boTick(){
     G.nextBeat=now+iv;const bb=$('bb');if(bb)bb.style.setProperty('--bd',(iv/1000).toFixed(2)+'s');
   }
 }
-function boPass(){
-  sfx.pop();
-  if(G.team){G.ht=(G.ht+1)%G.tm.length;const tm=G.tm[G.ht];G.hold=tm[G.hix[G.ht]++%tm.length]}
-  else G.hold=(G.hold+1)%S.P.length;
+function boShowHold(){
   const hn=$('hn');if(hn){hn.textContent=S.P[G.hold];hn.classList.remove('flipin');void hn.offsetWidth;hn.classList.add('flipin')}
   const ht=$('ht');if(ht&&G.team)ht.textContent=TN[eOf(G.hold)][0]+' Team '+TN[eOf(G.hold)][1];
+  const bk=$('bk');if(bk)bk.style.opacity=(G.bst&&G.bst.length)?1:.45;
+}
+function boPass(){
+  sfx.pop();
+  (G.bst=G.bst||[]).push({hold:G.hold,ht:G.ht,hix:G.hix?G.hix.slice():null});   // merken, damit "Falsch" zurückgehen kann
+  if(G.team){G.ht=(G.ht+1)%G.tm.length;const tm=G.tm[G.ht];G.hold=tm[G.hix[G.ht]++%tm.length]}
+  else G.hold=(G.hold+1)%S.P.length;
+  boShowHold();
+}
+// Das gerade genannte Wort war falsch oder schon dran: Die Bombe geht zurück, der Vorgänger muss ein neues Wort sagen (Zeit läuft weiter)
+function boBack(){
+  if(!G.bst||!G.bst.length)return;
+  const s=G.bst.pop();G.hold=s.hold;if(G.team){G.ht=s.ht;G.hix=s.hix}
+  sfx.bad();vib(40);boShowHold();toast(`↩ Zurück an ${S.P[G.hold]}: neues Wort!`);
 }
 function boBoom(){
   clearInterval(G.iv);flash('radial-gradient(circle,rgba(255,160,40,.8),rgba(255,46,77,.4) 50%,transparent 75%)');sfx.boom();
@@ -4818,6 +4847,7 @@ const PERMS={
   spyGuess:()=>()=>G.spy,
   boLight:()=>()=>G.hold,
   c4Round:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.mi),
+  waLock:()=>'all',
   kiTurn:()=>()=>G.cur,
   kiShow:()=>()=>G.cur
 };
@@ -5269,6 +5299,7 @@ document.addEventListener('keydown',e=>{
   let el=null;
   if(lc==='i')el=root.querySelector('.qm');
   else if(lc==='s')el=$('sk');
+  else if(lc==='f')el=$('bk');
   else if(lc==='t')el=[...root.querySelectorAll('button')].find(b=>/Tabu!/.test(b.textContent));
   if(el&&kbVis(el)){e.preventDefault();el.click();return}
   if(k==='Enter'||k===' '){const b=kbPrimary(root);if(b){e.preventDefault();b.click()}}
