@@ -223,7 +223,9 @@ body.noperm #app button{opacity:.5}
 html{background:var(--bg)}
 /* Nur der Inhaltsbereich scrollt (kein Seiten-Gummiband, kein Scrollbalken); Abstand oben wegen Statusleiste */
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-body{min-height:0}
+/* body fest verankert: die Seite selbst hat nichts mehr zum Scrollen (kein Gummiband auf iOS) */
+body{min-height:0;position:fixed;inset:0;width:100%}
+.bg{bottom:calc(-1 * env(safe-area-inset-bottom,0px))}
 main#app,#hw{position:fixed;inset:0;z-index:1;width:auto;max-width:none;margin:0;padding:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 #hw{z-index:2}
 main#app::-webkit-scrollbar,#hw::-webkit-scrollbar{display:none}
