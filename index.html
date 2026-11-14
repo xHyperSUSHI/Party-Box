@@ -2749,7 +2749,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.22';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.23';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5007,7 +5007,7 @@ function slfDRead(){return G.cats.map((_,k)=>{const e=$('sf'+k);return e?String(
 function slfDSubmit(){
   const v=slfDRead();
   if(G.o.stop&&G.stopT==null){
-    if(v.some(x=>!x)){const e=$('e');if(e)e.textContent='Stopp-Regel: Erst wenn alle Felder ausgefüllt sind, kannst du „Fertig“ sagen.';vib(60);return}
+    if(v.some(x=>!slfFilled(x))){const e=$('e');if(e)e.textContent='Stopp-Regel: Erst wenn alle Felder mit einem Wort ausgefüllt sind (nicht nur der Buchstabe), kannst du „Fertig“ sagen.';vib(60);return}
     G.stopT=Math.max(20,Math.round((Date.now()-G.t0)/1000));G.stopBy=G.i;
   }
   tmrHide();G.ans[G.i]=v;slfDNext();
@@ -5019,7 +5019,7 @@ function slfDPar(){
     {k:'w',timeout:pi=>{G.ans[pi]=G.ans[pi]||G.cats.map(()=>'')},html:pi=>slfForm(pi,true),
      sub:(pi,d)=>{
        const v=G.cats.map((_,k)=>String((d.f||{})['c'+k]||'').trim().slice(0,30)),auto=d.v==='auto',first=G.o.stop&&!auto&&G.stopBy==null;
-       if(first&&v.some(x=>!x))return 'Stopp-Regel: Erst wenn alle Felder ausgefüllt sind, kannst du „Fertig“ sagen.';
+       if(first&&v.some(x=>!slfFilled(x)))return 'Stopp-Regel: Erst wenn alle Felder mit einem Wort ausgefüllt sind (nicht nur der Buchstabe), kannst du „Fertig“ sagen.';
        G.ans[pi]=v;
        if(first){G.stopBy=pi;slfStopNow(pi)}
        return true;
@@ -5035,7 +5035,10 @@ function slfStopNow(pi){   // erster fertig: allen anderen bleiben nur noch ein 
   tmrShow(ms,()=>autoSub('#hw'));toast(msg);
   NET.m.forEach((m,i)=>{if(i>0&&isOpen(m)){sendTo(m,{t:'tm',ms});sendTo(m,{t:'err',m:msg})}});
 }
-function slfValid(w){const t=String(w||'').trim();if(!t)return false;const m=t.match(/[A-Za-zÄÖÜäöüß]/);return !!m&&m[0].toUpperCase()===G.lt}
+function slfFilled(w){   // ein echtes Wort: mindestens 2 Buchstaben und nicht nur der Anfangsbuchstabe
+  const t=String(w||'').trim();return t.replace(/[^A-Za-zÄÖÜäöüß]/g,'').length>=2&&norm(t)!==String(G.lt).toLowerCase();
+}
+function slfValid(w){const t=String(w||'').trim();if(!t)return false;const m=t.match(/[A-Za-zÄÖÜäöüß]/);return !!m&&m[0].toUpperCase()===G.lt&&slfFilled(t)}
 const slfEff=(k,i)=>G.fix[k][i]||((G.ans[i]||[])[k]||'');
 function slfNear(a,b){   // höchstens ein Tippfehler (Buchstabe falsch/fehlt/zu viel/vertauscht)
   if(a===b)return false;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;
@@ -5071,7 +5074,7 @@ function slfReview(){
       <div class="row" style="margin-top:8px"><button class="sec" style="margin:0;padding:10px" onclick="slfBad(${k},${i})">${bad?'Wieder zählen':'Wort streichen'}</button>${G.fix[k][i]?`<button class="sec" style="margin:0;padding:10px" onclick="slfUnfix(${k},${i})">Original</button>`:''}<button class="sec" style="margin:0;padding:10px" onclick="slfEdit(-1,-1)">Schließen</button></div></div>`;
     }
     return `<div class="card" style="padding:12px 14px"><div class="sm" style="margin-bottom:8px"><b style="color:var(--tx)">${esc(cat)}</b></div><div class="chips">${chips}</div>${sg}${ed}</div>`}).join('');
-  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}${G.stopBy!=null?`<p class="sm" style="margin:4px 0 0">✋ Stopp gerufen von <b style="color:var(--tx)">${esc(S.P[G.stopBy])}</b></p>`:''}<p class="sm" style="margin:4px 0 0">Tippe ein Wort an, um die Schreibweise zu korrigieren (Tippfehler) oder es zu streichen (z. B. keine echte Stadt). Farbig = zählt, durchgestrichen = zählt nicht, ✎ = korrigiert.</p>${rows}
+  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}${G.stopBy!=null?`<p class="sm" style="margin:4px 0 0">✋ Stopp gerufen von <b style="color:var(--tx)">${esc(S.P[G.stopBy])}</b></p>`:''}<p class="sm" style="margin:4px 0 0">Tippe ein Wort an, um die Schreibweise zu korrigieren (Tippfehler) oder es zu streichen (z. B. keine echte Stadt). Farbig = zählt, durchgestrichen = zählt nicht (auch wenn nur der Anfangsbuchstabe dasteht), ✎ = korrigiert.</p>${rows}
   ${boardHTML(c.pts,{label:'Punkte in dieser Runde',unit:' P'})}
   <button onclick="slfDCommit()">${last?'Endergebnis 🏆':'Runde werten'}</button>`);
   if(G.edit){const e=$('slfe');if(e)setTimeout(()=>{try{e.focus()}catch(x){}},60)}
