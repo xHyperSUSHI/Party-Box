@@ -232,6 +232,55 @@ main#app,#hw{position:fixed;inset:0;z-index:1;width:auto;max-width:none;margin:0
 main#app::-webkit-scrollbar,#hw::-webkit-scrollbar{display:none}
 .screen{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 28px) max(16px,env(safe-area-inset-right)) max(44px,calc(env(safe-area-inset-bottom) + 32px)) max(16px,env(safe-area-inset-left))}
 .c4b{max-width:max(300px,min(100%,calc((100vh - 300px) * 7 / 6)));margin-left:auto;margin-right:auto}
+.dsp{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.dsp .c4p{flex:1 1 120px}
+button.kx{width:auto;margin:0;padding:0}
+button.kx::after{display:none}
+.mmb{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:8px;max-width:440px;margin:12px auto}
+button.mc{aspect-ratio:1;border-radius:16px;font-size:clamp(22px,7vw,38px);line-height:1;background:linear-gradient(145deg,#2b3150,#1a1f36);border:1.5px solid var(--line);box-shadow:none;color:var(--mu);display:flex;align-items:center;justify-content:center}
+button.mc.up{background:#fff;color:#111}
+button.mc.done{background:rgba(255,255,255,.1);color:var(--tx);border-color:var(--oc,var(--ok));opacity:.8}
+.hgs{width:120px;height:140px;color:var(--tx);display:block}
+.hword{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:10px 0 14px}
+.hl{min-width:26px;height:38px;border-bottom:3px solid var(--tx);font-size:26px;font-weight:850;text-align:center;line-height:38px;padding:0 2px}
+.hl.miss{color:var(--red);border-color:var(--red)}
+.hgr{display:flex;justify-content:center;gap:5px;margin-top:6px}
+button.hgk{flex:1 1 0;min-width:0;max-width:42px;height:46px;border-radius:11px;font-size:17px;background:var(--glass);border:1px solid var(--line);box-shadow:none}
+button.hgk.hit{background:rgba(53,224,161,.28);border-color:var(--ok)}
+button.hgk.bad{background:rgba(255,46,77,.2);border-color:var(--red);opacity:.5}
+button.hgk:disabled{cursor:default}
+.ckr{display:flex;align-items:center;gap:8px;margin:6px 0}
+.ckr.cur{background:rgba(255,255,255,.06);border-radius:14px;padding:6px 8px;margin:8px -8px}
+.ckd{font-style:normal;font-size:26px;width:38px;height:38px;display:grid;place-items:center;border-radius:50%}
+.ckd u{display:block;width:26px;height:26px;border-radius:50%;border:2px dashed var(--mu);text-decoration:none}
+.ckpg{display:inline-grid;grid-template-columns:1fr 1fr;gap:4px;margin-left:auto}
+.pg{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid var(--mu);vertical-align:middle}
+.pg.b{background:#111;border-color:#fff}
+.pg.w{background:#fff;border-color:#fff}
+.ckpal{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:14px 0 4px}
+button.ckp{aspect-ratio:1;font-size:26px;border-radius:50%;background:var(--glass);border:1px solid var(--line);box-shadow:none}
+.ttb{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:340px;margin:0 auto}
+button.ttc{aspect-ratio:1;font-size:clamp(40px,14vw,64px);font-weight:900;background:var(--glass);border:1.5px solid var(--line);border-radius:18px;box-shadow:none;line-height:1}
+button.ttc.s1{color:#ff5d73}
+button.ttc.s2{color:#ffc83d}
+button.ttc.win{background:rgba(53,224,161,.25);border-color:var(--ok)}
+button.ttc:disabled{opacity:1;cursor:default}
+.sy{font-size:15px}.sy.s1{color:#ff5d73}.sy.s2{color:#ffc83d}
+.dsb{display:grid;grid-template-columns:repeat(var(--n),16px 1fr) 16px;max-width:420px;margin:12px auto;padding:10px;background:rgba(255,255,255,.04);border-radius:20px;user-select:none;-webkit-user-select:none}
+.dd{width:16px;height:16px;border-radius:50%;background:var(--tx);display:block}
+.de{display:block;position:relative;cursor:pointer;height:16px;font-weight:400}
+.de.v{height:auto;width:16px}
+.de::before{content:"";position:absolute;border-radius:6px;background:rgba(255,255,255,.12);transition:background .2s}
+.de.h::before{left:3px;right:3px;top:4px;bottom:4px}
+.de.v::before{top:3px;bottom:3px;left:4px;right:4px}
+.de.on::before{background:var(--c)}
+.de:not(.on):hover::before{background:rgba(255,255,255,.4)}
+.de.on{cursor:default}
+.db{display:grid;place-items:center;aspect-ratio:1;font-weight:850;font-size:clamp(16px,6vw,28px);border-radius:6px;transition:background .3s}
+.db.own{background:var(--c);color:#fff;opacity:.9}
+.slfl{font-size:110px;font-weight:900;line-height:1;margin:6px 0 12px;background:linear-gradient(135deg,var(--gold),var(--red2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stp{display:flex;align-items:center;gap:8px}.stp b{min-width:34px;text-align:center;font-size:20px}
+.stp .ib{width:40px;height:40px;margin:0}
 #fs{display:none;position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:65;width:40px;height:40px;border-radius:12px;background:rgba(20,22,34,.72);border:1px solid var(--line);color:var(--tx);place-items:center;cursor:pointer;opacity:.6;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 #fs.show{display:grid}
 #fs:hover{opacity:1}
@@ -2649,7 +2698,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.6';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.7';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2670,7 +2719,7 @@ function applyTheme(){document.body.dataset.theme=C.theme;document.body.classLis
 
 /* ---------- Verlauf: Wiederholungssperre ---------- */
 const HC={};
-const HNS=['q','w','l','s','b','c','m','t','h','n'];
+const HNS=['q','w','l','s','b','c','m','t','h','n','g'];
 const hGet=ns=>{if(!HC[ns]){try{HC[ns]=JSON.parse(localStorage.getItem('pb_h_'+ns)||'{}')}catch(e){HC[ns]={}}}return HC[ns]};
 const lim=()=>C.days*864e5;
 function recent(ns,key){const t=hGet(ns)[key];return t!=null&&lim()>0&&Date.now()-t<lim()}
@@ -3292,6 +3341,7 @@ function settings(){
   <span class="kbd">1</span>–<span class="kbd">9</span> Auswahl: Spiele, Spieler, Antworten, Orte<br>
   <span class="kbd">Leertaste</span> Reflex tippen, Bombe weitergeben<br>
   4 Gewinnt: <span class="kbd">1</span>–<span class="kbd">7</span> Spalte, oder <span class="kbd">←</span> <span class="kbd">→</span> und <span class="kbd">↓</span><br>
+  Galgenmännchen: Buchstaben tippen · Codeknacker: <span class="kbd">1</span>–<span class="kbd">6</span> Farbe, <span class="kbd">⌫</span> löschen · Drei gewinnt: <span class="kbd">1</span>–<span class="kbd">9</span> Feld<br>
   Wellenlänge: <span class="kbd">←</span> <span class="kbd">→</span> Marker (mit <span class="kbd">Shift</span> in 5er-Schritten)<br>
   <span class="kbd">I</span> Info (?), <span class="kbd">S</span> Überspringen, <span class="kbd">T</span> Tabu, <span class="kbd">F</span> Falsch (Bombe)<br>
   <span class="kbd">Esc</span> Hauptmenü / Fenster schließen</div></div>
@@ -3428,7 +3478,7 @@ function recordStats(vals,top){
   if(G.rec)return;G.rec=true;
   try{
     G.ents.forEach((e,i)=>{
-      const mem=G.team?G.tm[i]:(G.id==='c4'?[G.pi[i]]:[i]);   // 4 Gewinnt solo: Entität ≠ Spielerindex, CPU = -1
+      const mem=G.team?G.tm[i]:(G.pi?[G.pi[i]]:[i]);   // 4 Gewinnt solo: Entität ≠ Spielerindex, CPU = -1
       mem.forEach(pi=>{
         if(pi==null||pi<0||!S.P[pi])return;
         const r={w:vals[i]===vals[top]?1:0,p:vals[i],x:statExtra(pi)};
@@ -4557,9 +4607,289 @@ function hiResult(){
   if(gain.some(g=>g)){setTimeout(()=>{confetti(40,GOLD);sfx.ok()},400)}else sfx.bad();
 }
 
+/* ================= Klassiker (Memory, Galgenmännchen, Codeknacker, Drei gewinnt, Käsekästchen, Stadt-Land-Fluss) ================= */
+const hueC=i=>`hsl(${hue(i)} 85% 58%)`;
+const clsHead=(extra)=>`<div class="dsp">${G.ents.map((e,i)=>`<div class="c4p ${G.cur===i&&!G.over&&!G.res?'on':''}">${e.av(30)}<div><div class="nm">${esc(e.name.replace(/^Team /,''))}</div><div class="sm">${G.pts[i]}${extra||''}</div></div></div>`).join('')}</div>`;
+
+/* ---------- Memory ---------- */
+const MEMO=['🍎','🚀','🐙','🎸','🌵','🍕','🦊','⚽','🎲','🌈','🦄','🍩','🐢','🎈','🔔','🍒'];
+OPT.memo={pairs:8};
+GAMES.memo={name:'Memory',e:'🃏',tag:'Paare finden',c:['#10b981','#0ea5e9'],min:1,teams:false,
+  desc:'Zwei Karten aufdecken, Paare finden. Allein auf Zügen, zu mehreren auf die meisten Paare.',
+  rules:'Wer dran ist, deckt zwei Karten auf. Sind sie gleich, bleiben sie liegen, es gibt ein Paar und du darfst nochmal. Sind sie verschieden, werden sie wieder umgedreht und der Nächste ist dran. Merkt euch, wo was lag! Gewonnen hat, wer die meisten Paare hat. <b>Allein</b> zählt, wie wenige Züge du brauchst.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Anzahl Kartenpaare</p>${seg('memo','pairs',[6,8,12])}`,
+  start:mmStart};
+function mmStart(){
+  const n=G.o.pairs;
+  G.cards=shuffle(shuffle(MEMO).slice(0,n).flatMap(e=>[e,e]));
+  G.st=G.cards.map(()=>0);G.own=G.cards.map(()=>-1);G.open=[];G.busy=false;G.cur=0;G.moves=0;G.left=n;
+  mmScreen();
+}
+function mmScreen(){
+  const solo=S.P.length<2,cols=G.cards.length>16?6:4;
+  scr(`${logo('Memory',1)}${solo?`<div class="sm" style="margin:6px 0">Züge: <b>${G.moves}</b> · Paare: <b>${G.pts[0]}</b> / ${G.pts[0]+G.left}</div>`:clsHead(' Paare')}
+  <div class="sm" style="margin:4px 0;text-align:center">${solo?'Finde alle Paare mit möglichst wenigen Zügen':`${esc(S.P[G.cur])} ist dran`}</div>
+  <div class="mmb" style="--cols:${cols}">${G.cards.map((e,i)=>{const s=G.st[i];return `<button class="mc kx ${s?'up':''} ${s===2?'done':''}" ${s===2&&!solo?`style="--oc:${hueC(G.own[i])}"`:''} onclick="mmFlip(${i})" aria-label="Karte ${i+1}">${s?e:'?'}</button>`}).join('')}</div>`);
+}
+function mmFlip(i){
+  if(G.busy||G.st[i]!==0)return;
+  const g=G;G.st[i]=1;G.open.push(i);sfx.pop();vib(15);
+  if(G.open.length<2){mmScreen();return}
+  G.moves++;
+  const [a,b]=G.open;
+  if(G.cards[a]===G.cards[b]){
+    G.st[a]=G.st[b]=2;G.own[a]=G.own[b]=G.cur;G.pts[G.cur]++;G.open=[];G.left--;sfx.ok();vib([20,20,20]);
+    mmScreen();
+    if(!G.left){G.busy=true;setTimeout(()=>{if(G===g)mmEnd()},900)}
+    return;
+  }
+  G.busy=true;mmScreen();sfx.bad();
+  setTimeout(()=>{if(G!==g)return;G.st[a]=G.st[b]=0;G.open=[];G.busy=false;G.cur=(G.cur+1)%S.P.length;mmScreen()},1100);
+}
+function mmEnd(){S.P.length<2?finish({asc:true,vals:[G.moves],unit:' Züge'}):finish({unit:' Paare'})}
+
+/* ---------- Galgenmännchen ---------- */
+const HGW={
+'Tiere 🐾':['ELEFANT','GIRAFFE','KROKODIL','PINGUIN','FLAMINGO','NASHORN','DELFIN','PAPAGEI','SCHLANGE','KAMEL','ZEBRA','GORILLA','PANTHER','KOALA','WALROSS','HAMSTER','LIBELLE','FLEDERMAUS','SPINNE','ADLER','FALKE','KATZE','PFERD','SCHMETTERLING'],
+'Essen 🍕':['SPAGHETTI','SCHOKOLADE','PFANNKUCHEN','ERDBEERE','KARTOFFEL','BANANE','WASSERMELONE','BREZEL','SALAT','HAMBURGER','MARMELADE','LAKRITZ','KAKAO','ZITRONE','PAPRIKA','BROKKOLI','GURKE','TOMATE','SEMMEL','NUDELN','ERDNUSS','KIRSCHE','MANDARINE'],
+'Orte 📍':['BAHNHOF','SCHWIMMBAD','FLUGHAFEN','BIBLIOTHEK','SUPERMARKT','KRANKENHAUS','SPIELPLATZ','BAUERNHOF','LEUCHTTURM','VULKAN','WASSERFALL','STRAND','DSCHUNGEL','INSEL','GEBIRGE','KINO','THEATER','MUSEUM','ZIRKUS','TUNNEL'],
+'Alltag 🎒':['REGENSCHIRM','FAHRRAD','TASCHENLAMPE','KUGELSCHREIBER','STAUBSAUGER','WECKER','SONNENBRILLE','RUCKSACK','TELEFON','FERNSEHER','KALENDER','LINEAL','SCHERE','TASCHENRECHNER','LAPTOP','BADEWANNE','TRAMPOLIN','FUSSBALL','GITARRE','KLAVIER','TROMMEL','GEIGE']
+};
+OPT.hang={rounds:5};
+GAMES.hang={name:'Galgenmännchen',e:'🔤',tag:'Buchstabe für Buchstabe',c:['#a855f7','#6366f1'],min:1,teams:false,
+  desc:'Rate das Wort Buchstabe für Buchstabe, bevor das Männchen fertig ist. Allein oder reihum.',
+  rules:'Ein Wort ist gesucht (die Kategorie steht dabei). Wer dran ist, tippt einen Buchstaben. Kommt er vor, bekommst du <b>1 Punkt pro Treffer</b> und darfst nochmal; wer das Wort vollendet, bekommt <b>3 Bonuspunkte</b>. Kommt er nicht vor, wächst das Männchen und der Nächste ist dran. Nach 8 Fehlern ist die Runde verloren. Am Ende gewinnt, wer die meisten Punkte hat.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Wörter</p>${seg('hang','rounds',[3,5,8])}`,
+  start:hgStart};
+function hgStart(){
+  const all=[];Object.keys(HGW).forEach(c=>HGW[c].forEach(w=>all.push([c,w])));
+  G.pool=ordered(all,x=>x[1],'g');G.rounds=Math.max(1,Math.min(G.o.rounds,G.pool.length));G.r=0;G.cur=0;hgRound();
+}
+function hgRound(){const [c,w]=G.pool[G.r];mark('g',w);G.cat=c;G.word=w;G.gs=[];G.wr=0;G.res=null;hgScreen()}
+const HGP=['M10 132H80M30 132V14','M30 14H85M85 14V32','M85 32m-10 10a10 10 0 1 0 20 0a10 10 0 1 0 -20 0','M85 52V88','M85 60L68 76','M85 60L102 76','M85 88L70 112','M85 88L100 112'];
+function hgScreen(){
+  const n=S.P.length,w=G.word,rows=['QWERTZUIOP','ASDFGHJKL','YXCVBNM'];
+  const gal=`<svg viewBox="0 0 120 140" class="hgs" aria-label="${G.wr} von 8 Fehlern" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">${HGP.slice(0,G.wr).map(d=>`<path d="${d}"/>`).join('')}</svg>`;
+  const word=w.split('').map(ch=>{const up=G.gs.includes(ch);return `<span class="hl ${!up&&G.res==='lost'?'miss':''}">${up||G.res?ch:'&nbsp;'}</span>`}).join('');
+  const keys=rows.map(r=>`<div class="hgr">${r.split('').map(L=>{const used=G.gs.includes(L),hit=used&&w.includes(L);return `<button class="hgk kx ${used?(hit?'hit':'bad'):''}" data-l="${L}" ${used||G.res?'disabled':''} onclick="hgGuess('${L}')">${L}</button>`}).join('')}</div>`).join('');
+  const last=G.r+1>=G.rounds;
+  const res=G.res?`<div class="card ans"><div style="font-size:46px">${G.res==='won'?'🎉':'💀'}</div><div class="big" style="font-size:26px">${G.res==='won'?`${esc(S.P[G.cur])} löst das Wort!`:'Das Männchen ist fertig'}</div><div class="sm">Gesucht war: <b>${w}</b></div><button onclick="hgNext()">${last?'Endergebnis 🏆':'Nächstes Wort'}</button></div>`:'';
+  scr(`${prg(G.r+(G.res?1:0),G.rounds,`Wort ${G.r+1} von ${G.rounds} · ${esc(G.cat)}`)}${n>1?clsHead(' P'):`<div class="sm" style="margin:6px 0">Punkte: <b>${G.pts[0]}</b></div>`}
+  <div id="hg"><div class="row" style="align-items:center;justify-content:center;gap:14px"><div class="hgw">${gal}</div><div class="sm">Fehler<br><b style="font-size:26px;color:var(--tx)">${G.wr}</b> / 8</div></div>
+  <div class="hword">${word}</div>
+  ${G.res?'':`<div class="sm" style="text-align:center;margin:2px 0 10px">${n>1?`${esc(S.P[G.cur])} ist dran`:'Tippe einen Buchstaben'}</div>`}
+  ${keys}</div>${res}`);
+}
+function hgGuess(L){
+  if(G.res||!/^[A-Z]$/.test(L)||G.gs.includes(L))return;
+  G.gs.push(L);const k=G.word.split(L).length-1;
+  if(k){
+    G.pts[G.cur]+=k;sfx.ok();vib(20);
+    if(G.word.split('').every(ch=>G.gs.includes(ch))){G.pts[G.cur]+=3;G.res='won';confetti(60,GOLD);sfx.win()}
+  }else{
+    G.wr++;sfx.bad();vib([40,30,40]);
+    if(G.wr>=8)G.res='lost';else if(S.P.length>1)G.cur=(G.cur+1)%S.P.length;
+  }
+  hgScreen();
+}
+function hgNext(){
+  if(G.r+1>=G.rounds){finish({unit:' P'});return}
+  G.r++;G.cur=G.r%S.P.length;hgRound();
+}
+
+/* ---------- Codeknacker ---------- */
+const CKC=['🔴','🟠','🟡','🟢','🔵','🟣'];
+OPT.code={rounds:1};
+GAMES.code={name:'Codeknacker',e:'🔐',tag:'Knack den Farbcode',c:['#14b8a6','#2563eb'],min:1,teams:false,
+  desc:'Ein geheimer Code aus vier Farben – knacke ihn mit möglichst wenigen Versuchen.',
+  rules:'Der Computer wählt einen geheimen Code aus <b>4 Farben</b> (Farben dürfen doppelt vorkommen). Du hast <b>10 Versuche</b>. Nach jedem Versuch zeigen Stifte: <b>schwarz</b> = richtige Farbe an der richtigen Stelle, <b>weiß</b> = richtige Farbe an falscher Stelle. Jeder Spieler knackt reihum seinen eigenen Code; es zählt die Zahl der Versuche (nicht geknackt = 11). Wer in der Summe am wenigsten braucht, gewinnt.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Codes pro Spieler</p>${seg('code','rounds',[1,2,3])}`,
+  start:ckStart};
+function ckStart(){G.n=S.P.length;G.rounds=G.o.rounds;G.k=0;ckNext()}
+function ckProg(){return prg(G.k,G.rounds*G.n,`Code ${G.k+1} von ${G.rounds*G.n}`)}
+function ckNext(){
+  if(G.k>=G.rounds*G.n){finish({asc:true,unit:' Versuche'});return}
+  G.who=G.k%G.n;G.sec=Array.from({length:4},()=>Math.floor(Math.random()*6));G.hist=[];G.gu=[];
+  if(G.n>1)hand(G.who,'Knacke den geheimen Farbcode – du hast 10 Versuche.',ckScreen,ckProg());
+  else ckScreen();
+}
+function ckEval(g,s){
+  let b=0;const gl=[],sl=[];
+  g.forEach((c,i)=>{if(c===s[i])b++;else{gl.push(c);sl.push(s[i])}});
+  let w=0;gl.forEach(c=>{const j=sl.indexOf(c);if(j>=0){w++;sl.splice(j,1)}});
+  return {b,w};
+}
+const ckPegs=h=>`<span class="ckpg">${'<b class="pg b"></b>'.repeat(h.b)}${'<b class="pg w"></b>'.repeat(h.w)}${'<b class="pg"></b>'.repeat(4-h.b-h.w)}</span>`;
+function ckScreen(){
+  const rows=G.hist.map((h,i)=>`<div class="ckr"><span class="sm" style="width:18px">${i+1}</span>${h.g.map(c=>`<i class="ckd">${CKC[c]}</i>`).join('')}${ckPegs(h)}</div>`).join('');
+  const cur=`<div class="ckr cur"><span class="sm" style="width:18px">${G.hist.length+1}</span>${[0,1,2,3].map(i=>`<i class="ckd">${G.gu[i]!=null?CKC[G.gu[i]]:'<u></u>'}</i>`).join('')}</div>`;
+  scr(`${ckProg()}<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:8px">${av(G.who)}<span class="sm">${esc(S.P[G.who])} · Versuch ${G.hist.length+1} von 10</span></div>
+  ${rows}${cur}
+  <div class="ckpal">${CKC.map((e,c)=>`<button class="ckp kx" data-kn="${c+1}" onclick="ckPick(${c})" aria-label="Farbe ${c+1}">${e}</button>`).join('')}</div>
+  <div class="row"><button class="sec" id="ckdel" onclick="ckDel()">⌫ Löschen</button><button class="ok" onclick="ckCheck()">Prüfen</button></div>
+  <p class="sm" style="margin:10px 0 0"><b class="pg b"></b> richtige Farbe, richtiger Platz · <b class="pg w"></b> richtige Farbe, falscher Platz</p></div>`);
+}
+function ckPick(c){if(G.gu.length<4){G.gu.push(c);sfx.pop();ckScreen()}}
+function ckDel(){if(G.gu.length){G.gu.pop();ckScreen()}}
+function ckCheck(){
+  if(G.gu.length<4){toast('Wähle erst vier Farben');vib(40);return}
+  const r=ckEval(G.gu,G.sec);G.hist.push({g:G.gu.slice(),b:r.b,w:r.w});G.gu=[];
+  if(r.b===4)ckDone(true);else if(G.hist.length>=10)ckDone(false);else{sfx.ok();ckScreen()}
+}
+function ckDone(ok){
+  G.okk=ok;G.tries=G.hist.length;G.pts[G.who]+=ok?G.tries:11;
+  ckResult();
+}
+function ckResult(){
+  const last=G.k+1>=G.rounds*G.n;
+  scr(`${ckProg()}<div class="card ans"><div style="font-size:46px">${G.okk?'🔓':'🔒'}</div><div class="big" style="font-size:26px">${G.okk?`${esc(S.P[G.who])} knackt den Code in ${G.tries} ${G.tries==1?'Versuch':'Versuchen'}!`:`${esc(S.P[G.who])} schafft es nicht`}</div>
+  <div class="ckr" style="justify-content:center">${G.sec.map(c=>`<i class="ckd">${CKC[c]}</i>`).join('')}</div><div class="sm">So lautete der Code</div></div>
+  ${boardHTML(G.pts,{label:'Versuche gesamt (weniger ist besser, nicht geknackt = 11)',unit:''})}
+  <button onclick="G.k++;ckNext()">${last?'Endergebnis 🏆':'Weiter'}</button>`);
+  if(G.okk){sfx.win();confetti(60,GOLD)}else sfx.bad();
+}
+
+/* ---------- Drei gewinnt ---------- */
+OPT.ttt={best:3,vs:'mensch',lvl:'schwer',a:0,b:1};
+function ttSel(k,i){const o=OPT.ttt;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('ttt')}
+const ttNm=k=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.ttt[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="ttSel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
+GAMES.ttt={name:'Drei gewinnt',e:'❌',tag:'Der Schulhof-Klassiker',c:['#f43f5e','#f97316'],min:1,teams:false,
+  desc:'Tic-Tac-Toe: Drei in einer Reihe gewinnt. Gegen einen Freund oder den Computer.',
+  rules:'Abwechselnd setzt ihr ✕ und ◯ auf ein 3×3-Feld. Wer zuerst <b>drei</b> eigene Zeichen in einer Reihe hat (waagerecht, senkrecht oder diagonal), gewinnt die Runde. Gespielt wird auf mehrere Gewinnrunden („Best of“); bei Unentschieden wird die Runde wiederholt. Der Startspieler wechselt jede Runde. Allein spielst du gegen den Computer.',
+  opts:()=>{
+    const o=OPT.ttt,solo=S.names.length<2;if(solo)o.vs='cpu';
+    let h=`<p class="sm" style="margin:0 0 8px">Gewinnrunden (Best of)</p>${seg('ttt','best',[1,3,5])}`;
+    h+=solo?`<p class="sm" style="margin:14px 0 8px">Gegner: 🤖 Computer (du spielst allein)</p>`:`<p class="sm" style="margin:14px 0 8px">Gegner</p>${seg('ttt','vs',['mensch','cpu'],v=>v==='cpu'?'🤖 Computer':'🧑 Mensch')}`;
+    if(o.vs==='cpu')h+=`<p class="sm" style="margin:14px 0 8px">Schwierigkeit</p>${seg('ttt','lvl',['leicht','schwer'],v=>v==='leicht'?'Leicht':'Schwer (unschlagbar)')}${S.names.length>1?`<p class="sm" style="margin:14px 0 8px">Wer spielt?</p>${ttNm('a')}`:''}`;
+    else if(S.names.length>2)h+=`<p class="sm" style="margin:14px 0 8px">Spieler ✕</p>${ttNm('a')}<p class="sm" style="margin:14px 0 8px">Spieler ◯</p>${ttNm('b')}`;
+    return h;
+  },
+  start:ttStart};
+function ttStart(){
+  const o=G.o,a=Math.min(o.a,S.P.length-1);G.cpu=false;
+  if(o.vs==='cpu'||S.P.length<2){
+    G.cpu=true;G.pi=[a,-1];
+    G.ents=[{name:S.P[a],sub:'',emoji:'👑',av:(sz,cls)=>av(a,cls,sz)},{name:'Computer',sub:'Stufe: '+o.lvl,emoji:'🤖',av:(sz,cls)=>botAv(sz,cls)}];
+  }else{
+    const b=(o.b===a?(a+1)%S.P.length:Math.min(o.b,S.P.length-1));
+    G.pi=[a,b];G.ents=[a,b].map(i=>({name:S.P[i],sub:'',emoji:'👑',av:(sz,cls)=>av(i,cls,sz)}));
+  }
+  G.pts=[0,0];G.need=Math.ceil(o.best/2);G.r=0;ttNew();
+}
+const TTL=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const ttLine=b=>TTL.find(l=>b[l[0]]&&b[l[0]]===b[l[1]]&&b[l[0]]===b[l[2]])||null;
+function ttMM(b,p,me,d){
+  const l=ttLine(b);if(l)return b[l[0]]===me?10-d:d-10;
+  if(b.every(Boolean))return 0;
+  let best=p===me?-99:99;
+  for(let i=0;i<9;i++)if(!b[i]){b[i]=p;const v=ttMM(b,3-p,me,d+1);b[i]=0;best=p===me?Math.max(best,v):Math.min(best,v)}
+  return best;
+}
+function ttBest(b,me,lvl){
+  const mv=[];for(let i=0;i<9;i++)if(!b[i])mv.push(i);
+  if(lvl==='leicht'&&Math.random()<.45)return pick(mv);
+  let best=-99,cand=[];
+  mv.forEach(i=>{b[i]=me;const v=ttMM(b,3-me,me,1);b[i]=0;if(v>best){best=v;cand=[i]}else if(v===best)cand.push(i)});
+  return pick(cand);
+}
+function ttNew(){
+  G.bd=Array(9).fill(0);G.turn=G.r%2;G.over=false;G.win=null;G.draw=false;
+  ttScreen();
+  if(G.cpu&&G.turn===1)ttCpuSoon();
+}
+function ttCpuSoon(){const g=G;setTimeout(()=>{if(G!==g||G.over)return;ttMove(ttBest(G.bd,2,G.o.lvl))},650)}
+function ttScreen(){
+  const lock=G.over||(G.cpu&&G.turn===1),series=G.over&&!G.draw&&G.pts[G.turn]>=G.need;
+  const head=`<div class="c4s">${[0,1].map(e=>`<div class="c4p ${G.turn===e&&!G.over?'on':''}">${G.ents[e].av(34)}<div><div class="nm">${esc(G.ents[e].name.replace(/^Team /,''))}</div><div class="sm"><b class="sy s${e+1}">${e?'◯':'✕'}</b> ${G.pts[e]} / ${G.need}</div></div></div>`).join('')}</div>`;
+  const res=!G.over?'':G.draw
+    ?`<div class="card ans" style="margin-top:14px"><div style="font-size:50px">🤝</div><div class="big">Unentschieden!</div><p>Diese Runde wird wiederholt.</p><button onclick="ttNew()">Nochmal</button></div>`
+    :`<div class="card ans" style="margin-top:14px"><div style="font-size:50px;animation:pop .6s both">${G.cpu&&G.turn===1?'🤖':'🎉'}</div><div class="big">${esc(G.ents[G.turn].name)} gewinnt ${series?'die Serie!':'die Runde!'}</div><div class="sm">Stand ${G.pts[0]} : ${G.pts[1]}</div><button onclick="${series?"finish({unit:' Siege'})":'G.r++;ttNew()'}">${series?'Endergebnis 🏆':'Nächste Runde'}</button></div>`;
+  scr(`<div class="sm" style="margin:6px 0">Runde ${G.r+1} · Best of ${G.o.best}</div>${head}
+  <div class="sm" style="text-align:center;margin:8px 0">${G.over?'':`${esc(G.ents[G.turn].name)} ${G.cpu&&G.turn===1?'denkt …':'ist dran'}`}</div>
+  <div class="ttb">${G.bd.map((v,i)=>`<button class="ttc kx ${v?'s'+v:''} ${G.win&&G.win.includes(i)?'win':''}" data-kn="${i+1}" ${v||lock?'disabled':''} onclick="ttPlay(${i})" aria-label="Feld ${i+1}">${v===1?'✕':v===2?'◯':''}</button>`).join('')}</div>${res}`);
+}
+function ttPlay(i){if(G.over||G.bd[i]||(G.cpu&&G.turn===1))return;ttMove(i)}
+function ttMove(i){
+  if(G.over||G.bd[i])return;
+  G.bd[i]=G.turn+1;sfx.pop();vib(15);
+  const l=ttLine(G.bd);
+  if(l){G.over=true;G.win=l;G.pts[G.turn]++;sfx.win();confetti(60,GOLD)}
+  else if(G.bd.every(Boolean)){G.over=true;G.draw=true;sfx.bad()}
+  else G.turn=1-G.turn;
+  ttScreen();
+  if(!G.over&&G.cpu&&G.turn===1)ttCpuSoon();
+}
+
+/* ---------- Käsekästchen ---------- */
+OPT.dots={size:4};
+GAMES.dots={name:'Käsekästchen',e:'🔲',tag:'Linien ziehen, Kästchen sichern',c:['#eab308','#f97316'],min:2,teams:false,
+  desc:'Der Papier-Klassiker: Linien zwischen Punkten ziehen und möglichst viele Kästchen schließen.',
+  rules:'Wer dran ist, zieht <b>eine Linie</b> zwischen zwei benachbarten Punkten. Wer damit ein Kästchen schließt, bekommt es (mit seiner Farbe) und <b>darf nochmal</b>. Schließt man keins, ist der Nächste dran. Wenn alle Linien gezogen sind, gewinnt, wer die meisten Kästchen hat. Tipp: Verschenke keine dritte Linie an ein Kästchen!',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Spielfeld (Kästchen pro Seite)</p>${seg('dots','size',[3,4,5],v=>v+'×'+v)}`,
+  start:dsStart};
+function dsStart(){
+  const N=G.o.size;G.n=N;
+  G.h=Array.from({length:N+1},()=>Array(N).fill(0));G.v=Array.from({length:N},()=>Array(N+1).fill(0));G.bx=Array.from({length:N},()=>Array(N).fill(-1));
+  G.cur=0;G.left=N*N;G.fin=false;dsScreen();
+}
+function dsScreen(){
+  const N=G.n;let h='';
+  for(let gr=0;gr<=2*N;gr++)for(let gc=0;gc<=2*N;gc++){
+    if(gr%2===0&&gc%2===0)h+='<i class="dd"></i>';
+    else if(gr%2===0){const r=gr/2,c=(gc-1)/2,o=G.h[r][c];h+=`<b class="de h${o?' on':''}" ${o?`style="--c:${hueC(o-1)}"`:`onclick="dsEdge('h',${r},${c})" aria-label="Linie"`}></b>`}
+    else if(gc%2===0){const r=(gr-1)/2,c=gc/2,o=G.v[r][c];h+=`<b class="de v${o?' on':''}" ${o?`style="--c:${hueC(o-1)}"`:`onclick="dsEdge('v',${r},${c})" aria-label="Linie"`}></b>`}
+    else{const r=(gr-1)/2,c=(gc-1)/2,o=G.bx[r][c];h+=`<div class="db${o>=0?' own':''}" ${o>=0?`style="--c:${hueC(o)}"`:''}>${o>=0?esc((S.P[o]||'?').trim().charAt(0).toUpperCase()):''}</div>`}
+  }
+  scr(`${logo('Käsekästchen',1)}${clsHead(' ▣')}<div class="sm" style="text-align:center;margin:8px 0">${G.fin?'Alle Kästchen sind vergeben':`${esc(S.P[G.cur])} ist dran`}</div><div class="dsb" style="--n:${N}">${h}</div>`);
+}
+function dsEdge(t,r,c){
+  if(G.fin)return;const a=t==='h'?G.h:G.v;if(!a||!a[r]||a[r][c])return;
+  const g=G,N=G.n;a[r][c]=G.cur+1;let got=0;
+  const chk=(br,bc)=>{if(br<0||bc<0||br>=N||bc>=N||G.bx[br][bc]>=0)return;if(G.h[br][bc]&&G.h[br+1][bc]&&G.v[br][bc]&&G.v[br][bc+1]){G.bx[br][bc]=G.cur;got++}};
+  if(t==='h'){chk(r-1,c);chk(r,c)}else{chk(r,c-1);chk(r,c)}
+  if(got){G.pts[G.cur]+=got;G.left-=got;sfx.ok();vib(25)}else{G.cur=(G.cur+1)%S.P.length;sfx.pop()}
+  if(!G.left){G.fin=true;dsScreen();setTimeout(()=>{if(G===g)finish({unit:' Kästchen'})},1300);return}
+  dsScreen();
+}
+
+/* ---------- Stadt, Land, Fluss ---------- */
+const SLFC=['Stadt','Land','Fluss','Tier','Beruf'],SLFL='ABDEFGHKLMNPRSTW'.split('');
+OPT.slf={rounds:5,timer:0};
+GAMES.slf={name:'Stadt, Land, Fluss',e:'✏️',tag:'Mit Stift & Zettel',c:['#22c55e','#16a34a'],min:2,teams:false,
+  desc:'Ein Buchstabe, fünf Kategorien: wer findet die meisten Wörter? Mit Zettel und Stift, die App gibt Buchstaben und Wertung vor.',
+  rules:'Jeder braucht <b>Zettel und Stift</b>. Die App nennt einen Buchstaben. Schreibt zu Stadt, Land, Fluss, Tier und Beruf je ein Wort, das damit anfängt. Wer fertig ist, ruft „Stopp!“ (oder die Zeit läuft ab). Danach werden die Wörter verglichen und Punkte eingetragen: <b>10</b> für ein eigenes Wort, <b>5</b> wenn ein anderer das gleiche hat, <b>20</b> wenn nur du eins hast, 0 für nichts. Wer am Ende die meisten Punkte hat, gewinnt.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Runden</p>${seg('slf','rounds',[3,5,8])}<p class="sm" style="margin:14px 0 8px">Zeitlimit</p>${seg('slf','timer',[0,60,90],v=>v?v+' s':'Aus')}`,
+  start:slfStart};
+function slfStart(){G.pool=ordered(SLFL,x=>x,'g');G.rounds=Math.max(1,Math.min(G.o.rounds,G.pool.length));G.r=0;slfRound()}
+function slfRound(){
+  G.lt=G.pool[G.r];mark('g',G.lt);G.sc=S.P.map(()=>0);
+  scr(`${prg(G.r,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card hand"><div class="big" style="font-size:26px">Zettel und Stift bereit?</div><p>Gleich kommt der Buchstabe. Alle fangen gleichzeitig an.</p><button onclick="slfPlay()">Buchstabe aufdecken</button></div>`);
+}
+function slfPlay(){
+  scr(`${prg(G.r,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card ans" style="text-align:center"><div class="sm">Der Buchstabe ist</div><div class="slfl">${G.lt}</div>
+  <div class="chips" style="justify-content:center">${SLFC.map(c=>`<span class="chip on">${c}</span>`).join('')}</div>
+  <p class="sm">Schreibt zu jeder Kategorie ein Wort mit ${G.lt}. Wer fertig ist, ruft „Stopp!“.</p><button onclick="slfStop()">✋ Stopp! Wir werten</button></div>`);
+  sfx.pop();vib(40);
+  if(G.o.timer)tmrShow(G.o.timer*1000,slfStop);
+}
+function slfStop(){tmrHide();sfx.bad();slfScore()}
+function slfScore(){
+  const last=G.r+1>=G.rounds;
+  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}<div class="card"><div class="sm" style="margin-bottom:8px">Vergleicht eure Zettel und tragt die Punkte ein (10 · 5 · 20 pro Wort)</div>
+  ${S.P.map((p,i)=>`<div class="sb">${av(i,'',30)}<span class="nm">${esc(p)}</span><div class="bar" style="background:none"></div><div class="stp"><button class="sec ib" onclick="slfAdj(${i},-5)" aria-label="Minus 5">−</button><b id="sc${i}">${G.sc[i]}</b><button class="sec ib" onclick="slfAdj(${i},5)" aria-label="Plus 5">+</button></div></div>`).join('')}</div>
+  ${boardHTML(G.pts,{label:'Gesamt vor dieser Runde',unit:' P'})}
+  <button onclick="slfCommit()">${last?'Endergebnis 🏆':'Runde werten'}</button>`);
+}
+function slfAdj(i,d){G.sc[i]=Math.max(0,Math.min(100,G.sc[i]+d));const e=$('sc'+i);if(e)e.textContent=G.sc[i]}
+function slfCommit(){
+  S.P.forEach((_,i)=>G.pts[i]+=G.sc[i]);
+  if(G.r+1>=G.rounds){finish({unit:' P'});return}
+  G.r++;slfRound();
+}
+
 /* ================= Kategorien & Trinkspiele (ab 18) ================= */
-const CATS=[{id:'quiz',n:'Quiz & Schätzen',s:'Quiz',e:'🧠',c:['#ff7a45','#ff2e4d']},{id:'party',n:'Party & Raten',s:'Party',e:'🎭',c:['#8f6cff','#3f7bff']},{id:'group',n:'Gruppe & Abstimmen',s:'Gruppe',e:'🗳️',c:['#c026d3','#ec4899']},{id:'action',n:'Action & Duell',s:'Action',e:'⚡',c:['#22c55e','#06b6d4']},{id:'drink',n:'Trinkspiele (ab 18)',s:'Trinken',e:'🍻',c:['#f59e0b','#ef4444']}];
-const GCAT={arsch:'quiz',bluff:'quiz',hilo:'quiz',pant:'party',taboo:'party',wave:'party',spy:'group',most:'group',react:'action',bomb:'action',c4:'action',never:'drink',kings:'drink'};
+const CATS=[{id:'quiz',n:'Quiz & Schätzen',s:'Quiz',e:'🧠',c:['#ff7a45','#ff2e4d']},{id:'party',n:'Party & Raten',s:'Party',e:'🎭',c:['#8f6cff','#3f7bff']},{id:'group',n:'Gruppe & Abstimmen',s:'Gruppe',e:'🗳️',c:['#c026d3','#ec4899']},{id:'brain',n:'Knobeln & Solo',s:'Knobeln',e:'🧩',c:['#14b8a6','#0ea5e9']},{id:'duel',n:'Duell & Klassiker',s:'Duell',e:'⚔️',c:['#3b82f6','#6366f1']},{id:'action',n:'Action & Reflex',s:'Action',e:'⚡',c:['#22c55e','#06b6d4']},{id:'drink',n:'Trinkspiele (ab 18)',s:'Trinken',e:'🍻',c:['#f59e0b','#ef4444']}];
+const GCAT={arsch:'quiz',bluff:'quiz',hilo:'quiz',pant:'party',taboo:'party',wave:'party',slf:'party',spy:'group',most:'group',memo:'brain',hang:'brain',code:'brain',c4:'duel',ttt:'duel',dots:'duel',react:'action',bomb:'action',never:'drink',kings:'drink'};
 const DRKV=['arsch','bluff','most','bomb','react'];   // Spiele mit optionaler Trink-Variante
 OPT.arsch.drink=OPT.bluff.drink=OPT.most.drink=OPT.bomb.drink=OPT.react.drink=false;
 let HCAT='all',DNEXT=null;try{HCAT=localStorage.getItem('pb_cat')||'all'}catch(e){}
@@ -4877,13 +5207,17 @@ window.hand=function(pi,msg,go,pr,tag){
   ACT=pi;PERM=null;WAIT=waitHTML(pi,pr,tag);HF=go;
   go();syncViews();
 };
-const PUBW=['neResult','kiTurn','kiShow','kiEnd','moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round'];
+const PUBW=['neResult','kiTurn','kiShow','kiEnd','moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round','mmScreen','hgScreen','ckResult','ttScreen','dsScreen','slfRound','slfPlay','slfScore'];
 const PERMS={
   spyTalk:()=>'all',
   waGuess:()=>'all',
   spyGuess:()=>()=>G.spy,
   boLight:()=>()=>G.hold,
   c4Round:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.mi),
+  mmScreen:()=>()=>(G.busy?'host':G.cur),
+  hgScreen:()=>()=>(G.res?'host':G.cur),
+  ttScreen:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.pi[G.turn]),
+  dsScreen:()=>()=>(G.fin?'host':G.cur),
   waLock:()=>'all',
   kiTurn:()=>()=>G.cur,
   kiShow:()=>()=>G.cur
@@ -5293,7 +5627,7 @@ function kbRx(){
   const btn=r.querySelector('button');if(btn){btn.click();return true}return false;
 }
 function kbPrimary(root){
-  const bs=[...root.querySelectorAll('button')].filter(b=>kbVis(b)&&!b.disabled&&!/\b(sec|ib|qm|opt|back|gt|sg|lo)\b/.test(b.className));
+  const bs=[...root.querySelectorAll('button')].filter(b=>kbVis(b)&&!b.disabled&&!/\b(sec|ib|qm|opt|back|gt|sg|lo|kx)\b/.test(b.className));
   return bs.find(b=>b.classList.contains('ok'))||bs[bs.length-1]||null;
 }
 document.addEventListener('keydown',e=>{
@@ -5325,9 +5659,11 @@ document.addEventListener('keydown',e=>{
     if(k==='ArrowDown'||k==='Enter'||k===' '){e.preventDefault();kbC4Drop(KBC);return}
   }
   if((k==='ArrowLeft'||k==='ArrowRight')&&kbSlider((k==='ArrowRight'?1:-1)*(e.shiftKey?5:1))){e.preventDefault();return}
+  if($('hg')&&/^[a-z]$/.test(lc)){const b=root.querySelector('#hg [data-l="'+lc.toUpperCase()+'"]');if(b&&!b.disabled){e.preventDefault();b.click()}return}
+  if(k==='Backspace'&&$('ckdel')){e.preventDefault();$('ckdel').click();return}
   if(/^[0-9]$/.test(k)){
     const modal=document.querySelector('.pk:not(#hmc)'),box=modal||root;
-    const opts=[...box.querySelectorAll('.opt,.locs .lo')].filter(kbVis),n=k==='0'?10:+k;
+    const opts=[...box.querySelectorAll('.opt,.locs .lo,[data-kn]')].filter(kbVis),n=k==='0'?10:+k;
     if(opts.length){if(opts[n-1]){e.preventDefault();opts[n-1].click()}return}
     const tiles=[...app.querySelectorAll('.gt')].filter(kbVis);
     if(tiles[n-1]){e.preventDefault();tiles[n-1].click()}
