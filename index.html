@@ -281,6 +281,17 @@ body.live .screen{padding-top:calc(env(safe-area-inset-top,0px) + 50px)}
 .tbw i{font-style:normal;font-size:15px;font-weight:800;padding:5px 11px;border-radius:99px;background:rgba(255,46,77,.2);border:1px solid rgba(255,46,77,.55);color:#ffc2cb}
 button:focus-visible,[role=button]:focus-visible,.chip:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .kbd{display:inline-block;min-width:22px;padding:1px 7px;border-radius:7px;border:1px solid var(--line);background:rgba(255,255,255,.08);font-size:12px;font-weight:700;text-align:center;color:var(--tx)}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;margin:8px 0 0;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cats .chip{flex:none}
+.sech{display:flex;align-items:center;gap:8px;margin:20px 2px 0;font-size:13px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--mu)}
+.sech span{font-size:18px}
+.sech i{font-style:normal;margin-left:auto;font-size:12px;padding:2px 9px;border-radius:99px;background:var(--glass);border:1px solid var(--line)}
+.gt.dim{filter:grayscale(.65) brightness(.72)}
+.pcard{position:relative;width:min(200px,56vw);aspect-ratio:5/7;margin:16px auto;background:#fff;border-radius:18px;box-shadow:0 14px 40px rgba(0,0,0,.5);display:grid;place-items:center;font-weight:900}
+.pcard span{font-size:84px;line-height:1}
+.pcard b{position:absolute;top:10px;left:16px;font-size:28px}
+.pcard b.b2{top:auto;left:auto;bottom:10px;right:16px;transform:rotate(180deg)}
 </style>
 </head>
 <body>
@@ -2601,7 +2612,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.3';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.4';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2612,7 +2623,7 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const pad=n=>String(n).padStart(2,'0');
 const dec=n=>{const s=String(n);return s.includes('.')?s.split('.')[1].length:0};
 
-let C={days:15,fx:true,vib:true,sound:true,theme:'feuer'};
+let C={days:15,fx:true,vib:true,sound:true,theme:'feuer',drink:true};
 let S={names:['Spieler 1','Spieler 2','Spieler 3'],mode:'solo',nt:2,P:null,tm:null,tmKey:''};
 let G={},CUR=null,HF=null,TH=['var(--red2)','var(--red)'];
 const NET={on:false,host:false,client:false,code:'',m:[],inGame:false,scr:null,peer:null,conn:null,perm:true,idx:-1,localNames:null,syn:false};
@@ -2622,7 +2633,7 @@ function applyTheme(){document.body.dataset.theme=C.theme;document.body.classLis
 
 /* ---------- Verlauf: Wiederholungssperre ---------- */
 const HC={};
-const HNS=['q','w','l','s','b','c','m','t','h'];
+const HNS=['q','w','l','s','b','c','m','t','h','n'];
 const hGet=ns=>{if(!HC[ns]){try{HC[ns]=JSON.parse(localStorage.getItem('pb_h_'+ns)||'{}')}catch(e){HC[ns]={}}}return HC[ns]};
 const lim=()=>C.days*864e5;
 function recent(ns,key){const t=hGet(ns)[key];return t!=null&&lim()>0&&Date.now()-t<lim()}
@@ -3168,22 +3179,6 @@ const seg=(g,k,vals,lab)=>`<div class="row">${vals.map(v=>`<button class="${OPT[
 function setOpt(g,k,v){OPT[g][k]=v;gameSetup(g)}
 
 /* ---------- Home ---------- */
-function home(){
-  setLive(false);stopAll();TH=['var(--red2)','var(--red)'];CUR=null;S.P=null;
-  const ids=Object.keys(GAMES);
-  scr(`<div class="row" style="justify-content:space-between;align-items:center"><div class="logo" style="margin:6px 0"><div class="rc"></div><h1 style="font-size:34px">Party Box</h1></div><div class="row" style="gap:8px;width:auto">${NET.on?'':'<button class="sec ib" onclick="statsScreen()" aria-label="Statistik">📊</button>'}<button class="sec ib" onclick="settings()" aria-label="Einstellungen">⚙️</button></div></div>
-  <div class="mode2"><button class="${NET.on?'sec':''} sg" onclick="goLocal()">📱 Ein Gerät</button><button class="${NET.on?'':'sec'} sg" onclick="goOnline()">🌐 Online${NET.on?' · '+NET.code:''}</button></div>
-  <p style="margin:0 0 10px">Such dir ein Spiel aus. Danach wählst du den Modus.</p>
-  <div class="card" onclick="${NET.on?'lobbyScreen()':'playersScreen()'}" style="cursor:pointer;padding:14px"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px"><span class="sm">Mitspieler (${S.names.length})</span><span class="sm" style="color:var(--tx)">${NET.on?'Lobby &amp; QR ›':'ändern ›'}</span></div>
-  <div class="pchips">${S.names.map((n,i)=>`<div class="pchip">${av(i,'',30)}${NET.on?`<i class="dot2${i===0||(NET.m[i]&&NET.m[i].conn&&NET.m[i].conn.open)?'':' off'}"></i>`:''}${esc(n.trim()||'?')}</div>`).join('')}</div></div>
-  <div class="grid">${ids.map((id,k)=>{const d=GAMES[id];return `<button class="gt" style="--k:${k};--g1:${d.c[0]};--g2:${d.c[1]}" onclick="pickGame('${id}')"><span class="te">${d.e}</span><b>${d.name}</b><small>${d.tag}</small><span class="bd">👥 ab ${d.min}${d.teams?' · Teams':''}</span></button>`}).join('')}</div>`);
-}
-function pickGame(id){
-  const d=GAMES[id];
-  if(S.names.length<d.min){toast(`${d.name} braucht mindestens ${d.min} Spieler`);vib(60);return}
-  sfx.pop();CUR=id;if(!d.teams)S.mode='solo';gameSetup(id);
-}
-
 /* ---------- Spieler ---------- */
 function playersScreen(){
   setLive(false);S.P=null;TH=['var(--red2)','var(--red)'];
@@ -3214,6 +3209,7 @@ function statsScreen(sel){
   const ex=(id,g)=>{const a=[];
     if(id==='arsch'){a.push(`Arschkarten: <b style="color:var(--tx)">${g.s.cards||0}</b>`,`am nächsten: <b style="color:var(--tx)">${g.s.near||0}</b>`)}
     if(id==='react'&&g.m.ms!=null)a.push(`schnellste Zeit: <b style="color:var(--tx)">${Math.round(g.m.ms)} ms</b>`);
+    if(id==='never')a.push(`Schlucke: <b style="color:var(--tx)">${g.s.schlucke||0}</b>`);
     if(id==='most')a.push(`am häufigsten gewählt: <b style="color:var(--tx)">${g.s.gewaehlt||0}×</b>`,`Stimmen erhalten: <b style="color:var(--tx)">${g.s.stimmen||0}</b>`);
     if(id==='taboo')a.push(`Begriffe erklärt: <b style="color:var(--tx)">${g.s.erklaert||0}</b>`);
     if(id==='hilo'&&g.s.fragen)a.push(`Trefferquote: <b style="color:var(--tx)">${Math.round((g.s.richtig||0)/g.s.fragen*100)} %</b>`);
@@ -3251,6 +3247,7 @@ function settings(){
   <div class="row">${[0,3,7,15,30].map(d=>`<button class="${C.days===d?'':'sec'} sg" onclick="setC('days',${d})">${d?d+' Tage':'Aus'}</button>`).join('')}</div>
   <p class="sm" style="margin:12px 0 0">Gerade gesperrt: <b style="color:var(--tx)">${blocked()}</b> Einträge</p>
   <button class="sec" onclick="clearHist();toast('Verlauf zurückgesetzt');settings()">Verlauf zurücksetzen</button></div>
+  <div class="card"><h2>Trinkspiele</h2>${tg('drink','Trinkspiele anzeigen (ab 18)','Aus = Kategorie, Spiele und Trink-Varianten verschwinden')}</div>
   <div class="card"><h2>Tastatur</h2><p class="sm" style="margin-top:-4px">Mit Magic Keyboard am iPad, am Mac und am PC:</p>
   <div class="sm" style="line-height:2.1">
   <span class="kbd">Tab</span> springt durch Knöpfe, <span class="kbd">Enter</span> / <span class="kbd">Leertaste</span> löst aus<br>
@@ -3273,7 +3270,7 @@ function gameSetup(id){
   scr(`<button class="sec back" onclick="home()">← Spiele</button>
   <div class="hero"><div class="he">${d.e}</div><h1 style="margin:4px 0;font-size:34px;letter-spacing:-1px">${d.name}</h1><p style="margin:0">${d.desc}</p></div>
   ${modeCard()}
-  <div class="card"><h2>Einstellungen</h2>${d.opts()}</div>
+  <div class="card"><h2>Einstellungen</h2>${d.opts()}${DRKV.includes(id)?drinkChip(id):''}</div>
   <div class="card" style="padding:14px 18px"><details><summary>Regeln</summary>${d.rules}</details></div>
   <button onclick="startSession('${id}')">Los geht's</button>`);
 }
@@ -3380,10 +3377,11 @@ function boardHTML(vals,o){
   o=o||{};const m=Math.max(1,...vals);
   return `<div class="card"><div class="sm" style="margin-bottom:6px">${o.label||(G.team?'Teamwertung':'Punktestand')}</div>${G.ents.map((e,i)=>`<div class="sb">${e.av(26)}<span class="nm">${esc(e.name.replace(/^Team /,''))}</span><div class="bar"><i style="width:${vals[i]/m*100}%"></i></div><span class="pt">${vals[i]}${o.unit||' P'}</span></div>`).join('')}</div>`;
 }
-const STU={bomb:'💥',c4:'Siege'};
+const STU={bomb:'💥',c4:'Siege',never:'🍻'};
 function statExtra(pi){
   if(G.id==='arsch')return {s:{cards:(G.cards&&G.cards[pi])||0,near:(G.near&&G.near[pi])||0}};
   if(G.id==='react'&&G.best&&isFinite(G.best[pi]))return {m:{ms:G.best[pi]}};
+  if(G.id==='never')return {s:{schlucke:G.pts[pi]||0}};
   if(G.id==='most')return {s:{gewaehlt:(G.chosen&&G.chosen[pi])||0,stimmen:(G.tot&&G.tot[pi])||0}};
   if(G.id==='taboo')return {s:{erklaert:(G.tc&&G.tc[pi])||0}};
   if(G.id==='hilo')return {s:{richtig:(G.hit&&G.hit[pi])||0,fragen:G.rounds||0}};
@@ -3533,7 +3531,7 @@ function arResult(){
       <div class="rh">${av(i)}<div class="nm">${esc(S.P[i])}${best[i]?'<span class="tag b">am nächsten</span>':''}${worst[i]?'<span class="tag w">Arschkarte</span>':''}</div><div class="gain ${gain[i]?'':'z'}">+${gain[i]}</div></div>
       <div class="dev"><i></i></div>
       <div class="sm">${gs[i]==null?'⏰ <b style="color:var(--tx)">Keine Antwort</b> (Zeit abgelaufen)':`Schätzung <b style="color:var(--tx)">${fmt(gs[i])}</b> · ${arDiffTxt(gs[i],G.q)}`}${G.tip?`<br>Tipp: ${ts[i]==null?'–':esc(S.P[ts[i]])} ${tipOK[i]?'<span class="tag t">richtig +1</span>':'<span class="tag x">falsch</span>'}`:''}</div></div>`}).join('')}</div>
-  <div class="late" style="--d:${end}s">${boardHTML(G.pts)}<button onclick="${last?'arFinish()':'G.r++;arRound()'}">${last?'Endergebnis 🏆':'Nächste Frage'}</button></div>`);
+  <div class="late" style="--d:${end}s">${G.o.drink?drinkBox(S.P.map((p,i)=>worst[i]?`${esc(p)} trinkt 1 Schluck 🟥`:'').concat(S.P.map((p,i)=>best[i]?`${esc(p)} verteilt 2 Schlucke 🎯`:'')).filter(Boolean)):''}${boardHTML(G.pts)}<button onclick="${last?'arFinish()':'G.r++;arRound()'}">${last?'Endergebnis 🏆':'Nächste Frage'}</button></div>`);
   countUp($('cu'),a,d,1100);
   order.forEach((i,k)=>{
     const at=(k*step+.5)*1000;
@@ -3951,7 +3949,7 @@ function bResult(){
   ${order.map((k,j)=>{const o=G.opts[k],vs=G.votes.map((v,i)=>v===k?i:-1).filter(i=>i>=0);
     return `<div class="res ${o.real?'best':''}" style="--d:${(.3+j*.5).toFixed(2)}s"><div class="rh"><div class="nm" style="font-size:18px">${esc(o.text)}${o.real?'<span class="tag b">✓ ECHT</span>':''}</div></div>
     <div class="sm" style="margin-top:6px">${o.real?'':`Erfunden von <b style="color:var(--tx)">${o.authors.map(a=>esc(S.P[a])).join(', ')}</b><br>`}Gewählt von: ${vs.length?vs.map(i=>esc(S.P[i])).join(', '):'niemandem'}</div></div>`}).join('')}
-  <div class="late" style="--d:${.3+order.length*.5+.3}s">${nw.length?`<p class="sm" style="margin:0 0 6px">⏰ Keine Antwort geschrieben: ${nw.map(i=>esc(S.P[i])).join(', ')}</p>`:''}${nv.length?`<p class="sm" style="margin:0 0 6px">⏰ Keine Stimme abgegeben: ${nv.map(i=>esc(S.P[i])).join(', ')}</p>`:''}${S.P.map((p,i)=>gain[i]?`<span class="tag t" style="margin:2px 4px 2px 0">${esc(p)} +${gain[i]}</span>`:'').join('')}${boardHTML(G.pts)}<button onclick="${last?'finish()':'G.r++;bRound()'}">${last?'Endergebnis 🏆':'Nächste Frage'}</button></div>`);
+  <div class="late" style="--d:${.3+order.length*.5+.3}s">${G.o.drink?drinkBox(bDrink()):''}${nw.length?`<p class="sm" style="margin:0 0 6px">⏰ Keine Antwort geschrieben: ${nw.map(i=>esc(S.P[i])).join(', ')}</p>`:''}${nv.length?`<p class="sm" style="margin:0 0 6px">⏰ Keine Stimme abgegeben: ${nv.map(i=>esc(S.P[i])).join(', ')}</p>`:''}${S.P.map((p,i)=>gain[i]?`<span class="tag t" style="margin:2px 4px 2px 0">${esc(p)} +${gain[i]}</span>`:'').join('')}${boardHTML(G.pts)}<button onclick="${last?'finish()':'G.r++;bRound()'}">${last?'Endergebnis 🏆':'Nächste Frage'}</button></div>`);
   setTimeout(()=>{confetti(60,GOLD);sfx.ok()},400);
 }
 
@@ -4007,7 +4005,7 @@ function rxResult(){
   idx.forEach((pi,rank)=>{const g=G.times[pi]===Infinity?0:Math.max(0,3-rank);gain[pi]=g;G.pts[eOf(pi)]+=g});
   const last=G.r+1>=G.rounds;
   scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card"><h2>Ergebnis</h2>${idx.map((pi,k)=>`<div class="res ${k===0&&G.times[pi]!==Infinity?'best':''}" style="--d:${(k*.35).toFixed(2)}s"><div class="rh">${av(pi,'',38)}<div class="nm">${esc(S.P[pi])}${G.team?` <span class="sm">${TN[eOf(pi)][0]}</span>`:''}</div><div style="font-weight:850;font-size:20px">${G.times[pi]===Infinity?'🙈 Fehlstart':G.times[pi]+' ms'}</div><div class="gain ${gain[pi]?'':'z'}" style="--d:${(k*.35).toFixed(2)}s">+${gain[pi]}</div></div></div>`).join('')}</div>
-  <div class="late" style="--d:${idx.length*.35+.2}s">${boardHTML(G.pts)}<button onclick="${last?'rxFinish()':'G.r++;rxRound()'}">${last?'Endergebnis 🏆':'Nächste Runde'}</button></div>`);
+  <div class="late" style="--d:${idx.length*.35+.2}s">${G.o.drink?drinkBox(rxDrink(idx)):''}${boardHTML(G.pts)}<button onclick="${last?'rxFinish()':'G.r++;rxRound()'}">${last?'Endergebnis 🏆':'Nächste Runde'}</button></div>`);
   setTimeout(()=>{confetti(50,GOLD);sfx.ok()},300);
 }
 function rxFinish(){
@@ -4064,7 +4062,7 @@ function boBoom(){
   const e=eOf(G.hold);G.pts[e]++;
   const last=G.r+1>=G.rounds;
   scr(`${prg(G.r+1,G.rounds,`Bombe ${G.r+1} von ${G.rounds}`)}<div class="card ans"><div style="font-size:90px;animation:pop .5s both">💥</div><div class="big" style="color:var(--red2)">BUMM!</div><p style="margin:6px 0 0"><b style="color:var(--tx)">${esc(S.P[G.hold])}</b>${G.team?` (Team ${TN[e][1]})`:''} hatte die Bombe in der Hand.</p></div>
-  ${boardHTML(G.pts,{label:'Explosionen (weniger ist besser)',unit:' 💥'})}
+  ${G.o.drink?drinkBox([esc(S.P[G.hold])+' trinkt 2 Schlucke 💥']):''}${boardHTML(G.pts,{label:'Explosionen (weniger ist besser)',unit:' 💥'})}
   <button onclick="${last?'boFinish()':'G.r++;boRound()'}">${last?'Endergebnis 🏆':'Nächste Bombe'}</button>`);
 }
 function boFinish(){finish({asc:true,unit:' 💥'})}
@@ -4316,7 +4314,7 @@ function moResult(){
   ${tops.length?'':'<div class="card"><p style="margin:0">Niemand hat abgestimmt.</p></div>'}
   <div>${order.map((i,k)=>`<div class="res ${tops.includes(i)?'best':''}" style="--d:${(.3+k*.4).toFixed(2)}s"><div class="rh">${av(i)}<div class="nm">${esc(S.P[i])}${tops.includes(i)?'<span class="tag b">gewählt</span>':''}</div><div style="font-weight:850;font-size:22px">${cnt[i]}</div></div>
     <div class="sm" style="margin-top:6px">Gewählt von: ${S.P.filter((_,j)=>G.v[j]===i).map(esc).join(', ')||'niemandem'}</div></div>`).join('')}</div>
-  <div class="late" style="--d:${(.3+n*.4+.3).toFixed(2)}s">${nv.length?`<p class="sm" style="margin:0 0 6px">⏰ Keine Stimme abgegeben: ${nv.map(i=>esc(S.P[i])).join(', ')}</p>`:''}${S.P.map((p,i)=>gain[i]?`<span class="tag t" style="margin:2px 4px 2px 0">${esc(p)} +1</span>`:'').join('')}${boardHTML(G.pts)}<button onclick="${last?'moFinish()':'G.r++;moRound()'}">${last?'Endergebnis 🏆':'Nächste Aussage'}</button></div>`);
+  <div class="late" style="--d:${(.3+n*.4+.3).toFixed(2)}s">${G.o.drink?drinkBox(tops.map(i=>`${esc(S.P[i])} trinkt ${Math.min(3,cnt[i])} Schlucke`)):''}${nv.length?`<p class="sm" style="margin:0 0 6px">⏰ Keine Stimme abgegeben: ${nv.map(i=>esc(S.P[i])).join(', ')}</p>`:''}${S.P.map((p,i)=>gain[i]?`<span class="tag t" style="margin:2px 4px 2px 0">${esc(p)} +1</span>`:'').join('')}${boardHTML(G.pts)}<button onclick="${last?'moFinish()':'G.r++;moRound()'}">${last?'Endergebnis 🏆':'Nächste Aussage'}</button></div>`);
   if(tops.length){setTimeout(()=>{confetti(50,GOLD);sfx.ok()},400)}
 }
 function moFinish(){
@@ -4493,6 +4491,154 @@ function hiResult(){
   if(gain.some(g=>g)){setTimeout(()=>{confetti(40,GOLD);sfx.ok()},400)}else sfx.bad();
 }
 
+/* ================= Kategorien & Trinkspiele (ab 18) ================= */
+const CATS=[{id:'quiz',n:'Quiz & Schätzen',s:'Quiz',e:'🧠'},{id:'party',n:'Party & Raten',s:'Party',e:'🎭'},{id:'group',n:'Gruppe & Abstimmen',s:'Gruppe',e:'🗳️'},{id:'action',n:'Action & Duell',s:'Action',e:'⚡'},{id:'drink',n:'Trinkspiele (ab 18)',s:'Trinken',e:'🍻'}];
+const GCAT={arsch:'quiz',bluff:'quiz',hilo:'quiz',pant:'party',taboo:'party',wave:'party',spy:'group',most:'group',react:'action',bomb:'action',c4:'action',never:'drink',kings:'drink'};
+const DRKV=['arsch','bluff','most','bomb','react'];   // Spiele mit optionaler Trink-Variante
+OPT.arsch.drink=OPT.bluff.drink=OPT.most.drink=OPT.bomb.drink=OPT.react.drink=false;
+let HCAT='all',DNEXT=null;try{HCAT=localStorage.getItem('pb_cat')||'all'}catch(e){}
+const drinkOn=()=>C.drink!==false;
+function setHCat(id){HCAT=id;try{localStorage.setItem('pb_cat',id)}catch(e){}home()}
+function randomGame(){
+  const n=S.names.length,ids=Object.keys(GAMES).filter(id=>GAMES[id].min<=n&&(HCAT==='all'?GAMES[id].cat!=='drink':GAMES[id].cat===HCAT));
+  if(!ids.length){toast('Kein passendes Spiel für diese Spielerzahl');return}
+  pickGame(pick(ids));
+}
+// Hinweis ab 18 (einmal bestätigen); alkoholfrei ist ausdrücklich in Ordnung
+function drinkGate(go){
+  let seen=false;try{seen=localStorage.getItem('pb_dnote')==='1'}catch(e){}
+  if(seen){go();return}
+  if(document.getElementById('dnote'))return;
+  const d=document.createElement('div');d.className='pk';d.id='dnote';d.style.zIndex=70;
+  d.innerHTML=`<div><h2>🍻 Nur für Erwachsene</h2><p style="margin-top:-4px">Trinkspiele sind ab 18 gedacht. Trinke nur, wenn du magst – <b>alkoholfrei geht genauso</b>, Schlucke sind nur Vorschläge. Niemand muss trinken, kein Alkohol am Steuer, achtet aufeinander.</p><button class="sec" onclick="dnoteNo()">Zurück</button><button onclick="dnoteYes()">Verstanden, ich bin 18 oder älter</button></div>`;
+  document.body.appendChild(d);DNEXT=go;setTimeout(()=>{const b=d.querySelector('button.sec');if(b)b.focus()},30);
+}
+function dnoteNo(){const d=document.getElementById('dnote');if(d)d.remove();DNEXT=null}
+function dnoteYes(){const d=document.getElementById('dnote');if(d)d.remove();try{localStorage.setItem('pb_dnote','1')}catch(e){}const f=DNEXT;DNEXT=null;if(f)f()}
+function drinkTog(g,el){drinkGate(()=>{OPT[g].drink=!OPT[g].drink;el.classList.toggle('on',OPT[g].drink)})}
+const drinkChip=g=>drinkOn()?`<p class="sm" style="margin:16px 0 8px">Trink-Variante (ab 18)</p><div class="chips"><span class="chip ${OPT[g].drink?'on':''}" onclick="drinkTog('${g}',this)">🍻 Schlucke verteilen</span></div><p class="sm" style="margin:8px 0 0">Nach jeder Runde stehen Vorschläge, wer wie viele Schlucke trinkt. Alkoholfrei geht genauso.</p>`:'';
+const drinkBox=l=>l.length?`<div class="card" style="border-color:rgba(255,200,61,.55);background:rgba(255,200,61,.08)"><div class="sm">🍻 Schlucke (Vorschläge – alkoholfrei geht auch)</div>${l.map(x=>`<div style="margin-top:6px;font-weight:700">${x}</div>`).join('')}</div>`:'';
+function rxDrink(idx){const bad=idx.filter(pi=>G.times[pi]===Infinity),l=bad.length?bad:[idx[idx.length-1]];return l.map(pi=>`${esc(S.P[pi])} trinkt 1 Schluck ${G.times[pi]===Infinity?'🙈':'🐢'}`)}
+function bDrink(){return S.P.map((p,vi)=>{const k=G.votes[vi],o=k==null?null:G.opts[k];return o&&!o.real?`${esc(p)} trinkt 1 Schluck (auf „${esc(o.text)}“ hereingefallen)`:''}).filter(Boolean)}
+
+/* ---------- Ich hab noch nie ---------- */
+const NV={
+'Harmlos 😇':["einen ganzen Tag im Schlafanzug verbracht","ein Buch an einem Tag ausgelesen","beim Zähneputzen getanzt","mit einem Haustier gesprochen, als wäre es ein Mensch","einen Regenschirm im Bus vergessen","eine Pflanze eingehen lassen","Pizza zum Frühstück gegessen","ein Konzert besucht, bei dem ich kein einziges Lied kannte","heimlich Reste aus dem Kühlschrank gegessen und es abgestritten","den Wecker öfter als dreimal auf „noch 5 Minuten“ gestellt","fünf Folgen derselben Serie hintereinander geschaut","einen Fisch gefangen","ein Geschenk bekommen und so getan, als würde ich es lieben","zehn Minuten nach meinem Handy gesucht, während ich es in der Hand hielt","in einem Fotoautomaten Bilder gemacht","ein Lied so oft gehört, bis ich es nicht mehr hören konnte","ein Rezept ohne eine einzige Änderung nachgekocht","einen Kuchen gebacken, der danach nicht zu retten war","ein ganzes Wochenende ohne Handy verbracht","bei einer Wanderung „nur noch zehn Minuten“ versprochen und doch länger gebraucht","bei einem Spiel absichtlich verloren","einen Brief mit der Hand geschrieben, im letzten Jahr","meinen Namen auf einem Kaffeebecher falsch geschrieben bekommen","ein Zelt aufgebaut, das danach wieder zusammengefallen ist","einen Wunsch beim Ausblasen von Kerzen vergessen"],
+'Peinlich 🙈':["beim Karaoke gesungen","bei einer Vorstellung den Namen der Person vergessen","auf eine Nachricht geantwortet, die gar nicht für mich war","jemandem zugewunken, der gar nicht mich meinte","in der Öffentlichkeit gestolpert und so getan, als wäre nichts","ein Wort lange falsch ausgesprochen, ohne es zu merken","bei einem Film geweint","bei einer Hochzeit geweint","beim Kellner „Gleichfalls“ gesagt, als er guten Appetit wünschte","an einer Tür gedrückt, an der man ziehen muss, während jemand zusah","im Aufzug laut mitgesungen, weil ich dachte, ich sei allein","mein Handy fallen lassen und das Display zerbrochen","im Restaurant das falsche Essen bekommen und es trotzdem gegessen","einen Witz erzählt, bei dem keiner gelacht hat","ein Lied laut mitgesungen und den Text komplett falsch gehabt","vor Publikum den Faden verloren","den ganzen Tag Zahnpasta auf der Kleidung gehabt","einen Termin vergessen, den ich selbst ausgemacht hatte","bei einem Telefonat „Tschüss“ gesagt und dann doch weitergeredet","einem Fremden hinterhergelaufen, weil ich ihn für jemand Bekannten hielt","einen peinlichen Spitznamen aus der Kindheit gehabt","bei Kälte so getan, als würde ich nicht frieren","in einer Besprechung einen Lachanfall bekommen","ein Foto gelöscht, nachdem ich es schon hochgeladen hatte","beim Tanzen auf der Tanzfläche allein gestanden"],
+'Wild 🔥':["bis zum Sonnenaufgang gefeiert","eine Party als Letzter verlassen","auf einem Tisch getanzt","mitten in der Nacht Pizza bestellt","spontan in ein anderes Land gereist","einen Abend mit Fremden verbracht und sie nie wiedergesehen","einen Flug verpasst","in einem Zug in die falsche Richtung gefahren","gelogen, um nicht zu einer Veranstaltung zu müssen","so getan, als wäre ich krank, um etwas zu verpassen","bei einer Prüfung einen Spickzettel gehabt","im Urlaub viel mehr Geld ausgegeben als geplant","einen Fallschirmsprung gemacht","mir etwas Dauerhaftes (Tattoo oder Piercing) stechen lassen","stundenlang das Profil einer Person in sozialen Medien durchgesehen","ein Geheimnis weitererzählt, das ich nicht weitererzählen sollte","ein Date gehabt, das ein Reinfall war","einen Spitznamen für meine Chefin oder meinen Chef gehabt","in einer Bar etwas bestellt, nur weil der Name gut klang","auf einer Reise einen Tag lang so getan, als wäre ich jemand anderes","bei einem Wettbewerb gewonnen, ohne dafür geübt zu haben","spontan einen Haarschnitt gemacht, den ich sofort bereut habe","einen Sonnenaufgang auf einem Berg erlebt","mitten in der Nacht jemanden angerufen, nur um zu reden","ein Konzert verlassen, weil es mir zu laut war"]
+};
+const NCATS=Object.keys(NV);
+OPT.never={rounds:15,timer:0,cats:{}};
+function neCat(i,el){const k=NCATS[i];OPT.never.cats[k]=!OPT.never.cats[k];el.classList.toggle('on')}
+GAMES.never={name:'Ich hab noch nie',e:'🙋',tag:'Wer es getan hat, trinkt',c:['#f59e0b','#ef4444'],min:2,teams:false,
+  desc:'Eine Aussage nach der anderen. Wer es schon einmal gemacht hat, trinkt einen Schluck. Wer ist am unschuldigsten?',
+  rules:'Eine Aussage erscheint („Ich hab noch nie …“). Jeder antwortet <b>ehrlich und geheim</b>: „Hab ich schon gemacht“ oder „Noch nie“. Danach wird aufgedeckt: Wer es schon getan hat, <b>trinkt einen Schluck</b> (Vorschlag – alkoholfrei, mit Wasser oder Saft, geht genauso). Gewonnen hat, wer am wenigsten Schlucke sammelt. Nur für Erwachsene (ab 18). Niemand muss trinken oder etwas erzählen.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (nichts gewählt = alle)</p><div class="chips">${NCATS.map((k,i)=>`<span class="chip ${OPT.never.cats[k]?'on':''}" onclick="neCat(${i},this)">${esc(k)}</span>`).join('')}</div>
+  <p class="sm" style="margin:16px 0 8px">Runden</p>${seg('never','rounds',[10,15,25])}<p class="sm" style="margin:14px 0 8px">Zeit zum Antworten</p>${seg('never','timer',[0,15,30],v=>v?v+' s':'Aus')}`,
+  start:neStart};
+function neStart(){
+  const sel=NCATS.filter(k=>G.o.cats[k]),cats=sel.length?sel:NCATS,all=[];
+  cats.forEach(c=>NV[c].forEach(x=>all.push(x)));
+  G.pool=ordered(all,x=>x,'n');G.rounds=Math.max(1,Math.min(G.o.rounds,G.pool.length));G.r=0;neRound();
+}
+function neProg(){return prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}
+function neRound(){
+  G.st=G.pool[G.r];mark('n',G.st);G.an=[];G.i=0;
+  if(NET.host){nePar();return}
+  hand(G.i,'Antworte ehrlich – niemand schaut mit!',neVote,neProg());
+}
+function neCard(pi,online){
+  const b=(v,k,t)=>`<button class="opt" style="--k:${k}" ${online?`data-sub="v" data-v="${v}"`:`onclick="nePick(${v},this)"`}><span>${t}</span></button>`;
+  return `<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:10px">${av(pi)}<span class="sm">${esc(S.P[pi])} antwortet</span></div>
+  <div class="sm">Ich hab noch nie …</div><div class="q" style="margin:6px 0 14px">${esc(G.st)}</div>${b(1,0,'🍻 Hab ich schon gemacht')}${b(0,1,'✅ Noch nie')}</div>`;
+}
+function neVote(){scr(`${neProg()}${neCard(G.i,false)}`);if(G.o.timer)tmrShow(G.o.timer*1000,neTimeUp)}
+function neNext(){G.i++;if(G.i<S.P.length)hand(G.i,'Antworte ehrlich – niemand schaut mit!',neVote,neProg());else neResult()}
+function nePick(v,btn){
+  tmrHide();btn.classList.add('sel');vib(30);sfx.pop();document.querySelectorAll('.opt').forEach(b=>b.style.pointerEvents='none');
+  setTimeout(()=>{G.an[G.i]=v;neNext()},350);
+}
+function neTimeUp(){tmrHide();sfx.bad();vib([60,40,60]);G.an[G.i]=0;toast('⏰ Zeit um – zählt als „Noch nie“');neNext()}
+function nePar(){
+  parBegin({head:neProg,dur:G.o.timer?[G.o.timer*1000]:null,msg:'Alle antworten ehrlich und geheim …',steps:[
+    {k:'v',timeout:pi=>{G.an[pi]=0},html:pi=>neCard(pi,true),
+     sub:(pi,d)=>{const v=Number(d.v);if(d.v==null||(v!==0&&v!==1))return 'Ungültige Wahl.';G.an[pi]=v;return true}}
+  ],done:neResult});
+}
+function neResult(){
+  const who=S.P.map((_,i)=>i).filter(i=>G.an[i]===1),last=G.r+1>=G.rounds;
+  who.forEach(i=>G.pts[i]++);
+  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card ans"><div class="sm">Ich hab noch nie …</div><div class="q" style="margin-top:6px">${esc(G.st)}</div></div>
+  ${who.length?`<div class="card" style="border-color:rgba(255,200,61,.55)"><div class="sm">🍻 Hab ich schon gemacht – ein Schluck (alkoholfrei geht auch)</div><div class="chips" style="margin-top:10px">${who.map(i=>`<span class="chip on">${esc(S.P[i])}</span>`).join('')}</div></div>`:'<div class="card ans"><div style="font-size:48px">😇</div><p style="margin:6px 0 0">Alle unschuldig – keiner trinkt!</p></div>'}
+  ${boardHTML(G.pts,{label:'Schlucke (weniger ist unschuldiger)',unit:' 🍻'})}
+  <button onclick="${last?'neFinish()':'G.r++;neRound()'}">${last?'Endergebnis 🏆':'Nächste Aussage'}</button>`);
+  if(who.length)sfx.ok();else{sfx.win();confetti(40,GOLD)}
+}
+function neFinish(){
+  const mx=Math.max(0,...G.pts),top=S.P.filter((_,i)=>G.pts[i]===mx&&mx>0);
+  finish({asc:true,unit:' 🍻',extra:top.length?`<div class="card late" style="--d:1.2s;text-align:center"><div class="sm">Am meisten erlebt</div><div style="font-size:46px;margin:6px 0">🔥</div><div class="big">${esc(top.join(', '))}</div><div class="sm">${mx} Schlucke</div></div>`:''});
+}
+
+/* ---------- Königsrunde ---------- */
+const KR=[['A','Alle','Alle trinken 1 Schluck.'],['2','Du','Verteile 2 Schlucke an eine Person deiner Wahl.'],['3','Ich','Du trinkst 2 Schlucke.'],['4','Boden','Alle tippen auf den Boden. Wer zuletzt tippt, trinkt 1 Schluck.'],['5','Himmel','Alle strecken die Hand nach oben. Wer zuletzt oben ist, trinkt 1 Schluck.'],['6','Kategorie','Nenne eine Kategorie (zum Beispiel Automarken). Reihum nennt jeder einen Begriff. Wer nichts weiß oder wiederholt, trinkt 2 Schlucke.'],['7','Reim','Nenne ein Wort. Reihum reimt sich jeder darauf. Wer scheitert, trinkt 1 Schluck.'],['8','Partner','Such dir eine Partnerin oder einen Partner. Ihr trinkt gemeinsam 1 Schluck.'],['9','Wahrheit','Beantworte eine Frage deiner Wahl ehrlich – oder trink 2 Schlucke.'],['10','Regel','Erfinde eine neue Regel (zum Beispiel nur mit der linken Hand trinken). Wer sie bricht, trinkt 1 Schluck.'],['B','Frage','Stelle eine Frage. Wer sie beantwortet, statt zurückzufragen, trinkt 1 Schluck.'],['D','Nie habe ich','Sage etwas, das du noch nie getan hast. Wer es schon getan hat, trinkt 1 Schluck.'],['K','König','Du bestimmst: Alle trinken 1 Schluck, oder du erfindest eine Mini-Aufgabe für die Runde.']];
+const KS=[['♠','#111827'],['♥','#e11d48'],['♦','#e11d48'],['♣','#111827']];
+OPT.kings={cards:26};
+GAMES.kings={name:'Königsrunde',e:'👑',tag:'Karten ziehen, Regeln befolgen',c:['#d97706','#b45309'],min:2,teams:false,
+  desc:'Reihum eine Karte ziehen. Jede Karte hat eine Regel – von „Alle trinken“ bis „Du bist König“.',
+  rules:'Jeder zieht reihum eine Karte. Die Karte nennt eine Regel (zum Beispiel „Verteile 2 Schlucke“ oder „Reim“). Alle befolgen sie. Das Spiel endet, wenn die gewählte Kartenzahl gezogen ist. Schlucke sind nur Vorschläge – <b>alkoholfrei geht genauso</b>, niemand muss trinken. Nur für Erwachsene (ab 18).',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Anzahl Karten</p>${seg('kings','cards',[13,26,52])}`,
+  start:kiStart};
+function kiStart(){
+  const deck=[];for(let r=0;r<13;r++)for(let s=0;s<4;s++)deck.push([r,s]);
+  G.deck=shuffle(deck).slice(0,G.o.cards);G.k=0;G.cur=0;kiTurn();
+}
+function kiTurn(){
+  const p=G.cur;
+  scr(`${prg(G.k,G.deck.length,`Karte ${G.k+1} von ${G.deck.length}`)}<div class="card hand">${av(p,'l')}<p style="margin:0">Am Zug</p><div class="big">${esc(S.P[p])}</div><p>Zieh eine Karte und befolge die Regel.</p><button onclick="kiDraw()">🂠 Karte ziehen</button></div>`);
+}
+function kiDraw(){G.show=G.deck[G.k];kiShow()}
+function kiShow(){
+  const [r,s]=G.show,R=KR[r],K=KS[s],p=G.cur,last=G.k+1>=G.deck.length;
+  scr(`${prg(G.k+1,G.deck.length,`Karte ${G.k+1} von ${G.deck.length}`)}<div class="pcard flipin" style="color:${K[1]}"><b>${R[0]}</b><span>${K[0]}</span><b class="b2">${R[0]}</b></div>
+  <div class="card ans"><div class="sm">${esc(S.P[p])} hat gezogen</div><div class="big" style="margin:6px 0">${R[1]}</div><p style="margin:0;color:var(--tx)">${R[2]}</p></div>
+  <button onclick="${last?'kiEnd()':'G.k++;G.cur=(G.cur+1)%S.P.length;kiTurn()'}">${last?'Fertig':'Weiter'}</button>`);
+  sfx.pop();
+}
+function kiEnd(){
+  stopAll();setLive(false);
+  scr(`${logo('Königsrunde',1)}<div class="card ans"><div style="font-size:56px">👑</div><div class="big">Das war's!</div><p>Alle Karten sind gezogen. Trinkt zwischendurch auch Wasser. 💧</p></div>
+  <button onclick="startSession('kings')">Nochmal</button><button class="sec" onclick="gameSetup('kings')">Einstellungen ändern</button><button class="sec" onclick="home()">← Alle Spiele</button>`);
+  confetti(80,GOLD);sfx.win();
+}
+
+/* ---------- Startseite mit Kategorien ---------- */
+Object.keys(GCAT).forEach(k=>{if(GAMES[k])GAMES[k].cat=GCAT[k]});
+function home(){
+  setLive(false);stopAll();TH=['var(--red2)','var(--red)'];CUR=null;S.P=null;
+  const n=S.names.length,dr=drinkOn(),cats=CATS.filter(c=>dr||c.id!=='drink');
+  if(HCAT!=='all'&&!cats.some(c=>c.id===HCAT))HCAT='all';
+  const ids=Object.keys(GAMES).filter(id=>dr||GAMES[id].cat!=='drink');
+  const tile=(id,k)=>{const d=GAMES[id];return `<button class="gt${n<d.min?' dim':''}" style="--k:${k};--g1:${d.c[0]};--g2:${d.c[1]}" onclick="pickGame('${id}')"><span class="te">${d.e}</span><b>${d.name}</b><small>${d.tag}</small><span class="bd">👥 ab ${d.min}${d.teams?' · Teams':''}${d.cat==='drink'?' · 18+':''}</span></button>`};
+  const sec=(c,l,k0)=>`<div class="sech"><span>${c.e}</span>${c.n}<i>${l.length}</i></div><div class="grid">${l.map((id,k)=>tile(id,k0+k)).join('')}</div>`;
+  let body='';
+  if(HCAT==='all'){let k=0;cats.forEach(c=>{const l=ids.filter(id=>GAMES[id].cat===c.id);if(l.length){body+=sec(c,l,k);k+=l.length}})}
+  else{const c=cats.find(x=>x.id===HCAT);body=sec(c,ids.filter(id=>GAMES[id].cat===HCAT),0)}
+  scr(`<div class="row" style="justify-content:space-between;align-items:center"><div class="logo" style="margin:6px 0"><div class="rc"></div><h1 style="font-size:34px">Party Box</h1></div><div class="row" style="gap:8px;width:auto">${NET.on?'':'<button class="sec ib" onclick="statsScreen()" aria-label="Statistik">📊</button>'}<button class="sec ib" onclick="settings()" aria-label="Einstellungen">⚙️</button></div></div>
+  <div class="mode2"><button class="${NET.on?'sec':''} sg" onclick="goLocal()">📱 Ein Gerät</button><button class="${NET.on?'':'sec'} sg" onclick="goOnline()">🌐 Online${NET.on?' · '+NET.code:''}</button></div>
+  <p style="margin:0 0 10px">Such dir ein Spiel aus. Danach wählst du den Modus.</p>
+  <div class="card" onclick="${NET.on?'lobbyScreen()':'playersScreen()'}" style="cursor:pointer;padding:14px"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px"><span class="sm">Mitspieler (${n})</span><span class="sm" style="color:var(--tx)">${NET.on?'Lobby &amp; QR ›':'ändern ›'}</span></div>
+  <div class="pchips">${S.names.map((nm,i)=>`<div class="pchip">${av(i,'',30)}${NET.on?`<i class="dot2${i===0||(NET.m[i]&&NET.m[i].conn&&NET.m[i].conn.open)?'':' off'}"></i>`:''}${esc(nm.trim()||'?')}</div>`).join('')}</div></div>
+  <div class="cats"><span class="chip ${HCAT==='all'?'on':''}" onclick="setHCat('all')">✨ Alle</span>${cats.map(c=>`<span class="chip ${HCAT===c.id?'on':''}" onclick="setHCat('${c.id}')">${c.e} ${c.s}</span>`).join('')}<span class="chip" onclick="randomGame()">🎲 Zufall</span></div>
+  ${body}`);
+}
+function pickGame(id){
+  const d=GAMES[id];
+  if(S.names.length<d.min){toast(`${d.name} braucht mindestens ${d.min} Spieler`);vib(60);return}
+  const go=()=>{sfx.pop();CUR=id;if(!d.teams)S.mode='solo';gameSetup(id)};
+  if(d.cat==='drink'){drinkGate(go);return}
+  go();
+}
+
 /* ================= Online-Modus (PeerJS, Host-Spiel + Spiegelung) =================
    Das Spiel läuft nur auf dem Host. Alle anderen Handys zeigen eine Spiegelung des Bildschirms
    (nur wenn sie dran sein dürfen) und schicken ihre Eingaben an den Host.            */
@@ -4665,13 +4811,15 @@ window.hand=function(pi,msg,go,pr,tag){
   ACT=pi;PERM=null;WAIT=waitHTML(pi,pr,tag);HF=go;
   go();syncViews();
 };
-const PUBW=['moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round'];
+const PUBW=['neResult','kiTurn','kiShow','kiEnd','moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round'];
 const PERMS={
   spyTalk:()=>'all',
   waGuess:()=>'all',
   spyGuess:()=>()=>G.spy,
   boLight:()=>()=>G.hold,
-  c4Round:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.mi)
+  c4Round:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.mi),
+  kiTurn:()=>()=>G.cur,
+  kiShow:()=>()=>G.cur
 };
 const MENU=['home','settings','gameSetup'];
 function wrapPub(n,permFn){
@@ -5086,6 +5234,7 @@ document.addEventListener('keydown',e=>{
   const t=e.target,tag=t&&t.tagName,k=e.key,typing=/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||(t&&t.isContentEditable);
   if(k==='Escape'){
     if(typing){t.blur();return}
+    if($('dnote')){dnoteNo();e.preventDefault();return}
     if($('hmc')){hmNo();e.preventDefault();return}
     if(document.body.classList.contains('live')){hmAsk();e.preventDefault()}
     return;
@@ -5097,7 +5246,7 @@ document.addEventListener('keydown',e=>{
     if(t.id==='myn'){const b=t.closest('.card')&&t.closest('.card').querySelector('button:not(.sec)');if(b){e.preventDefault();b.click()}else if($('jc')){e.preventDefault();$('jc').focus()}}
     return;
   }
-  if($('hmc'))return;                                   // Rückfrage offen: nur Tab/Enter/Leertaste auf den Knöpfen
+  if($('hmc')||$('dnote'))return;                       // Rückfrage offen: nur Tab/Enter/Leertaste auf den Knöpfen
   if(tag==='BUTTON'||tag==='A')return;                  // fokussierte Knöpfe lösen Enter/Leertaste selbst aus
   if(t&&t.getAttribute&&t.getAttribute('role')==='button'&&(k==='Enter'||k===' ')){e.preventDefault();t.click();return}
   const root=kbRoot(),lc=k.length===1?k.toLowerCase():k;
