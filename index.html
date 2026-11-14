@@ -221,21 +221,27 @@ body.noperm #app button{opacity:.5}
 
 /* ===== Breites Layout (iPad / Desktop), Safe-Area, Vollbild-Knopf ===== */
 html{background:var(--bg)}
-main,#hw{padding-top:max(18px,env(safe-area-inset-top));padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 40px))}
+/* Nur der Inhaltsbereich scrollt (kein Seiten-Gummiband, kein Scrollbalken); Abstand oben wegen Statusleiste */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{min-height:0}
+main#app,#hw{position:fixed;inset:0;z-index:1;width:auto;max-width:none;margin:0;padding:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#hw{z-index:2}
+main#app::-webkit-scrollbar,#hw::-webkit-scrollbar{display:none}
+.screen{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 28px) max(16px,env(safe-area-inset-right)) max(44px,calc(env(safe-area-inset-bottom) + 32px)) max(16px,env(safe-area-inset-left))}
 .c4b{max-width:max(300px,min(100%,calc((100vh - 300px) * 7 / 6)));margin-left:auto;margin-right:auto}
 #fs{display:none;position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:65;width:40px;height:40px;border-radius:12px;background:rgba(20,22,34,.72);border:1px solid var(--line);color:var(--tx);place-items:center;cursor:pointer;opacity:.6;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 #fs.show{display:grid}
 #fs:hover{opacity:1}
 #fs svg{width:20px;height:20px}
 @media (min-width:700px){
- main,#hw{max-width:740px}
+ .screen{max-width:740px}
  body{font-size:18px}
  .logo h1{font-size:50px}.q{font-size:30px}.big{font-size:42px}h2{font-size:24px}
  .card{padding:26px;border-radius:26px}
  button{padding:19px}
  input.num{font-size:44px}input.txt{font-size:26px}
  .grid{grid-template-columns:repeat(3,1fr);gap:16px}
- .gt{min-height:190px;padding:20px}.gt .te{font-size:50px}.gt b{font-size:22px}.gt small{font-size:13px}
+ .gt{min-height:clamp(140px,21vh,190px);padding:20px}.gt .te{font-size:50px}.gt b{font-size:22px}.gt small{font-size:13px}
  .opt span{font-size:21px}
  .word span{font-size:46px}
  .reel{font-size:100px}
@@ -245,8 +251,11 @@ main,#hw{padding-top:max(18px,env(safe-area-inset-top));padding-left:max(16px,en
  .rx{min-height:52vh;font-size:40px}
  .av.l{width:110px;height:110px;font-size:48px}
 }
+@media (min-width:700px) and (max-height:760px){
+ .gt{min-height:0;padding:14px 18px}.gt .te{font-size:34px}.gt small{font-size:12px}
+}
 @media (min-width:1000px){
- main,#hw{max-width:880px}
+ .screen{max-width:880px}
  .grid{grid-template-columns:repeat(4,1fr)}
 }
 
@@ -2860,7 +2869,7 @@ const GAMES={};
 const OPT={arsch:{rounds:10},pant:{secs:60,rounds:2,cats:{}},spy:{rounds:3,mins:6},wave:{rounds:2},bluff:{rounds:5},react:{rounds:5},bomb:{rounds:5,fuse:'mittel'}};
 const hue=i=>(i*47+350)%360;
 const nameOf=i=>(S.P&&S.P[i]!=null?S.P[i]:S.names[i]);
-const scr=h=>{app.innerHTML=`<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${h}</div>`;window.scrollTo(0,0)};
+const scr=h=>{app.innerHTML=`<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${h}</div>`;window.scrollTo(0,0);app.scrollTop=0};
 const av=(i,cls,sz)=>`<div class="av ${cls||''}" style="${sz?`width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.45)}px;`:''}background:linear-gradient(135deg,hsl(${hue(i)} 85% 58%),hsl(${hue(i)+40} 80% 42%))">${esc((nameOf(i)||'?').trim().charAt(0).toUpperCase()||'?')}</div>`;
 const TN=[['🔥','Feuer',12],['🧊','Eis',200],['⚡','Blitz',48],['🌿','Natur',140]];
 const tcol=t=>`hsl(${TN[t][2]} 85% 55%)`;
@@ -4145,7 +4154,7 @@ function netClientData(d){
   NET.lastHost=Date.now();NET.got=true;
   if(d.t==='welcome'){NET.idx=d.idx;if(d.name&&d.name!==NET.name){NET.name=d.name;$('lv').textContent='🌐 '+NET.code+' · '+d.name+'  ✕'}}
   else if(d.t==='full'||d.t==='wait'){
-    parseInto(app,String(d.html||''));window.scrollTo(0,0);
+    parseInto(app,String(d.html||''));window.scrollTo(0,0);app.scrollTop=0;
     if(d.t==='full'&&NET.perm){const i=app.querySelector('input.num,input.txt');if(i)setTimeout(()=>{try{i.focus()}catch(e){}},120)}
   }
   else if(d.t==='mut'&&Array.isArray(d.ops)){
@@ -4159,7 +4168,7 @@ function netClientData(d){
     }
   }
   else if(d.t==='own'){
-    parseInto(app,String(d.html||''));window.scrollTo(0,0);
+    parseInto(app,String(d.html||''));window.scrollTo(0,0);app.scrollTop=0;
     setTimeout(()=>{const i=app.querySelector('input[data-f]');if(i)try{i.focus()}catch(e){}},120);
   }
   else if(d.t==='err'){toast(String(d.m||'Ungültig'));vib(60)}
