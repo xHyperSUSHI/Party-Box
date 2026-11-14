@@ -2740,7 +2740,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.20';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.21';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5498,7 +5498,12 @@ function parTick(){
   if(!PAR||!PAR.dur||Date.now()<PAR.end+1500)return;   // 1,5 s Kulanz für automatisch abgeschickte Eingaben
   const k=PAR.k;
   for(let p=0;p<PAR.st.length;p++){
-    for(let q=PAR.st[p];q<=k&&q<PAR.steps.length;q++){const f=PAR.steps[q].timeout;if(f)try{f(p)}catch(e){}}
+    let dr=PAR.dr&&PAR.dr[p];if(devIdx(p)===0){const h=parDomDraft(p);if(h)dr=h}   // zuletzt getippter Stand zählt, auch ohne „Abschicken“
+    for(let q=PAR.st[p];q<=k&&q<PAR.steps.length;q++){
+      const st=PAR.steps[q];let got=false;
+      if(dr&&dr.k===st.k&&st.sub){try{got=st.sub(p,{v:'auto',f:dr.f})===true}catch(e){}}
+      if(!got&&st.timeout)try{st.timeout(p)}catch(e){}
+    }
     if(PAR.st[p]<=k)PAR.st[p]=k+1;
   }
   PAR.k++;
@@ -5512,6 +5517,20 @@ function parBegin(cfg){
   if(cfg.dur&&cfg.dur.length){PAR.dur=cfg.dur;PAR.k=0;PAR.end=Date.now()+cfg.dur[0];PAR.id=++PARID;PAR.iv=setInterval(parTick,250)}
   scr(parScreen());syncViews();
   if(PAR&&PAR.dur)tmrShow(PAR.end-Date.now(),()=>autoSub('#hw'));
+}
+function parDomDraft(p){   // Host: eigener Entwurf aus dem Overlay
+  const box=hwEl.querySelector('[data-p="'+p+'"]');if(!box)return null;
+  const fs=[...box.querySelectorAll('input[data-f]')];if(!fs.length)return null;
+  const f={};fs.forEach(e=>{f[e.getAttribute('data-f')]=String(e.value).slice(0,200)});
+  const b=box.querySelector('[data-sub]');
+  return {k:fs[fs.length-1].getAttribute('data-enter')||(b?b.getAttribute('data-sub'):null),f};
+}
+function parDraft(mi,d){   // Client: laufender Entwurf, der zählt, wenn die Zeit abläuft
+  if(!PAR||!d||typeof d!=='object'||d.p==null||!d.f||typeof d.f!=='object')return;
+  const p=+d.p;if(!Number.isInteger(p)||p<0||p>=PAR.st.length||devIdx(p)!==mi)return;
+  const step=PAR.steps[PAR.st[p]];if(!step||d.k!==step.k)return;
+  const f={};Object.keys(d.f).slice(0,12).forEach(k=>{f[String(k).slice(0,12)]=String(d.f[k]).slice(0,200)});
+  (PAR.dr=PAR.dr||{})[p]={k:d.k,f};
 }
 function parErr(mi,msg){if(mi===0){toast(msg);vib(60)}else sendTo(NET.m[mi],{t:'err',m:msg})}
 function parSub(mi,d){
@@ -5689,6 +5708,7 @@ function netEvent(m,d){
   const idx=NET.m.indexOf(m);
   if(idx<0)return;
   if(d.ty==='sub'){parSub(idx,d);return}
+  if(d.ty==='draft'){parDraft(idx,d);return}
   if(d.ty==='rx'){rxRemote(idx,d);return}
   if(!canAct(idx))return;
   if(d.vals&&typeof d.vals==='object'){
@@ -6054,6 +6074,21 @@ function subGo(t){
   else if(NET.client&&app.contains(t))sendC(Object.assign({ty:'sub'},d));
 }
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-sub]');if(t)subGo(t)});
+let DRT=null;
+function draftSend(){   // Mitspieler-Gerät: aktuellen Stand der Eingabefelder an den Host melden
+  if(!NET.client)return;
+  const box=app.querySelector('[data-p]');if(!box)return;
+  const fs=[...box.querySelectorAll('input[data-f]')];if(!fs.length)return;
+  const f={};fs.forEach(e=>{f[e.getAttribute('data-f')]=String(e.value).slice(0,200)});
+  const b=box.querySelector('[data-sub]'),k=fs[fs.length-1].getAttribute('data-enter')||(b?b.getAttribute('data-sub'):null);
+  if(k==null)return;
+  sendC({ty:'draft',p:+box.getAttribute('data-p'),k,f});
+}
+document.addEventListener('input',e=>{
+  if(!NET.client||!e.target||!e.target.closest||!e.target.closest('[data-p]')||!e.target.hasAttribute('data-f'))return;
+  clearTimeout(DRT);DRT=setTimeout(draftSend,350);
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(DRT);draftSend()}});
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;const t=e.target;
   if(!t||!t.getAttribute||!t.getAttribute('data-enter'))return;
