@@ -277,6 +277,8 @@ body.live .screen{padding-top:calc(env(safe-area-inset-top,0px) + 50px)}
 .qinfo{background:rgba(143,108,255,.14);border:1px solid rgba(143,108,255,.4);border-radius:14px;padding:12px 14px;margin:12px 0 0;font-size:14px;line-height:1.45;color:var(--tx)}
 .qinfo[hidden]{display:none}
 .qinfo small{display:block;color:var(--mu);font-size:11px;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
+.tbw{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px}
+.tbw i{font-style:normal;font-size:15px;font-weight:800;padding:5px 11px;border-radius:99px;background:rgba(255,46,77,.2);border:1px solid rgba(255,46,77,.55);color:#ffc2cb}
 </style>
 </head>
 <body>
@@ -2597,7 +2599,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.1';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.2';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2618,7 +2620,7 @@ function applyTheme(){document.body.dataset.theme=C.theme;document.body.classLis
 
 /* ---------- Verlauf: Wiederholungssperre ---------- */
 const HC={};
-const HNS=['q','w','l','s','b','c'];
+const HNS=['q','w','l','s','b','c','m','t','h'];
 const hGet=ns=>{if(!HC[ns]){try{HC[ns]=JSON.parse(localStorage.getItem('pb_h_'+ns)||'{}')}catch(e){HC[ns]={}}}return HC[ns]};
 const lim=()=>C.days*864e5;
 function recent(ns,key){const t=hGet(ns)[key];return t!=null&&lim()>0&&Date.now()-t<lim()}
@@ -3209,6 +3211,9 @@ function statsScreen(sel){
   const ex=(id,g)=>{const a=[];
     if(id==='arsch'){a.push(`Arschkarten: <b style="color:var(--tx)">${g.s.cards||0}</b>`,`am nächsten: <b style="color:var(--tx)">${g.s.near||0}</b>`)}
     if(id==='react'&&g.m.ms!=null)a.push(`schnellste Zeit: <b style="color:var(--tx)">${Math.round(g.m.ms)} ms</b>`);
+    if(id==='most')a.push(`am häufigsten gewählt: <b style="color:var(--tx)">${g.s.gewaehlt||0}×</b>`,`Stimmen erhalten: <b style="color:var(--tx)">${g.s.stimmen||0}</b>`);
+    if(id==='taboo')a.push(`Begriffe erklärt: <b style="color:var(--tx)">${g.s.erklaert||0}</b>`);
+    if(id==='hilo'&&g.s.fragen)a.push(`Trefferquote: <b style="color:var(--tx)">${Math.round((g.s.richtig||0)/g.s.fragen*100)} %</b>`);
     return a.join(' · ')};
   scr(`${head}
   <div class="chips" style="margin:8px 0">${STK.map((k,i)=>`<span class="chip ${k===cur?'on':''}" onclick="statSel(${i})">${esc(st[k].n)}</span>`).join('')}</div>
@@ -3366,6 +3371,9 @@ const STU={bomb:'💥',c4:'Siege'};
 function statExtra(pi){
   if(G.id==='arsch')return {s:{cards:(G.cards&&G.cards[pi])||0,near:(G.near&&G.near[pi])||0}};
   if(G.id==='react'&&G.best&&isFinite(G.best[pi]))return {m:{ms:G.best[pi]}};
+  if(G.id==='most')return {s:{gewaehlt:(G.chosen&&G.chosen[pi])||0,stimmen:(G.tot&&G.tot[pi])||0}};
+  if(G.id==='taboo')return {s:{erklaert:(G.tc&&G.tc[pi])||0}};
+  if(G.id==='hilo')return {s:{richtig:(G.hit&&G.hit[pi])||0,fragen:G.rounds||0}};
   return null;
 }
 function recordStats(vals,top){
@@ -4236,6 +4244,242 @@ function c4Draw(){
   r.innerHTML=`<div class="card ans" style="margin-top:14px"><div style="font-size:50px">🤝</div><div class="big">Unentschieden!</div><p>Das Brett ist voll. Diese Runde wird wiederholt.</p><button onclick="c4Round()">Nochmal</button></div>`;
 }
 
+/* ================= Wer würde am ehesten …? ================= */
+const MQ={
+'Alltag & Chaos 🤪':[
+"verschlafen und den eigenen Wecker ausschalten, ohne es zu merken","sich aus der Wohnung aussperren","ein Möbelstück ohne Anleitung aufbauen","bei einem Spieleabend heimlich schummeln","das Handy auf 1 % herunterspielen lassen","im Supermarkt hungrig den ganzen Wagen vollpacken","dem Navi folgen und trotzdem falsch ankommen","mitten im Film einschlafen","drei Stunden lang einen Film aussuchen","zu einem Termin viel zu früh erscheinen","ein Geheimnis nicht für sich behalten können","vergessen, wo das Auto geparkt ist","ein ganzes Zimmer in einer einzigen Nacht aufräumen","laut mitsingen und es gar nicht merken","beim Kochen die Küche in ein Schlachtfeld verwandeln","ein Geschenk schon vor Weihnachten aufmachen","den Regenschirm immer dann vergessen, wenn es regnet","nach Mitternacht noch Pizza bestellen","auf eine Nachricht erst nach drei Tagen antworten","den Kühlschrank öffnen, ohne zu wissen, was er eigentlich will","am Flughafen den Reisepass vergessen","bei einer Wanderung als Erstes nach der Hütte fragen","eine Zimmerpflanze durch zu viel Liebe eingehen lassen","als Erster die Party verlassen und trotzdem am meisten erzählen"],
+'Peinlich & Witzig 🙈':[
+"beim Karaoke den ganzen Raum zum Lachen bringen","in einer Besprechung einen Lachanfall bekommen","versehentlich die falsche Person anschreiben","bei einer Videokonferenz etwas Peinliches im Hintergrund haben","auf der Tanzfläche als Erster anfangen","einen Witz erklären müssen, den keiner versteht","den Namen einer berühmten Person falsch aussprechen","beim Gähnen alle anderen anstecken","bei jeder Gelegenheit einen Wortwitz machen","mit voller Überzeugung die schlechtesten Tanzbewegungen zeigen","beim Vorstellen den eigenen Namen vergessen","die Hose verkehrt herum anziehen und es erst abends merken","sich im Aufzug unterhalten, als wäre er allein","ein peinliches Kinderfoto freiwillig herumzeigen","bei einem Heiratsantrag am meisten weinen","auf einem Kindergeburtstag den besten Clown abgeben","sich auf eine fremde Hochzeit schmuggeln, nur wegen des Buffets","im Urlaub plötzlich einen Dialekt annehmen","mit dem Haustier ein Selbstgespräch führen","den peinlichsten Klingelton haben","auf einem Gruppenfoto immer mit geschlossenen Augen erwischt werden","beim Verlieren schlechter reagieren als ein Kleinkind"],
+'Karriere & Leben 🚀':[
+"ein Start-up gründen und nach einem Jahr wieder aufgeben","Millionär werden","berühmt werden, ohne es zu wollen","eine Weltreise ohne Plan antreten","als Erster Kinder bekommen","einen Marathon laufen","ein Buch schreiben","auswandern und nie wieder zurückkommen","mit 80 noch Skateboard fahren","Bürgermeister werden","den Job kündigen, um Musiker zu werden","zehn Sprachen lernen und keine richtig sprechen","einen Lottogewinn sofort verschenken","auf einem Boot leben","ein Haus in den Bergen kaufen","bei einer Quizshow gewinnen","ein Restaurant eröffnen","mit 90 noch jede Party besuchen","sich ein exotisches Haustier zulegen","einen Berg besteigen, nur um ein Foto zu machen","zum Chef befördert werden","den Führerschein beim ersten Mal bestehen","ein Haus selbst bauen","Schauspieler werden"]
+};
+const MCATS=Object.keys(MQ);
+OPT.most={rounds:10,timer:30,cats:{}};
+function moCat(i,el){const k=MCATS[i];OPT.most.cats[k]=!OPT.most.cats[k];el.classList.toggle('on')}
+GAMES.most={name:'Wer würde am ehesten?',e:'🗳️',tag:'Geheim abstimmen, Mehrheit erraten',c:['#a855f7','#ec4899'],min:3,teams:false,
+  desc:'Eine Aussage, alle stimmen geheim ab, auf wen sie am besten passt. Wer liegt mit der Gruppe auf einer Linie?',
+  rules:'Eine Aussage erscheint („Wer würde am ehesten …“). Jeder stimmt <b>geheim</b> für einen Mitspieler ab (nicht für sich selbst). Danach wird aufgedeckt, wer wie viele Stimmen hat und wer wen gewählt hat. Der oder die <b>Meistgewählte</b> hat „gewonnen“ – und <b>jeder, der für ihn oder sie gestimmt hat, bekommt +1</b>. Bei Gleichstand gelten alle Erstplatzierten. Am Ende gibt es den Titel „Meiste Stimmen des Abends“. Mit Timer zählt eine nicht abgegebene Stimme nicht.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (nichts gewählt = alle)</p><div class="chips">${MCATS.map((k,i)=>`<span class="chip ${OPT.most.cats[k]?'on':''}" onclick="moCat(${i},this)">${esc(k)}</span>`).join('')}</div>
+  <p class="sm" style="margin:16px 0 8px">Runden</p>${seg('most','rounds',[5,10,15,20])}<p class="sm" style="margin:14px 0 8px">Zeit zum Abstimmen</p>${seg('most','timer',[0,15,30,45],v=>v?v+' s':'Aus')}`,
+  start:moStart};
+function moStart(){
+  const sel=MCATS.filter(k=>G.o.cats[k]),cats=sel.length?sel:MCATS,all=[];
+  cats.forEach(c=>MQ[c].forEach(x=>all.push(x)));
+  G.pool=ordered(all,x=>x,'m');G.rounds=Math.max(1,Math.min(G.o.rounds,G.pool.length));
+  G.r=0;G.chosen=S.P.map(()=>0);G.tot=S.P.map(()=>0);moRound();
+}
+function moProg(){return prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}
+function moRound(){
+  G.st=G.pool[G.r];mark('m',G.st);G.v=[];G.i=0;
+  if(NET.host){moPar();return}
+  hand(G.i,'Stimme geheim ab – niemand schaut mit!',moVote,moProg());
+}
+function moCard(pi,online){
+  return `<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:10px">${av(pi)}<span class="sm">${esc(S.P[pi])} stimmt ab</span></div>
+  <div class="sm">Wer würde am ehesten …</div><div class="q" style="margin:6px 0 12px">${esc(G.st)}</div>
+  ${S.P.map((p,i)=>i===pi?'':`<button class="opt" style="--k:${i}" ${online?`data-sub="v" data-v="${i}"`:`onclick="moPick(${i},this)"`}>${av(i)}<span>${esc(p)}</span></button>`).join('')}</div>`;
+}
+function moVote(){scr(`${moProg()}${moCard(G.i,false)}`);if(G.o.timer)tmrShow(G.o.timer*1000,moTimeUp)}
+function moNext(){G.i++;if(G.i<S.P.length)hand(G.i,'Stimme geheim ab – niemand schaut mit!',moVote,moProg());else moResult()}
+function moPick(t,btn){
+  tmrHide();btn.classList.add('sel');vib(30);sfx.pop();document.querySelectorAll('.opt').forEach(b=>b.style.pointerEvents='none');
+  setTimeout(()=>{G.v[G.i]=t;moNext()},400);
+}
+function moTimeUp(){tmrHide();sfx.bad();vib([60,40,60]);G.v[G.i]=null;toast('⏰ Zeit um – keine Stimme');moNext()}
+function moPar(){
+  parBegin({head:moProg,dur:G.o.timer?[G.o.timer*1000]:null,msg:'Alle stimmen geheim und gleichzeitig ab …',steps:[
+    {k:'v',timeout:pi=>{G.v[pi]=null},html:pi=>moCard(pi,true),
+     sub:(pi,d)=>{const t=Number(d.v);if(d.v==null||!Number.isInteger(t)||t<0||t>=S.P.length||t===pi)return 'Ungültige Wahl.';G.v[pi]=t;return true}}
+  ],done:moResult});
+}
+function moResult(){
+  const n=S.P.length,cnt=S.P.map(()=>0);S.P.forEach((_,i)=>{const t=G.v[i];if(t!=null)cnt[t]++});
+  const mx=Math.max(0,...cnt),tops=cnt.map((c,i)=>c===mx&&mx>0?i:-1).filter(i=>i>=0);
+  const gain=S.P.map((_,i)=>(G.v[i]!=null&&tops.includes(G.v[i]))?1:0);
+  gain.forEach((g,i)=>G.pts[i]+=g);tops.forEach(i=>G.chosen[i]++);cnt.forEach((c,i)=>G.tot[i]+=c);
+  const order=S.P.map((_,i)=>i).sort((a,b)=>cnt[b]-cnt[a]);
+  const nv=S.P.map((_,i)=>i).filter(i=>G.v[i]==null),last=G.r+1>=G.rounds;
+  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card ans"><div class="sm">Wer würde am ehesten …</div><div class="q" style="margin-top:6px">${esc(G.st)}</div></div>
+  ${tops.length?'':'<div class="card"><p style="margin:0">Niemand hat abgestimmt.</p></div>'}
+  <div>${order.map((i,k)=>`<div class="res ${tops.includes(i)?'best':''}" style="--d:${(.3+k*.4).toFixed(2)}s"><div class="rh">${av(i)}<div class="nm">${esc(S.P[i])}${tops.includes(i)?'<span class="tag b">gewählt</span>':''}</div><div style="font-weight:850;font-size:22px">${cnt[i]}</div></div>
+    <div class="sm" style="margin-top:6px">Gewählt von: ${S.P.filter((_,j)=>G.v[j]===i).map(esc).join(', ')||'niemandem'}</div></div>`).join('')}</div>
+  <div class="late" style="--d:${(.3+n*.4+.3).toFixed(2)}s">${nv.length?`<p class="sm" style="margin:0 0 6px">⏰ Keine Stimme abgegeben: ${nv.map(i=>esc(S.P[i])).join(', ')}</p>`:''}${S.P.map((p,i)=>gain[i]?`<span class="tag t" style="margin:2px 4px 2px 0">${esc(p)} +1</span>`:'').join('')}${boardHTML(G.pts)}<button onclick="${last?'moFinish()':'G.r++;moRound()'}">${last?'Endergebnis 🏆':'Nächste Aussage'}</button></div>`);
+  if(tops.length){setTimeout(()=>{confetti(50,GOLD);sfx.ok()},400)}
+}
+function moFinish(){
+  const mx=Math.max(0,...G.tot),top=S.P.filter((_,i)=>G.tot[i]===mx&&mx>0);
+  finish({extra:top.length?`<div class="card late" style="--d:1.2s;text-align:center"><div class="sm">Meiste Stimmen des Abends</div><div style="font-size:46px;margin:6px 0">🗳️</div><div class="big">${esc(top.join(', '))}</div><div class="sm">${mx} Stimmen insgesamt</div></div>`:''});
+}
+
+/* ================= Tabu ================= */
+// Format je Karte: Begriff|verbotenes Wort 1|…|5
+const TBS={
+'Alltag 🏠':['Zahnbürste|Zähne|putzen|Bad|Zahnpasta|Mund','Wecker|Schlaf|Morgen|klingeln|aufstehen|Uhr','Regenschirm|Regen|nass|aufspannen|Wetter|Dach','Staubsauger|saugen|Boden|Teppich|Schmutz|putzen','Kühlschrank|kalt|Essen|Küche|Eis|Tür','Schlüssel|Schloss|Tür|aufsperren|Bund|Auto','Spiegel|Gesicht|Glas|reflektieren|Bad|schön','Handy|telefonieren|Anruf|Smartphone|App|Display','Kaffeemaschine|Kaffee|Bohnen|Tasse|Filter|morgens','Bügeleisen|Hemd|glatt|heiß|Wäsche|Falten','Fahrrad|Räder|treten|Sattel|fahren|Lenker','Brille|Augen|sehen|Gläser|Nase|scharf','Teppich|Boden|Wohnzimmer|Staub|weich|orientalisch','Geburtstag|Kuchen|Kerzen|Geschenke|feiern|Alter','Umzug|Kartons|Wohnung|Möbel|tragen|neu','Stau|Auto|Autobahn|Verkehr|warten|Ferien'],
+'Essen & Trinken 🍕':['Pizza|Italien|Teig|Käse|Ofen|Tomaten','Spaghetti|Nudeln|Italien|Tomatensoße|lang|Gabel','Schokolade|süß|Kakao|Tafel|braun|Milch','Pommes|Kartoffel|frittiert|Ketchup|Imbiss|Fett','Brezel|Bayern|Salz|Laugen|Oktoberfest|Bäcker','Müsli|Frühstück|Haferflocken|Milch|Schüssel|Obst','Pfannkuchen|Pfanne|Teig|Eier|wenden|Ahornsirup','Eiscreme|kalt|Kugel|Sommer|Waffel|schlecken','Sushi|Japan|Reis|Fisch|Stäbchen|roh','Döner|Türkei|Fleisch|Spieß|Fladenbrot|Kebab','Popcorn|Kino|Mais|platzen|salzig|Tüte','Honig|Bienen|süß|Glas|Brot|golden','Gurke|grün|Salat|eingelegt|Wasser|Gemüse','Grillen|Fleisch|Kohle|Sommer|Würstchen|Feuer','Bier|Hopfen|Maß|Durst|Oktoberfest|Flasche','Kaffee|Tasse|Bohnen|Koffein|wach|Milch'],
+'Tiere & Natur 🐾':['Pinguin|Antarktis|Eis|Frack|schwimmen|watscheln','Elefant|Rüssel|Afrika|groß|Ohren|grau','Giraffe|Hals|lang|Afrika|gefleckt|Blätter','Biene|Honig|Blume|summen|Stachel|Schwarm','Känguru|Australien|Beutel|hüpfen|Baby|boxen','Eichhörnchen|Nuss|Baum|klettern|Schwanz|rot','Schmetterling|Raupe|Flügel|bunt|Blume|fliegen','Hai|Meer|Zähne|Flosse|gefährlich|Fisch','Regenbogen|Farben|Regen|Sonne|Bogen|Himmel','Vulkan|Lava|Berg|Ausbruch|heiß|Asche','Gewitter|Blitz|Donner|Regen|Sturm|Wolken','Wasserfall|Wasser|fallen|Fluss|hoch|rauschen','Kuh|Milch|Weide|muh|Bauernhof|Euter','Faultier|langsam|schlafen|Baum|hängen|Dschungel','Marienkäfer|Punkte|rot|Glück|Käfer|sieben','Eisbär|weiß|Nordpol|Pelz|Eis|Robbe'],
+'Orte & Reisen ✈️':['Flughafen|Flugzeug|Koffer|Check-in|Gate|abheben','Strand|Sand|Meer|Sonne|Urlaub|Muscheln','Campingplatz|Zelt|Wohnwagen|Urlaub|Natur|Lagerfeuer','Zoo|Tiere|Käfig|Eintritt|Gehege|Affen','Bahnhof|Zug|Gleis|Fahrkarte|Ankunft|Bahnsteig','Hotel|Zimmer|übernachten|Rezeption|Frühstück|Gäste','Museum|Kunst|Ausstellung|Bilder|Eintritt|ruhig','Schwimmbad|Wasser|Rutsche|Becken|Badehose|schwimmen','Bibliothek|Bücher|leise|ausleihen|lesen|Regal','Kino|Film|Leinwand|Popcorn|Karte|Saal','Freizeitpark|Achterbahn|Karussell|Eintritt|Spaß|Schlange','Skihütte|Berge|Schnee|Hütte|Skifahren|Winter','Weihnachtsmarkt|Glühwein|Dezember|Buden|Lichter|Mandeln','Oktoberfest|München|Bier|Dirndl|Wiesn|Maß','Leuchtturm|Meer|Licht|Küste|Schiffe|Turm','Schloss|König|Burg|Turm|Prinzessin|alt'],
+'Sport & Freizeit ⚽':['Fußball|Tor|Ball|Mannschaft|Elfmeter|Schiedsrichter','Tennis|Schläger|Netz|Ball|Court|Aufschlag','Schach|Brett|Figuren|König|Dame|Schachmatt','Skateboard|Rollen|Brett|Tricks|Rampe|fahren','Yoga|Matte|entspannen|Dehnen|Übungen|Meditation','Angeln|Fisch|Rute|Köder|See|Haken','Lagerfeuer|Flammen|Holz|Marshmallow|Gitarre|Nacht','Karaoke|singen|Mikrofon|Text|Lied|Bar','Puzzle|Teile|zusammensetzen|Bild|Karton|legen','Schlittschuh|Eis|laufen|Kufen|Eishalle|gleiten','Gartenzwerg|Mütze|Garten|Bart|rot|Figur','Trampolin|springen|hüpfen|Federn|Garten|Luft','Basketball|Korb|Ball|dribbeln|Dunking|NBA','Bowling|Kugel|Kegel|Strike|Bahn|rollen','Dart|Pfeil|Scheibe|Bullseye|werfen|Treffer','Wandern|Berge|Schuhe|Rucksack|Gipfel|laufen']
+};
+const TBCATS=Object.keys(TBS);
+OPT.taboo={secs:60,rounds:2,cats:{}};
+function tbCat(i,el){const k=TBCATS[i];OPT.taboo.cats[k]=!OPT.taboo.cats[k];el.classList.toggle('on')}
+GAMES.taboo={name:'Tabu',e:'🚫',tag:'Erklären, ohne die Wörter zu sagen',c:['#f43f5e','#be123c'],min:2,teams:true,
+  desc:'Erkläre einen Begriff, ohne ihn oder die fünf verbotenen Wörter zu sagen. Die anderen raten.',
+  rules:'Wer dran ist, sieht einen Begriff und fünf <b>verbotene Wörter</b> (der Begriff selbst und Teile davon sind auch verboten). Er erklärt den Begriff mit anderen Worten, ohne Gesten-Pantomime. Wer richtig rät, wird auf „Erraten“ getippt. Sagt der Erklärer ein verbotenes Wort, ruft die Gruppe „Tabu!“ und er tippt auf 🚫. Pro Auftritt zählt <b>Treffer minus Tabus</b> (mindestens 0), dreimal darf übersprungen werden. Im Einzelmodus bekommt der Rater +1, im Teammodus punktet das Team.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (nichts gewählt = alle)</p><div class="chips">${TBCATS.map((k,i)=>`<span class="chip ${OPT.taboo.cats[k]?'on':''}" onclick="tbCat(${i},this)">${esc(k)}</span>`).join('')}</div>
+  <p class="sm" style="margin:16px 0 8px">Zeit pro Auftritt (Sekunden)</p>${seg('taboo','secs',[45,60,90])}<p class="sm" style="margin:14px 0 8px">Durchgänge (so oft erklärt jeder)</p>${seg('taboo','rounds',[1,2,3])}`,
+  start:tStart};
+function tPool(){
+  const all=[];G.ks.forEach(k=>TBS[k].forEach(s=>all.push([k,s.split('|')])));
+  G.pool=ordered(all,x=>x[1][0],'t');G.wi=0;
+}
+function tNext(){if(G.wi>=G.pool.length)tPool();const c=G.pool[G.wi++];mark('t',c[1][0]);return c}
+function tStart(){
+  G.ks=TBCATS.filter(k=>G.o.cats[k]);if(!G.ks.length)G.ks=TBCATS.slice();
+  G.plan=plan(G.o.rounds);G.t=0;G.tc=S.P.map(()=>0);tPool();tHand();
+}
+function tHand(){
+  const p=G.plan[G.t];G.a=p.a;G.e=p.e;
+  const tag=G.team?`Team ${TN[G.e][0]} ${TN[G.e][1]}`:'';
+  hand(G.a,`Nur ${esc(S.P[G.a])} schaut aufs Display. ${G.team?'Das Team rät, alle anderen passen auf die verbotenen Wörter auf!':'Alle anderen: raten – und „Tabu!“ rufen, wenn ein verbotenes Wort fällt.'}`,tPlay,prg(G.t,G.plan.length,`Auftritt ${G.t+1} von ${G.plan.length}`),tag);
+}
+function tPlay(){
+  G.cor=[];G.tabu=0;G.skips=0;G.card=tNext();G.total=G.o.secs;G.end=Date.now()+G.total*1000;G.lastS=-1;
+  scr(`<div class="row" style="justify-content:space-between;align-items:center;margin-top:6px"><span class="twc" style="background:rgba(53,224,161,.15);border-color:rgba(53,224,161,.5)">✓ <b id="cnt">0</b></span><span class="twc" style="background:rgba(255,46,77,.18);border-color:rgba(255,46,77,.5)">🚫 <b id="tbc">0</b></span></div>
+  <div class="ringw" id="rw"><svg viewBox="0 0 120 120"><defs><linearGradient id="grd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f43f5e"/><stop offset="1" stop-color="#f97316"/></linearGradient></defs><circle class="rbg" cx="60" cy="60" r="54"/><circle id="rg" class="rfg" cx="60" cy="60" r="54" stroke-dasharray="${PGR}" stroke-dashoffset="0" transform="rotate(-90 60 60)"/></svg><div class="rt" id="tt">${G.total}</div></div>
+  <div class="word" id="w"></div>
+  <div class="row"><button class="ok" style="flex:2" onclick="tOk()">✓ Erraten</button><button class="sec" style="flex:1" onclick="tTabu()">🚫 Tabu!</button></div>
+  <button class="sec" id="sk" onclick="tSkip()">↷ Überspringen</button>
+  <p class="sm" style="text-align:center">Sag weder den Begriff noch eines der verbotenen Wörter!</p>`);
+  tDraw();clearInterval(G.iv);G.iv=setInterval(tTick,100);
+}
+function tDraw(){
+  const w=$('w');if(!w)return;const c=G.card;
+  w.innerHTML=`<small>${esc(c[0])}</small><span>${esc(c[1][0])}</span><div class="tbw">${c[1].slice(1).map(f=>`<i>${esc(f)}</i>`).join('')}</div>`;
+  w.classList.remove('flipin');void w.offsetWidth;w.classList.add('flipin');
+  $('cnt').textContent=G.cor.length;$('tbc').textContent=G.tabu;
+  const sk=$('sk');sk.textContent=`↷ Überspringen (${3-G.skips})`;sk.style.opacity=G.skips>=3?.4:1;
+}
+function tTick(){
+  const left=Math.max(0,(G.end-Date.now())/1000),rg=$('rg');
+  if(!rg){clearInterval(G.iv);return}
+  rg.setAttribute('stroke-dashoffset',PGR*(1-left/G.total));
+  const c=Math.ceil(left);$('tt').textContent=c;
+  if(left<=10)$('rw').classList.add('hot');
+  if(left<=5&&c!==G.lastS){G.lastS=c;vib(25);sfx.tick()}
+  if(left<=0)tEnd();
+}
+function tOk(){
+  if($('pk'))return;
+  G.cor.push(G.card[1][0]);vib(30);sfx.ok();
+  if(G.team){confetti(26,['#35e0a1','#f43f5e','#fff']);G.card=tNext();tDraw();return}
+  document.querySelector('.screen').insertAdjacentHTML('beforeend',`<div class="pk" id="pk"><div><h2>Wer hat's erraten?</h2>
+  ${S.P.map((p,i)=>i===G.a?'':`<button class="opt" style="--k:${i}" onclick="tPick(${i})">${av(i)}<span>${esc(p)}</span></button>`).join('')}
+  <button class="sec" onclick="tPick(-1)">Alle gemeinsam / egal</button></div></div>`);
+}
+function tPick(i){
+  if(i>=0)G.pts[i]++;
+  const pk=$('pk');if(pk)pk.remove();
+  confetti(26,['#35e0a1','#f43f5e','#fff']);G.card=tNext();tDraw();
+}
+function tTabu(){if($('pk'))return;G.tabu++;vib([80,40,80]);sfx.bad();G.card=tNext();tDraw()}
+function tSkip(){if(G.skips>=3||$('pk'))return;G.skips++;vib(10);G.card=tNext();tDraw()}
+function tEnd(){
+  clearInterval(G.iv);flash();sfx.bad();
+  const net=Math.max(0,G.cor.length-G.tabu);G.pts[G.e]+=net;G.tc[G.a]+=G.cor.length;G.t++;
+  const last=G.t>=G.plan.length;
+  scr(`<div class="card ans"><div style="font-size:56px;animation:pop .6s both">⏰</div><div class="big">Zeit ist um!</div>
+  <p style="margin:4px 0 10px">${G.team?'Team '+TN[G.e][1]+' ('+esc(S.P[G.a])+')':esc(S.P[G.a])}: <b style="color:var(--ok)">${G.cor.length}</b> erraten, <b style="color:var(--red2)">${G.tabu}</b> Tabu${G.tabu==1?'':'s'}</p>
+  <div class="num" style="font-size:54px;font-weight:900;color:var(--ok)">+${net}</div>
+  ${G.cor.length?`<div class="chips" style="justify-content:center;margin-top:12px">${G.cor.map(w=>`<span class="chip on">${esc(w)}</span>`).join('')}</div>`:'<p>Diesmal nichts – beim nächsten Mal!</p>'}</div>
+  ${boardHTML(G.pts)}
+  <button onclick="${last?'finish()':'tHand()'}">${last?'Endergebnis 🏆':'Nächster Auftritt'}</button>`);
+  if(net>=3){confetti(100,['#f43f5e','#f97316','#fff','#35e0a1']);sfx.win()}
+}
+
+/* ================= Mehr oder weniger ================= */
+const HLC=['Berge & Bauwerke 🏔️','Geschichte 📅','Länder 🌍','Entfernung 📍','Lebensalter 🎂'];
+const HEV=[['Fall der Berliner Mauer',1989],['Untergang der Titanic',1912],['Erste Mondlandung',1969],['Entdeckung Amerikas durch Kolumbus',1492],['Gründung von Google',1998],['Erstes iPhone',2007],['Einführung des Euro-Bargelds',2002],['Erstbesteigung des Mount Everest',1953],['Bau der Berliner Mauer',1961],['Beginn der Französischen Revolution',1789],['Gründung von YouTube',2005],['Gründung von Facebook',2004],['Gründung von Apple',1976],['Gründung von Microsoft',1975],['Eröffnung des Eiffelturms',1889],['Beginn des Ersten Weltkriegs',1914],['Beginn des Zweiten Weltkriegs',1939],['Erster Mensch im All (Gagarin)',1961],['Erste Fußball-Weltmeisterschaft',1930],['Erste Bundesliga-Saison',1963],['Entdeckung des Penicillins',1928],['Klonschaf Dolly geboren',1996],['Erstes Oktoberfest',1810],['Fall von Konstantinopel',1453],['Gründung der Bundesrepublik Deutschland',1949],['Deutsche Wiedervereinigung',1990],['Patent für das Auto von Carl Benz',1886],['Gründung von Lego',1932],['Entdeckung der Röntgenstrahlung',1895],['Gründung von Amazon',1994]];
+// ungefähre Werte
+const HPOP=[['Deutschland',84],['Frankreich',68],['Italien',59],['Spanien',48],['Polen',37],['Niederlande',18],['Österreich',9],['Schweiz',9],['Schweden',10.5],['Norwegen',5.5],['Dänemark',5.9],['Portugal',10.4],['Griechenland',10.4],['Tschechien',10.9],['Belgien',11.7],['Irland',5.2],['Finnland',5.6],['Türkei',85],['Vereinigtes Königreich',68],['Russland',144],['Japan',124],['Brasilien',216],['USA',335],['China',1410],['Indien',1430],['Australien',26],['Kanada',40],['Mexiko',128],['Ägypten',112],['Nigeria',224],['Argentinien',46],['Südkorea',51],['Indonesien',277]];
+const HARE=[['Deutschland',358],['Frankreich',551],['Italien',301],['Spanien',506],['Polen',313],['Schweden',450],['Norwegen',385],['Finnland',338],['Österreich',84],['Schweiz',41],['Niederlande',42],['Dänemark',43],['Griechenland',132],['Portugal',92],['Irland',70],['Ungarn',93],['Tschechien',79],['Belgien',31],['Island',103],['Vereinigtes Königreich',244],['Türkei',784],['Ukraine',604],['Russland',17098],['Kanada',9985],['China',9597],['USA',9834],['Brasilien',8516],['Australien',7692],['Indien',3287],['Argentinien',2780],['Japan',378],['Ägypten',1002],['Nigeria',924],['Mexiko',1964]];
+OPT.hilo={rounds:12,timer:12,cats:{}};
+function hiCat(i,el){const k=HLC[i];OPT.hilo.cats[k]=!OPT.hilo.cats[k];el.classList.toggle('on')}
+GAMES.hilo={name:'Mehr oder weniger',e:'⚖️',tag:'Was ist höher, älter, größer?',c:['#84cc16','#16a34a'],min:2,teams:false,
+  desc:'Zwei Dinge, eine Frage: Welches ist höher, älter, größer oder weiter weg? Schnell entscheiden!',
+  rules:'Jede Runde zeigt zwei Möglichkeiten und eine Frage („Was ist höher?“, „Was geschah früher?“ …). Jeder wählt heimlich. Wer richtig liegt, bekommt <b>+1</b>. Danach werden die echten Werte gezeigt. Bei Länderwerten und Entfernungen sind die Zahlen ungefähr. Mit Timer zählt eine nicht abgegebene Wahl als falsch.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (nichts gewählt = alle)</p><div class="chips">${HLC.map((k,i)=>`<span class="chip ${OPT.hilo.cats[k]?'on':''}" onclick="hiCat(${i},this)">${esc(k)}</span>`).join('')}</div>
+  <p class="sm" style="margin:16px 0 8px">Runden</p>${seg('hilo','rounds',[8,12,20])}<p class="sm" style="margin:14px 0 8px">Zeit zum Entscheiden</p>${seg('hilo','timer',[0,8,12,20],v=>v?v+' s':'Aus')}`,
+  start:hiStart};
+function hiPair(list,ratio,diff){
+  for(let t=0;t<80;t++){
+    const a=pick(list),b=pick(list);if(a===b)continue;
+    const hi=Math.max(a[1],b[1]),lo=Math.min(a[1],b[1]);
+    if(ratio?(lo>0&&hi/lo>=ratio):(hi-lo>=diff))return Math.random()<.5?[a,b]:[b,a];
+  }
+  const a=list[0],b=list[list.length-1];return [a,b];
+}
+function hiDuel(c){
+  if(c===HLC[0]){const [a,b]=hiPair(MOUNT.concat(BUILD),1.1);return {q:'Was ist höher?',a:[cap(a[0]),a[1]],b:[cap(b[0]),b[1]],pick:'max',unit:'m'}}
+  if(c===HLC[1]){const [a,b]=hiPair(HEV,0,8);return {q:'Was geschah früher?',a:a,b:b,pick:'min',unit:'Jahr'}}
+  if(c===HLC[2]){
+    if(Math.random()<.5){const [a,b]=hiPair(HPOP,1.15);return {q:'Welches Land hat mehr Einwohner?',a,b,pick:'max',unit:'Mio. Einwohner',approx:true}}
+    const [a,b]=hiPair(HARE,1.15);return {q:'Welches Land ist flächenmäßig größer?',a,b,pick:'max',unit:'Tsd. km²',approx:true};
+  }
+  if(c===HLC[3]){
+    const r=x=>x*Math.PI/180,m=CITY[0];
+    const dist=ct=>{const dl=r(ct[2]-m[2]),dp=r(ct[1]-m[1]),h=Math.sin(dp/2)**2+Math.cos(r(m[1]))*Math.cos(r(ct[1]))*Math.sin(dl/2)**2;return Math.round(2*6371*Math.asin(Math.sqrt(h))/10)*10};
+    const list=CITY.slice(1).map(ct=>[ct[0],dist(ct)]).filter(x=>x[1]>=50),[a,b]=hiPair(list,1.15);
+    return {q:'Welche Stadt ist von München weiter entfernt?',a,b,pick:'max',unit:'km',approx:true};
+  }
+  const [a,b]=hiPair(PEOPLE,0,6);return {q:'Wer wurde älter?',a,b,pick:'max',unit:'Jahre'};
+}
+const hiVal=(d,v)=>d.unit==='Jahr'?String(v):`${d.approx?'ca. ':''}${fmt(v)} ${d.unit}`;
+const hiOk=d=>d.pick==='max'?(d.a[1]>d.b[1]?0:1):(d.a[1]<d.b[1]?0:1);
+function hiMake(){
+  const sel=HLC.filter(k=>G.o.cats[k]),cats=sel.length?sel:HLC;let d=null;
+  for(let t=0;t<40;t++){
+    d=hiDuel(pick(cats));const k=d.a[0]+'|'+d.b[0],k2=d.b[0]+'|'+d.a[0];
+    if(G.seen.has(k)||G.seen.has(k2)||recent('h',k)||recent('h',k2))continue;
+    G.seen.add(k);mark('h',k);return d;
+  }
+  return d;
+}
+function hiStart(){G.r=0;G.rounds=G.o.rounds;G.hit=S.P.map(()=>0);G.seen=new Set();hiRound()}
+function hiProg(){return prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}
+function hiRound(){
+  G.d=hiMake();G.i=0;G.pk=[];
+  if(NET.host){hiPar();return}
+  hand(G.i,'Entscheide schnell – niemand schaut mit!',hiVote,hiProg());
+}
+function hiCard(pi,online){
+  const d=G.d;
+  return `<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:10px">${av(pi)}<span class="sm">${esc(S.P[pi])} wählt</span></div>
+  <div class="q" style="margin:4px 0 14px">${esc(d.q)}</div>
+  ${[d.a,d.b].map((o,k)=>`<button class="opt" style="--k:${k}" ${online?`data-sub="v" data-v="${k}"`:`onclick="hiPick(${k},this)"`}><span>${esc(o[0])}</span></button>`).join('')}</div>`;
+}
+function hiVote(){scr(`${hiProg()}${hiCard(G.i,false)}`);if(G.o.timer)tmrShow(G.o.timer*1000,hiTimeUp)}
+function hiNext(){G.i++;if(G.i<S.P.length)hand(G.i,'Entscheide schnell – niemand schaut mit!',hiVote,hiProg());else hiResult()}
+function hiPick(k,btn){
+  tmrHide();btn.classList.add('sel');vib(30);sfx.pop();document.querySelectorAll('.opt').forEach(b=>b.style.pointerEvents='none');
+  setTimeout(()=>{G.pk[G.i]=k;hiNext()},350);
+}
+function hiTimeUp(){tmrHide();sfx.bad();vib([60,40,60]);G.pk[G.i]=null;toast('⏰ Zeit um – keine Wahl');hiNext()}
+function hiPar(){
+  parBegin({head:hiProg,dur:G.o.timer?[G.o.timer*1000]:null,msg:'Alle entscheiden gleichzeitig …',steps:[
+    {k:'v',timeout:pi=>{G.pk[pi]=null},html:pi=>hiCard(pi,true),
+     sub:(pi,d)=>{const k=Number(d.v);if(d.v==null||(k!==0&&k!==1))return 'Ungültige Wahl.';G.pk[pi]=k;return true}}
+  ],done:hiResult});
+}
+function hiResult(){
+  const d=G.d,ok=hiOk(d),last=G.r+1>=G.rounds;
+  const gain=S.P.map((_,i)=>G.pk[i]===ok?1:0);gain.forEach((g,i)=>{G.pts[i]+=g;G.hit[i]+=g});
+  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card ans"><div class="q" style="font-size:19px">${esc(d.q)}</div></div>
+  ${[d.a,d.b].map((o,k)=>`<div class="res ${k===ok?'best':''}" style="--d:${(.3+k*.4).toFixed(2)}s"><div class="rh"><div class="nm" style="font-size:18px">${esc(o[0])}${k===ok?'<span class="tag b">✓ richtig</span>':''}</div><div style="font-weight:850">${esc(hiVal(d,o[1]))}</div></div></div>`).join('')}
+  <div class="late" style="--d:1.1s">${S.P.map((p,i)=>`<div class="sb"><span class="nm" style="width:auto;flex:1">${av(i,'',26)} ${esc(p)}</span><span class="pt" style="width:auto">${G.pk[i]==null?'⏰ keine Wahl':G.pk[i]===ok?'✅ +1':'❌'}</span></div>`).join('')}${boardHTML(G.pts)}<button onclick="${last?'finish()':'G.r++;hiRound()'}">${last?'Endergebnis 🏆':'Nächste Runde'}</button></div>`);
+  if(gain.some(g=>g)){setTimeout(()=>{confetti(40,GOLD);sfx.ok()},400)}else sfx.bad();
+}
+
 /* ================= Online-Modus (PeerJS, Host-Spiel + Spiegelung) =================
    Das Spiel läuft nur auf dem Host. Alle anderen Handys zeigen eine Spiegelung des Bildschirms
    (nur wenn sie dran sein dürfen) und schicken ihre Eingaben an den Host.            */
@@ -4408,7 +4652,7 @@ window.hand=function(pi,msg,go,pr,tag){
   ACT=pi;PERM=null;WAIT=waitHTML(pi,pr,tag);HF=go;
   go();syncViews();
 };
-const PUBW=['home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round'];
+const PUBW=['moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round'];
 const PERMS={
   spyTalk:()=>'all',
   waGuess:()=>'all',
