@@ -1,6 +1,6 @@
 # Party Box – Arbeitsnotizen für Claude
 
-Party-Spiele-App von Sascha. **Eine einzige Datei: `index.html`** (Vanilla JS, kein Build, keine Frameworks), läuft auf GitHub Pages. Nicht aufteilen, solange Sascha es nicht ausdrücklich sagt. Antworten auf Deutsch, knapp, ehrlich; Annahmen und Unsicherheit offen nennen.
+Party-Spiele-App von Sascha. **Die App ist eine einzige Datei: `index.html`** (Vanilla JS, kein Build, keine Frameworks), läuft auf GitHub Pages. Nicht aufteilen, solange Sascha es nicht ausdrücklich sagt. Daneben liegen nur die PWA-Dateien (von Sascha ausdrücklich erlaubt): `manifest.webmanifest`, `sw.js`, Icons (`icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-32.png`). Antworten auf Deutsch, knapp, ehrlich; Annahmen und Unsicherheit offen nennen.
 
 ## Aufbau von index.html
 
@@ -62,6 +62,7 @@ Jedes Spiel ist `GAMES.<id>={name,e,tag,c,min,teams,desc,rules,opts(),start()}` 
 - Pointer-Interaktionen (Balken, Brett) brauchen `data-ptr` am Element; Positionen laufen normiert (`rx`, `ry`).
 - Verbindung: Lobby-Code 5 Zeichen (`APP_CODE_LEN`), Host-Peer-ID `pbox-CODE`, Heartbeat alle 4 s, Timeout 16 s. Getrennte Spieler bleiben in `NET.m`, ihr Gerät fällt auf den Host zurück (`devIdx`); Identität eines Geräts = Geräte-ID (`pb_cid` in localStorage, wird in `hi` mitgeschickt): gleiche ID übernimmt den Platz, auch wenn die alte Verbindung noch offen wirkt; gleicher Name mit anderer ID wird "Name 2"; alte Clients ohne ID: Übernahme per Name nur bei getrennter Verbindung. **Neuladen/App-Neustart (Client):** die Sitzung (`pb_sess`: Code, Name, max. 3 h) wird beim Beitritt gemerkt und beim Start automatisch wieder aufgebaut; vergessen wird sie bei bewusstem Verlassen, `bye` (Lobby geschlossen/voll) und fehlgeschlagenem Beitritt. Der **Host** kann nach Neuladen nicht wiederhergestellt werden (Spielzustand liegt nur im Speicher). Max. 10 Spieler. Wake Lock auf dem Host.
 - Link-Beitritt: `index.html#CODE`.
+- **PWA / Offline:** `manifest.webmanifest` (standalone, Icons), `sw.js` (Service Worker, Cache `pbox-v1`): **Netzwerk zuerst** (5 s Timeout), bei fehlendem Netz aus dem Cache – so kommt jede neue Version sofort an, und die lokalen Spiele laufen offline. Fremde Hosts (PeerJS) und die Update-Prüfung (`?c=`) gehen am Cache vorbei, damit offline „Keine Verbindung" statt „aktuell" erscheint. Neue Dateien, die offline gebraucht werden, in `ASSETS` in `sw.js` eintragen. Registrierung am Ende von `index.html` (nur http/https). Online-Spiel braucht natürlich weiter Netz. Test: Service Worker aktiv, offline neu laden.
 
 ## Bekannte Grenzen
 
