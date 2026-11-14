@@ -323,12 +323,12 @@ button.bc.lst{outline:2px solid #ffd166;outline-offset:-2px;animation:bslast 1.1
 /* Buchstaben-Rad (Stadt, Land, Fluss) */
 .slfw{position:relative;height:calc(var(--h)*3.1);margin:12px auto 8px;max-width:260px;perspective:760px;overflow:hidden;border-radius:22px;background:linear-gradient(180deg,#141829,#1d2240 50%,#141829);border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(0,0,0,.45),inset 0 0 40px rgba(0,0,0,.5)}
 .slfw::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(8,10,20,.88) 0%,rgba(8,10,20,0) 34%,rgba(8,10,20,0) 66%,rgba(8,10,20,.88) 100%)}
-.slfd{position:absolute;left:0;right:0;top:0;bottom:0;transform-style:preserve-3d;transform:rotateX(var(--fin));animation:slfspin 4.2s cubic-bezier(.1,.72,.18,1) both}
-@keyframes slfspin{from{transform:rotateX(var(--from))}}
+.slfd{position:absolute;left:0;right:0;top:0;bottom:0;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;-webkit-animation-duration:4.2s;animation-duration:4.2s;-webkit-animation-timing-function:cubic-bezier(.1,.72,.18,1);animation-timing-function:cubic-bezier(.1,.72,.18,1);-webkit-animation-fill-mode:both;animation-fill-mode:both}
 .slfi{position:absolute;left:14%;right:14%;top:50%;height:var(--h);margin-top:calc(var(--h)/-2);display:grid;place-items:center;font-size:54px;font-weight:900;color:#fff;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.18);text-shadow:0 2px 10px rgba(0,0,0,.5)}
 .slfm{position:absolute;left:6%;right:6%;top:50%;height:calc(var(--h)*1.18);transform:translateY(-50%);z-index:4;pointer-events:none;border:3px solid var(--gold);border-radius:16px;box-shadow:0 0 28px rgba(255,200,61,.55),inset 0 0 18px rgba(255,200,61,.25);animation:slfglow .5s 4.2s both}
 @keyframes slfglow{from{opacity:0;transform:translateY(-50%) scale(1.15)}}
-body.calm .slfd,body.calm .slfm{animation:none}
+/* Das Rad ist Teil des Spiels: es dreht auch bei „Bewegung reduzieren“ (System) und bei ausgeschalteten Effekten */
+@media (prefers-reduced-motion:reduce){.slfd{animation-duration:4.2s!important;animation-delay:0s!important}.slfm{animation-duration:.5s!important;animation-delay:4.2s!important}}
 .slfl{font-size:110px;font-weight:900;line-height:1;margin:6px 0 12px;background:linear-gradient(135deg,var(--gold),var(--red2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .stp{display:flex;align-items:center;gap:8px}.stp b{min-width:34px;text-align:center;font-size:20px}
 .stp .ib{width:40px;height:40px;margin:0}
@@ -2749,7 +2749,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.23';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.24';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4951,7 +4951,8 @@ function slfRound(){
 /* Buchstaben-Rad: 3D-Walze, nur die vordere Hälfte ist sichtbar; dreht, bremst ab und rastet beim Buchstaben ein */
 function slfReelHTML(letter){
   const n=SLFL.length,th=360/n,h=74,r=Math.round(h/2/Math.tan(Math.PI/n)),idx=Math.max(0,SLFL.indexOf(letter)),fin=idx*th;
-  return `<div class="slfw" style="--h:${h}px"><div class="slfd" style="--fin:${fin}deg;--from:${fin+1440}deg">${SLFL.map((c,i)=>`<div class="slfi" style="transform:rotateX(${(-i*th).toFixed(2)}deg) translateZ(${r}px)">${c}</div>`).join('')}</div><div class="slfm"></div></div>`;
+  const nm='slfspin'+G.r+'x'+(Date.now()%100000);   // eigener Name + feste Zahlen (kein var() in @keyframes: Safari-sicher)
+  return `<div class="slfw" style="--h:${h}px"><style>@keyframes ${nm}{from{transform:rotateX(${fin+1440}deg)}to{transform:rotateX(${fin}deg)}}</style><div class="slfd" style="transform:rotateX(${fin}deg);-webkit-animation-name:${nm};animation-name:${nm}" data-fin="${fin}">${SLFL.map((c,i)=>`<div class="slfi" style="transform:rotateX(${(-i*th).toFixed(2)}deg) translateZ(${r}px)">${c}</div>`).join('')}</div><div class="slfm"></div></div>`;
 }
 function slfReelScreen(){
   scr(`${prg(G.r,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card" style="text-align:center"><div class="sm">Der Buchstabe wird gezogen …</div>${slfReelHTML(G.lt)}<button class="sec" onclick="slfReelGo()">Überspringen</button></div>`);
