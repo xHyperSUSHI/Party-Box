@@ -2871,6 +2871,80 @@ function genMath(){
 }
 const GEN=[genDist,genDist,genDist,()=>genDiff(MOUNT,''),()=>genDiff(MOUNT,''),()=>genDiff(BUILD,''),genDates,genDates,genAgo,genAgo,genGap,genAge,genConv,genConv,genMath,genMath,genMath];
 
+/* ---------- Arschkarte: Kategorien ---------- */
+// Alle Antworten sind rechnerisch oder allgemein bekannt; bei Näherungswerten steht "ungefähr" oder die Rechengrundlage in der Frage.
+Q.push(
+["Wie viele Sterne hat die Flagge der Europäischen Union?",12,""],
+["Wie viele Sterne hat die Flagge der USA?",50,""],
+["Wie viele Streifen hat die Flagge der USA?",13,""],
+["Wie viele Bundesländer hat Deutschland?",16,""]
+);
+const QX={
+'Lustig & Alltag 🤪':[
+["Wie viele Hühnereier (Größe M, ca. 58 g) braucht man ungefähr für ein Kilo?",17,"Eier"],
+["Wie viele 2-Euro-Münzen (je 8,5 g) wiegen zusammen ein Kilo?",118,"Münzen"],
+["Wie viele 1-Cent-Münzen (je 2,3 g) wiegen zusammen ein Kilo?",435,"Münzen"],
+["Wie viele Tischtennisbälle (je 2,7 g) wiegen zusammen ein Kilo?",370,"Bälle"],
+["Wie viele Brötchen (je 50 g) ergeben ein Kilo?",20,"Brötchen"],
+["Wie viele Äpfel (je 150 g) wiegen zusammen drei Kilo?",20,"Äpfel"],
+["Wie viele Tage sind eine Million Sekunden?",11.6,"Tage"],
+["Wie viele Jahre sind eine Milliarde Sekunden?",31.7,"Jahre"],
+["Wie oft schlägt das Herz an einem Tag, wenn es 70-mal pro Minute schlägt?",100800,"Schläge"],
+["Wie oft atmet man an einem Tag, wenn man 15-mal pro Minute atmet?",21600,"Atemzüge"],
+["Wie viele Euro sind eine Million 1-Cent-Münzen wert?",10000,"€"],
+["Wie viele Kilometer legt die Erde auf ihrer Bahn um die Sonne pro Sekunde zurück?",30,"km"],
+["Wie viele Minuten braucht man zu Fuß für einen Kilometer bei 5 km/h?",12,"Minuten"],
+["Wie viele Sekunden braucht ein Stein im freien Fall (ohne Luftwiderstand) aus 100 m Höhe?",4.5,"s"],
+["Wie viele Augen hat ein Würfel auf allen sechs Seiten zusammen?",21,""],
+["Wie viele Steine hat ein Domino-Spiel (Doppel-Sechs)?",28,"Steine"],
+["Wie viele Felder hat ein Schachbrett?",64,"Felder"],
+["Wie viele Karten hat ein Skatblatt?",32,"Karten"],
+["Wie viele Karten hat ein Pokerblatt (ohne Joker)?",52,"Karten"],
+["Wie viele DIN-A4-Blätter ergeben ein DIN-A0-Blatt?",16,"Blätter"],
+["Wie breit ist ein DIN-A4-Blatt?",21,"cm"],
+["Wie viele Tage braucht ein Hühnerei zum Ausbrüten?",21,"Tage"],
+["Wie viele Kilo wiegt ein Liter Honig?",1.4,"kg"],
+["Wie viele Kilo wiegt ein Kubikmeter Luft?",1.2,"kg"]
+],
+'Essen & Trinken 🍕':[
+["Wie viele Kalorien hat 100 g Vollmilchschokolade ungefähr?",540,"kcal"],
+["Wie viele Kalorien hat 100 g Gummibärchen ungefähr?",343,"kcal"],
+["Wie viele Kalorien hat 100 g Nutella ungefähr?",539,"kcal"],
+["Wie viele Kalorien hat 100 g Butter ungefähr?",740,"kcal"],
+["Wie viele Kalorien hat eine Dose Cola (0,33 l) ungefähr?",139,"kcal"],
+["Wie viele Kalorien hat ein Liter Pils ungefähr?",430,"kcal"],
+["Wie viele Liter Milch braucht man ungefähr für ein Kilo Butter?",20,"Liter"],
+["Wie viel wiegt ein Stück Würfelzucker?",3,"g"],
+["Wie viel Prozent Wasser enthält eine Gurke ungefähr?",95,"%"],
+["Wie viel wiegt eine Standard-Tafel Schokolade?",100,"g"],
+["Wie viel wiegt eine Standardpackung Spaghetti?",500,"g"]
+],
+'Tiere & Natur 🐾':[
+["Wie viele Eier legt eine Legehenne ungefähr pro Jahr?",300,"Eier"],
+["Wie viele Tage ist ein Hund trächtig?",63,"Tage"],
+["Wie viel wiegt ein Elefantenbaby bei der Geburt ungefähr?",100,"kg"],
+["Wie viele Bienen leben im Sommer in einem Bienenvolk ungefähr?",50000,"Bienen"],
+["Wie hoch ist der höchste bekannte Baum der Welt (Hyperion)?",116,"m"],
+["Wie lang wird ein Blauwal höchstens ungefähr?",30,"m"],
+["Wie lang ist die Donau?",2850,"km"],
+["Wie lang ist die Elbe?",1094,"km"],
+["Wie viele Halswirbel hat eine Giraffe?",7,""],
+["Wie viele Rippen hat ein Mensch?",24,""],
+["Wie schnell kann ein Gepard maximal laufen?",110,"km/h"],
+["Wie viele Zähne hat ein erwachsener Mensch (mit Weisheitszähnen)?",32,"Zähne"],
+["Wie viele Zähne hat ein erwachsener Hund?",42,"Zähne"],
+["Wie viele Zähne hat eine erwachsene Katze?",30,"Zähne"]
+]};
+const QCATS=['Wissen 🧠','Jahreszahlen 📅','Rechnen & Orte 🧮'].concat(Object.keys(QX));
+const isYearQ=q=>/^In welchem Jahr/.test(q[0]);
+const QPOOL={'Wissen 🧠':()=>Q.filter(q=>!isYearQ(q)),'Jahreszahlen 📅':()=>Q.filter(isYearQ)};
+Object.keys(QX).forEach(k=>{QPOOL[k]=()=>QX[k]});
+const QGEN={
+'Wissen 🧠':[genAge],
+'Jahreszahlen 📅':[genAgo,genAgo,genGap],
+'Rechnen & Orte 🧮':[genDist,genDist,genDist,()=>genDiff(MOUNT,''),()=>genDiff(MOUNT,''),()=>genDiff(BUILD,''),genDates,genDates,genConv,genConv,genMath,genMath,genMath]
+};
+
 const PW={
 'Tiere 🐧':['Pinguin','Giraffe','Kuh','Faultier','Krake','Känguru','Hahn','Flamingo','Schlange','Elefant','Eichhörnchen','Frosch','Gorilla','Fledermaus','Krokodil','Schildkröte','Biene','Adler','Pfau','Hund beim Gassi','Katze, die vom Tisch schubst','Wal','Schwein im Schlamm','Seepferdchen','Bär beim Honigklauen','Murmeltier','Papagei','Nilpferd','Hamster im Laufrad','Löwe','Krebs','Spinne','Chamäleon','Seehund','Storch','Maulwurf','Kolibri','Wolf beim Heulen','Dackel','Esel','Qualle'],
 'Berufe 👨‍🍳':['Zahnarzt','Pilot','Friseur','Bäcker','DJ','Astronaut','Dirigent','Müllmann','Fotograf','Zauberer','Feuerwehrmann','Pizzabote','Schornsteinfeger','Taucher','Lehrer','Richter','Koch','Bergführer','Polizist','Metzger','Maler','Schäfer','Kellner','Bodybuilder','Zirkusdirektor','Tierarzt','Barista','Gärtner','Archäologe','Schauspieler','Clown','Rettungssanitäter','Schreiner','Torwart','Fitnesstrainer','Postbote','Sänger auf der Bühne','Winzer','Wetterfrosch','Zirkusartist'],
@@ -2901,7 +2975,7 @@ const mixWord=()=>pick(MS)+' '+pick(MA);
 
 /* ================= UI ================= */
 const GAMES={};
-const OPT={arsch:{rounds:10,timer:30},pant:{secs:60,rounds:2,cats:{}},spy:{rounds:3,mins:6},wave:{rounds:2},bluff:{rounds:5},react:{rounds:5},bomb:{rounds:5,fuse:'mittel'}};
+const OPT={arsch:{rounds:10,timer:30,cats:{}},pant:{secs:60,rounds:2,cats:{}},spy:{rounds:3,mins:6},wave:{rounds:2},bluff:{rounds:5},react:{rounds:5},bomb:{rounds:5,fuse:'mittel'}};
 const hue=i=>(i*47+350)%360;
 const nameOf=i=>(S.P&&S.P[i]!=null?S.P[i]:S.names[i]);
 const scr=h=>{app.innerHTML=`<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${h}</div>`;window.scrollTo(0,0);app.scrollTop=0};
@@ -3137,21 +3211,27 @@ function finish(o){
 
 /* ================= Arschkarte ================= */
 function buildDeck(n){
-  const nG=Math.round(n*.5);
-  const deck=ordered(Q,q=>q[0],'q').slice(0,n-nG),keys=new Set(deck.map(q=>q[0]));
+  const sel=QCATS.filter(k=>OPT.arsch.cats&&OPT.arsch.cats[k]),cats=sel.length?sel:QCATS;   // nichts gewählt = alle
+  const stat=[],gens=[];
+  cats.forEach(c=>{(QPOOL[c]?QPOOL[c]():[]).forEach(q=>stat.push(q));(QGEN[c]||[]).forEach(g=>gens.push(g))});
+  const nG=gens.length?(stat.length?Math.round(n*.5):n):0;
+  const deck=ordered(stat,q=>q[0],'q').slice(0,n-nG),keys=new Set(deck.map(q=>q[0]));
   let guard=0,gen=0;
   const ok=q=>q&&isFinite(q[1])&&q[1]!==0&&!keys.has(q[0]);
-  while(gen<nG&&guard++<600){const q=pick(GEN)();if(ok(q)&&!recent('q',q[0])){keys.add(q[0]);deck.push(q);gen++}}
-  while(deck.length<n&&guard++<1200){const q=pick(GEN)();if(ok(q)){keys.add(q[0]);deck.push(q)}}
-  return shuffle(deck);
+  if(gens.length){
+    while(gen<nG&&guard++<600){const q=pick(gens)();if(ok(q)&&!recent('q',q[0])){keys.add(q[0]);deck.push(q);gen++}}
+    while(deck.length<n&&guard++<1200){const q=pick(gens)();if(ok(q)){keys.add(q[0]);deck.push(q)}}
+  }
+  return shuffle(deck);   // kann kürzer als n sein, wenn eine Kategorie zu wenige Fragen hat
 }
 GAMES.arsch={name:'Arschkarte',e:'🟥',tag:'Schätzen, tippen, Pech haben',c:['#ff7a45','#ff2e4d'],min:2,teams:false,
   desc:'Alle schätzen eine verrückte Zahl. Wer am nächsten liegt, punktet. Und alle tippen, wer am weitesten danebenliegt.',
-  rules:'1. Eine Frage mit Zahlenantwort erscheint.<br>2. Jeder schätzt heimlich und tippt sofort, wer am weitesten danebenliegt (nicht man selbst). Schätzungen der anderen sieht niemand.<br>3. <b>Nächster dran: +2 Punkte</b> (bei Gleichstand alle). <b>Richtiger Tipp: +1.</b> Wer am weitesten weg liegt, bekommt die Arschkarte.<br>4. Gemessen wird der Abstand in Prozent. Fragen kommen erst nach der eingestellten Sperrfrist wieder.<br>5. Mit Timer: Läuft die Zeit ab, zählt eine bereits eingetippte Zahl. Ohne Eingabe gibt es keine Antwort und damit keine Punkte für die Schätzung.',
-  opts:()=>`<p class="sm" style="margin:0 0 8px">Runden</p>${seg('arsch','rounds',[5,10,15,20])}<p class="sm" style="margin:14px 0 8px">Zeit zum Schätzen</p>${seg('arsch','timer',[0,20,30,45,60],v=>v?v+' s':'Aus')}<p class="sm" style="margin:8px 0 0">Online bleiben danach noch 10 Sekunden zum Tippen.</p>`,
+  rules:'0. Vorher wählst du Kategorien (z. B. Lustig &amp; Alltag, Essen &amp; Trinken, Tiere &amp; Natur). Hat eine Kategorie weniger Fragen als Runden, wird das Spiel entsprechend kürzer.<br>1. Eine Frage mit Zahlenantwort erscheint.<br>2. Jeder schätzt heimlich und tippt sofort, wer am weitesten danebenliegt (nicht man selbst). Schätzungen der anderen sieht niemand.<br>3. <b>Nächster dran: +2 Punkte</b> (bei Gleichstand alle). <b>Richtiger Tipp: +1.</b> Wer am weitesten weg liegt, bekommt die Arschkarte.<br>4. Gemessen wird der Abstand in Prozent. Fragen kommen erst nach der eingestellten Sperrfrist wieder.<br>5. Mit Timer: Läuft die Zeit ab, zählt eine bereits eingetippte Zahl. Ohne Eingabe gibt es keine Antwort und damit keine Punkte für die Schätzung.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (nichts gewählt = alle)</p><div class="chips">${QCATS.map((k,i)=>`<span class="chip ${OPT.arsch.cats[k]?'on':''}" onclick="arCat(${i},this)">${esc(k)}</span>`).join('')}</div><p class="sm" style="margin:16px 0 8px">Runden</p>${seg('arsch','rounds',[5,10,15,20])}<p class="sm" style="margin:14px 0 8px">Zeit zum Schätzen</p>${seg('arsch','timer',[0,20,30,45,60],v=>v?v+' s':'Aus')}<p class="sm" style="margin:8px 0 0">Online bleiben danach noch 10 Sekunden zum Tippen.</p>`,
   start:arStart};
+function arCat(i,el){const k=QCATS[i];OPT.arsch.cats[k]=!OPT.arsch.cats[k];el.classList.toggle('on')}
 function arStart(){
-  G.rounds=G.o.rounds;G.cards=G.ents.map(()=>0);G.near=S.P.map(()=>0);G.deck=buildDeck(G.rounds);G.r=0;arRound();
+  G.rounds=G.o.rounds;G.cards=G.ents.map(()=>0);G.near=S.P.map(()=>0);G.deck=buildDeck(G.rounds);G.rounds=Math.max(1,Math.min(G.rounds,G.deck.length));G.r=0;arRound();
 }
 function arProg(){return prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}
 function arParse(s){
