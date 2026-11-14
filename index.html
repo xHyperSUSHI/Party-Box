@@ -2600,7 +2600,7 @@ let C={days:15,fx:true,vib:true,sound:true,theme:'feuer'};
 let S={names:['Spieler 1','Spieler 2','Spieler 3'],mode:'solo',nt:2,P:null,tm:null,tmKey:''};
 let G={},CUR=null,HF=null,TH=['var(--red2)','var(--red)'];
 const NET={on:false,host:false,client:false,code:'',m:[],inGame:false,scr:null,peer:null,conn:null,perm:true,idx:-1,localNames:null,syn:false};
-try{const c=JSON.parse(localStorage.getItem('pb_cfg')||'null');if(c){Object.assign(C,c.C||{});if(c.names&&c.names.length>=2)S.names=c.names}}catch(e){}
+try{const c=JSON.parse(localStorage.getItem('pb_cfg')||'null');if(c){Object.assign(C,c.C||{});if(c.names&&c.names.length>=1)S.names=c.names}}catch(e){}
 function saveCfg(){try{localStorage.setItem('pb_cfg',JSON.stringify({C,names:(NET.on&&NET.localNames)?NET.localNames:S.names}))}catch(e){}}
 function applyTheme(){document.body.dataset.theme=C.theme;document.body.classList.toggle('calm',!C.fx)}
 
@@ -3010,13 +3010,13 @@ function playersScreen(){
   S.P=null;TH=['var(--red2)','var(--red)'];
   scr(`<button class="sec back" onclick="savePlayers()">← Fertig</button>${logo('Mitspieler')}
   <div class="card"><div id="pl"></div><div class="row"><button class="sec" onclick="addP()">+ Spieler</button><button class="sec" onclick="delP()">− Spieler</button></div></div>
-  <p class="sm">Bis zu 10 Spieler. Namen und Einstellungen merkt sich die Party Box auf diesem Gerät.</p>`);
+  <p class="sm">Bis zu 10 Spieler. Allein geht nur 4 Gewinnt gegen den Computer, alle anderen Spiele brauchen mindestens 2 oder 3. Namen und Einstellungen merkt sich die Party Box auf diesem Gerät.</p>`);
   const pl=$('pl');
   S.names.forEach((n,i)=>pl.insertAdjacentHTML('beforeend',`<div class="row" style="align-items:center;margin-top:10px">${av(i)}<input style="margin:0" data-i="${i}" value="${esc(n)}" maxlength="16" placeholder="Name"></div>`));
 }
 function saveNames(){document.querySelectorAll('#pl input').forEach(e=>S.names[+e.dataset.i]=e.value)}
 function addP(){saveNames();if(S.names.length<10)S.names.push('Spieler '+(S.names.length+1));playersScreen()}
-function delP(){saveNames();if(S.names.length>2)S.names.pop();playersScreen()}
+function delP(){saveNames();if(S.names.length>1)S.names.pop();playersScreen()}
 function savePlayers(){saveNames();S.names=S.names.map((n,i)=>n.trim()||'Spieler '+(i+1));saveCfg();home()}
 
 /* ---------- Statistik ---------- */
@@ -3226,12 +3226,12 @@ function buildDeck(n){
 }
 GAMES.arsch={name:'Arschkarte',e:'🟥',tag:'Schätzen, tippen, Pech haben',c:['#ff7a45','#ff2e4d'],min:2,teams:false,
   desc:'Alle schätzen eine verrückte Zahl. Wer am nächsten liegt, punktet. Und alle tippen, wer am weitesten danebenliegt.',
-  rules:'0. Vorher wählst du Kategorien (z. B. Lustig &amp; Alltag, Essen &amp; Trinken, Tiere &amp; Natur). Hat eine Kategorie weniger Fragen als Runden, wird das Spiel entsprechend kürzer.<br>1. Eine Frage mit Zahlenantwort erscheint.<br>2. Jeder schätzt heimlich und tippt sofort, wer am weitesten danebenliegt (nicht man selbst). Schätzungen der anderen sieht niemand.<br>3. <b>Nächster dran: +2 Punkte</b> (bei Gleichstand alle). <b>Richtiger Tipp: +1.</b> Wer am weitesten weg liegt, bekommt die Arschkarte.<br>4. Gemessen wird der Abstand in Prozent. Fragen kommen erst nach der eingestellten Sperrfrist wieder.<br>5. Mit Timer: Läuft die Zeit ab, zählt eine bereits eingetippte Zahl. Ohne Eingabe gibt es keine Antwort und damit keine Punkte für die Schätzung.',
-  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (nichts gewählt = alle)</p><div class="chips">${QCATS.map((k,i)=>`<span class="chip ${OPT.arsch.cats[k]?'on':''}" onclick="arCat(${i},this)">${esc(k)}</span>`).join('')}</div><p class="sm" style="margin:16px 0 8px">Runden</p>${seg('arsch','rounds',[5,10,15,20])}<p class="sm" style="margin:14px 0 8px">Zeit zum Schätzen</p>${seg('arsch','timer',[0,20,30,45,60],v=>v?v+' s':'Aus')}<p class="sm" style="margin:8px 0 0">Online bleiben danach noch 10 Sekunden zum Tippen.</p>`,
+  rules:'0. Vorher wählst du Kategorien (z. B. Lustig &amp; Alltag, Essen &amp; Trinken, Tiere &amp; Natur). Hat eine Kategorie weniger Fragen als Runden, wird das Spiel entsprechend kürzer.<br>1. Eine Frage mit Zahlenantwort erscheint.<br>2. Jeder schätzt heimlich und tippt sofort, wer am weitesten danebenliegt (nicht man selbst). Schätzungen der anderen sieht niemand.<br>3. <b>Nächster dran: +2 Punkte</b> (bei Gleichstand alle). <b>Richtiger Tipp: +1.</b> Wer am weitesten weg liegt, bekommt die Arschkarte.<br>4. Gemessen wird der Abstand in Prozent. Fragen kommen erst nach der eingestellten Sperrfrist wieder.<br>Zu zweit entfällt das Tippen – es zählt nur, wer näher dran ist.<br>5. Mit Timer: Läuft die Zeit ab, zählt eine bereits eingetippte Zahl. Ohne Eingabe gibt es keine Antwort und damit keine Punkte für die Schätzung.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (nichts gewählt = alle)</p><div class="chips">${QCATS.map((k,i)=>`<span class="chip ${OPT.arsch.cats[k]?'on':''}" onclick="arCat(${i},this)">${esc(k)}</span>`).join('')}</div><p class="sm" style="margin:16px 0 8px">Runden</p>${seg('arsch','rounds',[5,10,15,20])}<p class="sm" style="margin:14px 0 8px">Zeit zum Schätzen</p>${seg('arsch','timer',[0,20,30,45,60],v=>v?v+' s':'Aus')}${S.names.length>2?`<p class="sm" style="margin:8px 0 0">Online bleiben danach noch 10 Sekunden zum Tippen.</p>`:''}`,
   start:arStart};
 function arCat(i,el){const k=QCATS[i];OPT.arsch.cats[k]=!OPT.arsch.cats[k];el.classList.toggle('on')}
 function arStart(){
-  G.rounds=G.o.rounds;G.cards=G.ents.map(()=>0);G.near=S.P.map(()=>0);G.deck=buildDeck(G.rounds);G.rounds=Math.max(1,Math.min(G.rounds,G.deck.length));G.r=0;arRound();
+  G.rounds=G.o.rounds;G.cards=G.ents.map(()=>0);G.near=S.P.map(()=>0);G.tip=S.P.length>2;G.deck=buildDeck(G.rounds);G.rounds=Math.max(1,Math.min(G.rounds,G.deck.length));G.r=0;arRound();
 }
 function arProg(){return prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}
 function arParse(s){
@@ -3242,26 +3242,26 @@ function arParse(s){
 let ARTIP_MS=10000;   // Online: Zeit zum Tippen nach Ablauf der Schätzzeit
 function arPar(){
   const q=G.q;
-  parBegin({head:arProg,dur:G.o.timer?[G.o.timer*1000,ARTIP_MS]:null,msg:'Alle schätzen und tippen gleichzeitig auf ihrem Gerät …',steps:[
+  parBegin({head:arProg,dur:G.o.timer?[G.o.timer*1000,ARTIP_MS].slice(0,G.tip?2:1):null,msg:G.tip?'Alle schätzen und tippen gleichzeitig auf ihrem Gerät …':'Beide schätzen gleichzeitig auf ihrem Gerät …',steps:[
     {k:'g',timeout:pi=>{G.g[pi]=null},html:pi=>`<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(pi)}<span class="sm">${esc(S.P[pi])} schätzt</span></div>
       <div class="q">${esc(q[0])}</div>${q[2]?`<div style="margin-top:8px" class="sm">Einheit: <span class="unit">${esc(q[2])}</span></div>`:''}
-      <input data-f="g" data-enter="g" class="num" type="text" inputmode="decimal" autocomplete="off" placeholder="?"><button data-sub="g">Weiter zum Tippen</button></div>`,
+      <input data-f="g" data-enter="g" class="num" type="text" inputmode="decimal" autocomplete="off" placeholder="?"><button data-sub="g">${G.tip?'Weiter zum Tippen':'Abschicken'}</button></div>`,
      sub:(pi,d)=>{const v=arParse(d.f.g);if(v==null)return 'Bitte eine Zahl eingeben.';G.g[pi]=v;return true}},
     {k:'t',timeout:pi=>{G.t[pi]=null},html:pi=>`<div class="card"><div class="sm">Deine Schätzung ist gespeichert. Jetzt tippen:</div><div class="q" style="margin:8px 0 6px">Wer liegt am weitesten daneben?</div><p style="margin:0 0 6px;font-size:14px">${esc(q[0])}</p>
       ${S.P.map((p,i)=>i===pi?'':`<button class="opt" style="--k:${i}" data-sub="t" data-v="${i}">${av(i)}<span>${esc(p)}</span></button>`).join('')}</div>`,
      sub:(pi,d)=>{const t=Number(d.v);if(d.v==null||!Number.isInteger(t)||t<0||t>=S.P.length||t===pi)return 'Ungültige Wahl.';G.t[pi]=t;return true}}
-  ],done:arResult});
+  ].slice(0,G.tip?2:1),done:arResult});
 }
 function arRound(){
   G.q=G.deck[G.r];mark('q',G.q[0]);G.g=[];G.t=[];G.i=0;
   if(NET.host){arPar();return}
-  hand(G.i,'Schätzen und tippen – niemand schaut mit!',arGuess,arProg());
+  hand(G.i,arMsg(),arGuess,arProg());
 }
 function arGuess(){
   scr(`${arProg()}<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:12px">${av(G.i)}<span class="sm">${esc(S.P[G.i])} schätzt</span></div>
   <div class="q">${esc(G.q[0])}</div>${G.q[2]?`<div style="margin-top:8px" class="sm">Einheit: <span class="unit">${esc(G.q[2])}</span></div>`:''}
   <input id="g" class="num" type="text" inputmode="decimal" autocomplete="off" placeholder="?">
-  <div class="err" id="e"></div><button onclick="arSubmit()">Weiter zum Tippen</button></div>`);
+  <div class="err" id="e"></div><button onclick="arSubmit()">${G.tip?'Weiter zum Tippen':'Abschicken'}</button></div>`);
   const g=$('g');g.addEventListener('keydown',e=>{if(e.key==='Enter')arSubmit()});setTimeout(()=>g.focus(),80);
   if(G.o.timer)tmrShow(G.o.timer*1000,arTimeUp);
 }
@@ -3269,13 +3269,16 @@ function arSubmit(){
   const g=$('g');
   const v=arParse(g.value);
   if(v==null){$('e').textContent='Bitte eine Zahl eingeben.';g.classList.remove('shake');void g.offsetWidth;g.classList.add('shake');vib(80);return}
-  G.g[G.i]=v;tmrHide();arTip();
+  G.g[G.i]=v;tmrHide();arAfter();
 }
+const arMsg=()=>G.tip?'Schätzen und tippen – niemand schaut mit!':'Schätzen – niemand schaut mit!';
+// Ab 3 Spielern folgt das Tippen; zu zweit gäbe es nur eine mögliche Wahl, deshalb entfällt es
+function arAfter(){if(G.tip)arTip();else{G.i++;if(G.i<S.P.length)hand(G.i,arMsg(),arGuess,arProg());else arResult()}}
 function arTimeUp(){
   const g=$('g');if(!g)return;
   const v=arParse(g.value);G.g[G.i]=v;tmrHide();sfx.bad();vib([60,40,60]);
   toast(v==null?'⏰ Zeit um – keine Antwort':'⏰ Zeit um – deine Eingabe zählt');
-  arTip();
+  arAfter();
 }
 function arTip(){
   const me=G.i;
@@ -3289,7 +3292,7 @@ function arPick(t,btn){
 }
 function arResult(){
   const a=G.q[1],n=S.P.length,d=dec(a);
-  const gs=S.P.map((_,i)=>G.g[i]==null?null:G.g[i]),ts=S.P.map((_,i)=>G.t[i]==null?null:G.t[i]);
+  const gs=S.P.map((_,i)=>G.g[i]==null?null:G.g[i]),ts=S.P.map((_,i)=>(G.tip&&G.t[i]!=null)?G.t[i]:null);
   const err=gs.map(g=>g==null?null:Math.abs(g-a)/Math.abs(a));          // null = keine Antwort (Zeit abgelaufen)
   const valid=err.filter(e=>e!=null);
   const mn=valid.length?Math.min(...valid):0,mx=valid.length?Math.max(...valid):0,eps=1e-12;
@@ -3308,7 +3311,7 @@ function arResult(){
     return `<div class="res ${best[i]?'best':''} ${worst[i]?'worst':''}" style="--d:${(k*step+.5).toFixed(2)}s;--w:${w}%">
       <div class="rh">${av(i)}<div class="nm">${esc(S.P[i])}${best[i]?'<span class="tag b">am nächsten</span>':''}${worst[i]?'<span class="tag w">Arschkarte</span>':''}</div><div class="gain ${gain[i]?'':'z'}">+${gain[i]}</div></div>
       <div class="dev"><i></i></div>
-      <div class="sm">${gs[i]==null?'⏰ <b style="color:var(--tx)">Keine Antwort</b> (Zeit abgelaufen)':`Schätzung <b style="color:var(--tx)">${fmt(gs[i])}</b> · ${pct<0.05?'exakt':fmt(Math.round(pct*10)/10)+' % daneben'}`}<br>Tipp: ${ts[i]==null?'–':esc(S.P[ts[i]])} ${tipOK[i]?'<span class="tag t">richtig +1</span>':'<span class="tag x">falsch</span>'}</div></div>`}).join('')}</div>
+      <div class="sm">${gs[i]==null?'⏰ <b style="color:var(--tx)">Keine Antwort</b> (Zeit abgelaufen)':`Schätzung <b style="color:var(--tx)">${fmt(gs[i])}</b> · ${pct<0.05?'exakt':fmt(Math.round(pct*10)/10)+' % daneben'}`}${G.tip?`<br>Tipp: ${ts[i]==null?'–':esc(S.P[ts[i]])} ${tipOK[i]?'<span class="tag t">richtig +1</span>':'<span class="tag x">falsch</span>'}`:''}</div></div>`}).join('')}</div>
   <div class="late" style="--d:${end}s">${boardHTML(G.pts)}<button onclick="${last?'arFinish()':'G.r++;arRound()'}">${last?'Endergebnis 🏆':'Nächste Frage'}</button></div>`);
   countUp($('cu'),a,d,1100);
   order.forEach((i,k)=>{
@@ -3741,14 +3744,15 @@ function boFinish(){finish({asc:true,unit:' 💥'})}
 OPT.c4={vs:'mensch',lvl:'mittel',best:3,a:0,b:1};
 const nmSel=(k)=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.c4[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="c4Sel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
 function c4Sel(k,i){OPT.c4[k]=i;if(OPT.c4.a===OPT.c4.b)OPT.c4[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('c4')}
-GAMES.c4={name:'4 Gewinnt',e:'🔴',tag:'Der Duell-Klassiker',c:['#3b82f6','#1d4ed8'],min:2,teams:true,nt2:true,
+GAMES.c4={name:'4 Gewinnt',e:'🔴',tag:'Der Duell-Klassiker',c:['#3b82f6','#1d4ed8'],min:1,teams:true,nt2:true,
   desc:'Wirf abwechselnd Steine ein und bring vier in eine Reihe – waagerecht, senkrecht oder diagonal.',
   rules:'Tippe auf eine Spalte, der Stein fällt ganz nach unten. Wer zuerst vier eigene Steine in einer Reihe hat, gewinnt die Runde. Gespielt wird auf mehrere Gewinnrunden („Best of“). Der Startspieler wechselt jede Runde. Im Teammodus spielen zwei Teams gegeneinander, die Mitglieder wechseln sich ab. Gegen den Computer gibt es drei Stufen.',
   opts:()=>{
     const team=teamOn(),o=OPT.c4;
     let h=`<p class="sm" style="margin:0 0 8px">Gewinnrunden (Best of)</p>${seg('c4','best',[1,3,5])}`;
     if(team)return h+`<p class="sm" style="margin-top:14px">Zwei Teams treten gegeneinander an.</p>`;
-    h+=`<p class="sm" style="margin:14px 0 8px">Gegner</p>${seg('c4','vs',['mensch','cpu'],v=>v==='cpu'?'🤖 Computer':'🧑 Mensch')}`;
+    const solo=S.names.length<2;if(solo)o.vs='cpu';   // allein spielt man gegen den Computer
+    h+=solo?`<p class="sm" style="margin:14px 0 8px">Gegner: 🤖 Computer (du spielst allein)</p>`:`<p class="sm" style="margin:14px 0 8px">Gegner</p>${seg('c4','vs',['mensch','cpu'],v=>v==='cpu'?'🤖 Computer':'🧑 Mensch')}`;
     if(o.vs==='cpu')h+=`<p class="sm" style="margin:14px 0 8px">Schwierigkeit</p>${seg('c4','lvl',['leicht','mittel','schwer'],v=>({leicht:'Leicht',mittel:'Mittel',schwer:'Schwer'})[v])}<p class="sm" style="margin:14px 0 8px">Wer spielt?</p>${nmSel('a')}`;
     else if(S.names.length>2)h+=`<p class="sm" style="margin:14px 0 8px">Spieler 🔴</p>${nmSel('a')}<p class="sm" style="margin:14px 0 8px">Spieler 🟡</p>${nmSel('b')}`;
     return h;
@@ -3820,7 +3824,7 @@ function c4Start(){
   const o=G.o;G.cpu=false;
   if(!G.team){
     const a=Math.min(o.a,S.P.length-1);
-    if(o.vs==='cpu'){
+    if(o.vs==='cpu'||S.P.length<2){
       G.cpu=true;
       G.pi=[a,-1];
       G.ents=[{name:S.P[a],sub:'',emoji:'👑',av:(sz,cls)=>av(a,cls,sz)},{name:'Computer',sub:'Stufe: '+o.lvl,emoji:'🤖',av:(sz,cls)=>botAv(sz,cls)}];
