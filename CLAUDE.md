@@ -58,3 +58,11 @@ Jedes Spiel ist `GAMES.<id>={name,e,tag,c,min,teams,desc,rules,opts(),start()}` 
 - Nur ändern, was Sascha verlangt; bei Unklarheit nachfragen.
 - Kleine Commits mit deutscher Beschreibung. Zielbranch laut Sascha `main`; in dieser Cloud-Sitzung darf nur auf `claude/upbeat-faraday-v4vk3v` gepusht werden (`main` existiert; Sascha hat einmalig erlaubt, dorthin zu pushen – sonst nur per PR). Keine Pull Requests ohne Aufforderung.
 - Nach jeder Aufgabe in 2–3 Sätzen berichten: was geändert, was getestet.
+
+## Ideen für später (NICHT umsetzen, nur festgehalten)
+
+**Anzeige-Bildschirm + mehrere Handys als Mitspieler** (Idee von Sascha, Annahme: so gemeint)
+- Heute: Das Host-Gerät ist Spiel *und* Spieler. Wenn der Host selbst dran ist, verdeckt sein privates Formular (`#hw`-Overlay) den gemeinsamen Bildschirm; der Host kann also nicht gleichzeitig mitspielen und den öffentlichen Stand sehen.
+- Idee: Das Host-Gerät (z. B. iPad oder Laptop) zeigt dauerhaft nur den **gemeinsamen Anzeige-Bildschirm** (Status, Ergebnisse, Brett, Rangliste) als Overlay über allem. Alle Spieler, **auch der Host als Person**, spielen mit ihrem eigenen Handy als normaler Client (privater Screen wie bei den parallelen Eingaben). So kann der Host genauso mitspielen wie jeder andere.
+- Mögliche Bausteine: eigene Rolle "Anzeige" in `NET.m` (kein Spielerindex), Host-Person als zusätzlicher Client-Spieler, Steuerrecht für öffentliche Screens ("Nächste Frage", Rundenstart) für den Host-Spieler oder alle statt nur das Host-Gerät, Reihum-Spiele zeigen "Gerade dran" auf der Anzeige. Die Mechanik `own`/`parSub` und `PERMS` sind dafür schon die Grundlage.
+- Offen: ob die Anzeige auch ohne Mitspieler-Slot laufen soll, und wie der Host-Spieler ohne zweites Gerät spielt (zweiter Browser-Tab auf demselben Gerät?).
