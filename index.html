@@ -2740,7 +2740,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.17';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.18';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4907,14 +4907,33 @@ function dsEdge(t,r,c){
 }
 
 /* ---------- Stadt, Land, Fluss ---------- */
-const SLFC=['Stadt','Land','Fluss','Tier','Beruf'],SLFL='ABDEFGHKLMNPRSTW'.split('');
-OPT.slf={rounds:5,timer:0,mode:'zettel',dtimer:90};
+const SLFA=['Stadt','Land','Fluss','Tier','Beruf','Vorname','Pflanze','Essen','Getränk','Gegenstand','Farbe','Sportart','Film / Serie','Marke','Körperteil','Berg','Musik'],SLFL='ABDEFGHKLMNPRSTW'.split('');
+function slfSave(){try{localStorage.setItem('pb_slfc',JSON.stringify({sel:OPT.slf.sel,custom:OPT.slf.custom}))}catch(e){}}
+OPT.slf={rounds:5,timer:0,mode:'zettel',dtimer:90,sel:{Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1},custom:[]};
+try{const x=JSON.parse(localStorage.getItem('pb_slfc')||'null');if(x&&x.sel&&Array.isArray(x.custom)){OPT.slf.sel=x.sel;OPT.slf.custom=x.custom.filter(c=>typeof c==='string').slice(0,4)}}catch(e){}
+const slfAll=()=>SLFA.filter(c=>OPT.slf.sel[c]).concat(OPT.slf.custom);
+function slfTog(i,el){
+  const c=SLFA[i],o=OPT.slf;
+  if(!o.sel[c]&&slfAll().length>=10){toast('Höchstens 10 Kategorien');return}
+  o.sel[c]=o.sel[c]?0:1;slfSave();el.classList.toggle('on',!!o.sel[c]);const n=$('slfcnt');if(n)n.textContent=slfAll().length;
+}
+function slfAddCat(){
+  const e=$('slfn');if(!e)return;const v=e.value.trim().slice(0,20),o=OPT.slf;
+  if(!v){toast('Gib eine Kategorie ein');return}
+  if(o.custom.length>=4){toast('Höchstens 4 eigene Kategorien');return}
+  if(slfAll().length>=10){toast('Höchstens 10 Kategorien');return}
+  if(SLFA.concat(o.custom).some(c=>c.toLowerCase()===v.toLowerCase())){toast('Gibt es schon');return}
+  o.custom.push(v);slfSave();gameSetup('slf');
+}
+function slfDelCat(i){OPT.slf.custom.splice(i,1);slfSave();gameSetup('slf')}
 GAMES.slf={name:'Stadt, Land, Fluss',e:'✏️',tag:'Mit Zettel oder digital',c:['#22c55e','#16a34a'],min:2,teams:false,
-  desc:'Ein Buchstabe, fünf Kategorien: wer findet die meisten Wörter? Mit Zettel und Stift oder direkt im Handy eingetippt.',
-  rules:'<b>Digital:</b> Der Buchstabe steht oben, jeder tippt zu Stadt, Land, Fluss, Tier und Beruf je ein Wort ein (Zeitlimit). Danach zeigt die App alle Antworten und berechnet die Punkte (10 / 5 / 20, siehe unten). Wörter, die nicht stimmen, tippt ihr an und streicht sie. <b>Mit Zettel:</b> Jeder braucht <b>Zettel und Stift</b>. Die App nennt einen Buchstaben. Schreibt zu Stadt, Land, Fluss, Tier und Beruf je ein Wort, das damit anfängt. Wer fertig ist, ruft „Stopp!“ (oder die Zeit läuft ab). Danach werden die Wörter verglichen und Punkte eingetragen: <b>10</b> für ein eigenes Wort, <b>5</b> wenn ein anderer das gleiche hat, <b>20</b> wenn nur du eins hast, 0 für nichts. Wer am Ende die meisten Punkte hat, gewinnt.',
-  opts:()=>`<p class="sm" style="margin:0 0 8px">Spielweise</p>${seg('slf','mode',['zettel','digital'],v=>v==='zettel'?'✏️ Zettel & Stift':'⌨️ Digital tippen')}<p class="sm" style="margin:14px 0 8px">Runden</p>${seg('slf','rounds',[3,5,8])}${OPT.slf.mode==='digital'?`<p class="sm" style="margin:14px 0 8px">Zeit zum Tippen</p>${seg('slf','dtimer',[60,90,120],v=>v+' s')}<p class="sm" style="margin:8px 0 0">Online tippen alle gleichzeitig auf dem eigenen Gerät. An einem Gerät kommt jeder nacheinander dran (die anderen schauen weg). Die Punkte werden automatisch berechnet, falsche Wörter streicht ihr danach mit einem Tipp.</p>`:`<p class="sm" style="margin:14px 0 8px">Zeitlimit</p>${seg('slf','timer',[0,60,90],v=>v?v+' s':'Aus')}`}`,
+  desc:'Ein Buchstabe, eure Kategorien: wer findet die meisten Wörter? Kategorien frei wählbar, mit Zettel und Stift oder direkt im Handy eingetippt.',
+  rules:'<b>Digital:</b> Der Buchstabe steht oben, jeder tippt zu jeder Kategorie je ein Wort ein (Zeitlimit). Danach zeigt die App alle Antworten und berechnet die Punkte (10 / 5 / 20, siehe unten). Wörter, die nicht stimmen, tippt ihr an und streicht sie. <b>Mit Zettel:</b> Jeder braucht <b>Zettel und Stift</b>. Die App nennt einen Buchstaben. Schreibt zu jeder gewählten Kategorie (Standard: Stadt, Land, Fluss, Tier, Beruf; ihr könnt auch eigene erfinden) je ein Wort, das damit anfängt. Wer fertig ist, ruft „Stopp!“ (oder die Zeit läuft ab). Danach werden die Wörter verglichen und Punkte eingetragen: <b>10</b> für ein eigenes Wort, <b>5</b> wenn ein anderer das gleiche hat, <b>20</b> wenn nur du eins hast, 0 für nichts. Wer am Ende die meisten Punkte hat, gewinnt.',
+  opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (<span id="slfcnt">${slfAll().length}</span> gewählt, 3 bis 10)</p><div class="chips">${SLFA.map((c,i)=>`<span class="chip ${OPT.slf.sel[c]?'on':''}" onclick="slfTog(${i},this)">${esc(c)}</span>`).join('')}${OPT.slf.custom.map((c,i)=>`<span class="chip on" onclick="slfDelCat(${i})">${esc(c)} ✕</span>`).join('')}</div><div class="row" style="margin-top:10px"><input id="slfn" class="txt" type="text" maxlength="20" autocomplete="off" placeholder="Eigene Kategorie …" style="margin:0;flex:1"><button class="sec ib" onclick="slfAddCat()" aria-label="Kategorie hinzufügen" style="margin:0">＋</button></div><p class="sm" style="margin:14px 0 8px">Spielweise</p>${seg('slf','mode',['zettel','digital'],v=>v==='zettel'?'✏️ Zettel & Stift':'⌨️ Digital tippen')}<p class="sm" style="margin:14px 0 8px">Runden</p>${seg('slf','rounds',[3,5,8])}${OPT.slf.mode==='digital'?`<p class="sm" style="margin:14px 0 8px">Zeit zum Tippen</p>${seg('slf','dtimer',[60,90,120],v=>v+' s')}<p class="sm" style="margin:8px 0 0">Online tippen alle gleichzeitig auf dem eigenen Gerät. An einem Gerät kommt jeder nacheinander dran (die anderen schauen weg). Die Punkte werden automatisch berechnet, falsche Wörter streicht ihr danach mit einem Tipp.</p>`:`<p class="sm" style="margin:14px 0 8px">Zeitlimit</p>${seg('slf','timer',[0,60,90],v=>v?v+' s':'Aus')}`}`,
   start:slfStart};
-function slfStart(){G.pool=ordered(SLFL,x=>x,'g');G.rounds=Math.max(1,Math.min(G.o.rounds,G.pool.length));G.r=0;slfRound()}
+function slfStart(){
+  let cats=slfAll();if(cats.length<3){cats=SLFA.slice(0,5);toast('Zu wenige Kategorien – es gelten Stadt, Land, Fluss, Tier, Beruf')}
+  G.cats=cats.slice(0,10);G.pool=ordered(SLFL,x=>x,'g');G.rounds=Math.max(1,Math.min(G.o.rounds,G.pool.length));G.r=0;slfRound()}
 function slfRound(){
   if(G.o.mode==='digital'){slfDRound();return}
   G.lt=G.pool[G.r];mark('g',G.lt);G.sc=S.P.map(()=>0);
@@ -4922,7 +4941,7 @@ function slfRound(){
 }
 function slfPlay(){
   scr(`${prg(G.r,G.rounds,`Runde ${G.r+1} von ${G.rounds}`)}<div class="card ans" style="text-align:center"><div class="sm">Der Buchstabe ist</div><div class="slfl">${G.lt}</div>
-  <div class="chips" style="justify-content:center">${SLFC.map(c=>`<span class="chip on">${c}</span>`).join('')}</div>
+  <div class="chips" style="justify-content:center">${G.cats.map(c=>`<span class="chip on">${esc(c)}</span>`).join('')}</div>
   <p class="sm">Schreibt zu jeder Kategorie ein Wort mit ${G.lt}. Wer fertig ist, ruft „Stopp!“.</p><button onclick="slfStop()">✋ Stopp! Wir werten</button></div>`);
   sfx.pop();vib(40);
   if(G.o.timer)tmrShow(G.o.timer*1000,slfStop);
@@ -4938,36 +4957,36 @@ function slfScore(){
 /* --- Digital tippen --- */
 const slfDProg=()=>prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`);
 function slfDRound(){
-  G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=SLFC.map(()=>S.P.map(()=>false));G.i=0;
+  G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=G.cats.map(()=>S.P.map(()=>false));G.i=0;
   if(NET.host){slfDPar();return}
   hand(G.i,'Gleich siehst du den Buchstaben – tippe deine Wörter!',slfDType,slfDProg());
 }
 function slfForm(pi,online){
-  const n=SLFC.length,f=SLFC.map((c,k)=>`<label class="sm" style="display:block;margin:10px 0 4px">${c}</label><input class="txt" type="text" maxlength="30" autocomplete="off" autocapitalize="words" ${online?`data-f="c${k}"`:`id="sf${k}"`} ${k<n-1?'data-nx="1"':(online?'data-enter="w"':'')} placeholder="${c} mit ${G.lt} …">`).join('');
+  const n=G.cats.length,f=G.cats.map((c,k)=>`<label class="sm" style="display:block;margin:10px 0 4px">${esc(c)}</label><input class="txt" type="text" maxlength="30" autocomplete="off" autocapitalize="words" ${online?`data-f="c${k}"`:`id="sf${k}"`} ${k<n-1?'data-nx="1"':(online?'data-enter="w"':'')} placeholder="${esc(c)} mit ${G.lt} …">`).join('');
   return `<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:4px">${av(pi)}<span class="sm">${esc(S.P[pi])} tippt</span></div>
   <div style="text-align:center"><div class="sm">Der Buchstabe ist</div><div class="slfl" style="font-size:84px;margin:0 0 4px">${G.lt}</div></div>${f}<div class="err" id="e"></div>
   <button ${online?'data-sub="w"':'onclick="slfDSubmit()"'}>Fertig ✓</button></div>`;
 }
 function slfDType(){
   scr(`${slfDProg()}${slfForm(G.i,false)}`);
-  const l=$('sf'+(SLFC.length-1));if(l)l.addEventListener('keydown',e=>{if(e.key==='Enter')slfDSubmit()});
+  const l=$('sf'+(G.cats.length-1));if(l)l.addEventListener('keydown',e=>{if(e.key==='Enter')slfDSubmit()});
   setTimeout(()=>{const f=$('sf0');if(f)f.focus()},80);
   if(G.o.dtimer)tmrShow(G.o.dtimer*1000,slfDUp);
 }
-function slfDRead(){return SLFC.map((_,k)=>{const e=$('sf'+k);return e?String(e.value).trim().slice(0,30):''})}
+function slfDRead(){return G.cats.map((_,k)=>{const e=$('sf'+k);return e?String(e.value).trim().slice(0,30):''})}
 function slfDSubmit(){tmrHide();G.ans[G.i]=slfDRead();slfDNext()}
 function slfDUp(){tmrHide();sfx.bad();vib([60,40,60]);G.ans[G.i]=slfDRead();toast('⏰ Zeit um');slfDNext()}
 function slfDNext(){G.i++;if(G.i<S.P.length)hand(G.i,'Gleich siehst du den Buchstaben – tippe deine Wörter!',slfDType,slfDProg());else slfReview()}
 function slfDPar(){
   parBegin({head:slfDProg,dur:[G.o.dtimer*1000],msg:'Alle tippen gleichzeitig …',steps:[
-    {k:'w',timeout:pi=>{G.ans[pi]=G.ans[pi]||SLFC.map(()=>'')},html:pi=>slfForm(pi,true),
-     sub:(pi,d)=>{G.ans[pi]=SLFC.map((_,k)=>String((d.f||{})['c'+k]||'').trim().slice(0,30));return true}}
+    {k:'w',timeout:pi=>{G.ans[pi]=G.ans[pi]||G.cats.map(()=>'')},html:pi=>slfForm(pi,true),
+     sub:(pi,d)=>{G.ans[pi]=G.cats.map((_,k)=>String((d.f||{})['c'+k]||'').trim().slice(0,30));return true}}
   ],done:slfReview});
 }
 function slfValid(w){const t=String(w||'').trim();if(!t)return false;const m=t.match(/[A-Za-zÄÖÜäöüß]/);return !!m&&m[0].toUpperCase()===G.lt}
 function slfCalc(){
-  const pts=S.P.map(()=>0),det=SLFC.map(()=>S.P.map(()=>null));
-  SLFC.forEach((_,k)=>{
+  const pts=S.P.map(()=>0),det=G.cats.map(()=>S.P.map(()=>null));
+  G.cats.forEach((_,k)=>{
     const e=S.P.map((_,i)=>{const w=(G.ans[i]||[])[k];return slfValid(w)&&!G.bad[k][i]?norm(w):null});
     e.forEach((x,i)=>{if(x==null)return;const same=e.filter((y,j)=>j!==i&&y===x).length,others=e.filter((y,j)=>j!==i&&y!=null).length;const p=same?5:others?10:20;pts[i]+=p;det[k][i]=p});
   });
@@ -4975,7 +4994,7 @@ function slfCalc(){
 }
 function slfReview(){
   const c=slfCalc(),last=G.r+1>=G.rounds;
-  const rows=SLFC.map((cat,k)=>`<div class="card" style="padding:12px 14px"><div class="sm" style="margin-bottom:8px"><b style="color:var(--tx)">${cat}</b></div><div class="chips">${S.P.map((p,i)=>{
+  const rows=G.cats.map((cat,k)=>`<div class="card" style="padding:12px 14px"><div class="sm" style="margin-bottom:8px"><b style="color:var(--tx)">${esc(cat)}</b></div><div class="chips">${S.P.map((p,i)=>{
     const w=(G.ans[i]||[])[k]||'';if(!String(w).trim())return `<span class="chip" style="opacity:.45">${esc(p)}: –</span>`;
     const v=slfValid(w),bad=G.bad[k][i]||!v;
     return `<span class="chip ${bad?'':'on'}" style="${bad?'text-decoration:line-through;opacity:.6':''}" ${v?`onclick="slfBad(${k},${i})"`:''}>${esc(p)}: ${esc(w)}${c.det[k][i]?` <b>+${c.det[k][i]}</b>`:''}</span>`}).join('')}</div></div>`).join('');
@@ -5902,6 +5921,7 @@ document.addEventListener('keydown',e=>{
     if(k!=='Enter')return;
     if(t.hasAttribute&&t.hasAttribute('data-nx')){e.preventDefault();const ins=[...t.closest('.card,[data-p]').querySelectorAll('input.txt')],i=ins.indexOf(t);if(ins[i+1])ins[i+1].focus();return}
     if(t.closest&&t.closest('#pl')){e.preventDefault();const ins=[...document.querySelectorAll('#pl input')],i=ins.indexOf(t);if(i<ins.length-1)ins[i+1].focus();else savePlayers();return}
+    if(t.id==='slfn'){e.preventDefault();slfAddCat();return}
     if(t.id==='jc'){e.preventDefault();netJoinStart();return}
     if(t.id==='myn'){const b=t.closest('.card')&&t.closest('.card').querySelector('button:not(.sec)');if(b){e.preventDefault();b.click()}else if($('jc')){e.preventDefault();$('jc').focus()}}
     return;
