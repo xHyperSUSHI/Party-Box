@@ -2740,7 +2740,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.19';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.20';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4957,7 +4957,7 @@ function slfScore(){
 /* --- Digital tippen --- */
 const slfDProg=()=>prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`);
 function slfDRound(){
-  G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=G.cats.map(()=>S.P.map(()=>false));G.i=0;G.stopT=null;G.stopBy=null;
+  G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=G.cats.map(()=>S.P.map(()=>false));G.i=0;G.stopT=null;G.stopBy=null;G.fix=G.cats.map(()=>S.P.map(()=>null));G.edit=null;
   if(NET.host){slfDPar();return}
   hand(G.i,'Gleich siehst du den Buchstaben – tippe deine Wörter!',slfDType,slfDProg());
 }
@@ -5008,25 +5008,56 @@ function slfStopNow(pi){   // erster fertig: allen anderen bleiben nur noch ein 
   NET.m.forEach((m,i)=>{if(i>0&&isOpen(m)){sendTo(m,{t:'tm',ms});sendTo(m,{t:'err',m:msg})}});
 }
 function slfValid(w){const t=String(w||'').trim();if(!t)return false;const m=t.match(/[A-Za-zÄÖÜäöüß]/);return !!m&&m[0].toUpperCase()===G.lt}
+const slfEff=(k,i)=>G.fix[k][i]||((G.ans[i]||[])[k]||'');
+function slfNear(a,b){   // höchstens ein Tippfehler (Buchstabe falsch/fehlt/zu viel/vertauscht)
+  if(a===b)return false;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;
+  if(la===lb){const d=[];for(let i=0;i<la;i++)if(a[i]!==b[i])d.push(i);
+    return d.length===1||(d.length===2&&d[1]===d[0]+1&&a[d[0]]===b[d[1]]&&a[d[1]]===b[d[0]])}
+  const [s,l]=la<lb?[a,b]:[b,a];let i=0;while(i<s.length&&s[i]===l[i])i++;return s.slice(i)===l.slice(i+1);
+}
 function slfCalc(){
   const pts=S.P.map(()=>0),det=G.cats.map(()=>S.P.map(()=>null));
   G.cats.forEach((_,k)=>{
-    const e=S.P.map((_,i)=>{const w=(G.ans[i]||[])[k];return slfValid(w)&&!G.bad[k][i]?norm(w):null});
+    const e=S.P.map((_,i)=>{const w=slfEff(k,i);return slfValid(w)&&!G.bad[k][i]?norm(w):null});
     e.forEach((x,i)=>{if(x==null)return;const same=e.filter((y,j)=>j!==i&&y===x).length,others=e.filter((y,j)=>j!==i&&y!=null).length;const p=same?5:others?10:20;pts[i]+=p;det[k][i]=p});
   });
   return {pts,det};
 }
+function slfSuggest(k){   // fast gleiche Wörter (vermutlich Tippfehler): [i,j] mit i<j
+  const out=[],e=S.P.map((_,i)=>{const w=slfEff(k,i);return slfValid(w)&&!G.bad[k][i]?norm(w):null});
+  for(let i=0;i<e.length;i++)for(let j=i+1;j<e.length;j++)if(e[i]&&e[j]&&e[i].length>=5&&e[j].length>=5&&slfNear(e[i],e[j]))out.push([i,j]);
+  return out;
+}
 function slfReview(){
   const c=slfCalc(),last=G.r+1>=G.rounds;
-  const rows=G.cats.map((cat,k)=>`<div class="card" style="padding:12px 14px"><div class="sm" style="margin-bottom:8px"><b style="color:var(--tx)">${esc(cat)}</b></div><div class="chips">${S.P.map((p,i)=>{
-    const w=(G.ans[i]||[])[k]||'';if(!String(w).trim())return `<span class="chip" style="opacity:.45">${esc(p)}: –</span>`;
-    const v=slfValid(w),bad=G.bad[k][i]||!v;
-    return `<span class="chip ${bad?'':'on'}" style="${bad?'text-decoration:line-through;opacity:.6':''}" ${v?`onclick="slfBad(${k},${i})"`:''}>${esc(p)}: ${esc(w)}${c.det[k][i]?` <b>+${c.det[k][i]}</b>`:''}</span>`}).join('')}</div></div>`).join('');
-  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}${G.stopBy!=null?`<p class="sm" style="margin:4px 0 0">✋ Stopp gerufen von <b style="color:var(--tx)">${esc(S.P[G.stopBy])}</b></p>`:''}<p class="sm" style="margin:4px 0 0">Stimmt ein Wort nicht (z. B. keine echte Stadt)? Tippe es an, dann zählt es nicht. Farbig = zählt, durchgestrichen = zählt nicht.</p>${rows}
+  const rows=G.cats.map((cat,k)=>{
+    const chips=S.P.map((p,i)=>{
+      const raw=(G.ans[i]||[])[k]||'',w=slfEff(k,i);if(!String(raw).trim())return `<span class="chip" style="opacity:.45">${esc(p)}: –</span>`;
+      const v=slfValid(w),bad=G.bad[k][i]||!v,ed=G.edit&&G.edit.k===k&&G.edit.i===i;
+      return `<span class="chip ${bad?'':'on'}" style="${bad?'text-decoration:line-through;opacity:.6':''}${ed?';outline:2px solid var(--gold)':''}" onclick="slfEdit(${k},${i})">${esc(p)}: ${esc(w)}${G.fix[k][i]?' ✎':''}${c.det[k][i]?` <b>+${c.det[k][i]}</b>`:''}</span>`}).join('');
+    const sg=slfSuggest(k).map(([i,j])=>`<div class="sm" style="margin-top:10px">💡 „${esc(slfEff(k,i))}“ (${esc(S.P[i])}) und „${esc(slfEff(k,j))}“ (${esc(S.P[j])}) sehen fast gleich aus – Tippfehler?<button class="sec" style="margin-top:6px;padding:10px" onclick="slfSame(${k},${i},${j})">Als gleiches Wort werten</button></div>`).join('');
+    let ed='';
+    if(G.edit&&G.edit.k===k){
+      const i=G.edit.i,bad=G.bad[k][i];
+      ed=`<div style="margin-top:12px"><div class="sm" style="margin-bottom:6px">${esc(S.P[i])}: Schreibweise korrigieren</div><div class="row"><input id="slfe" class="txt" type="text" maxlength="30" autocomplete="off" value="${esc(slfEff(k,i))}" style="margin:0;flex:1"><button class="sec ib" onclick="slfFix()" aria-label="Übernehmen">✓</button></div>
+      <div class="row" style="margin-top:8px"><button class="sec" style="margin:0;padding:10px" onclick="slfBad(${k},${i})">${bad?'Wieder zählen':'Wort streichen'}</button>${G.fix[k][i]?`<button class="sec" style="margin:0;padding:10px" onclick="slfUnfix(${k},${i})">Original</button>`:''}<button class="sec" style="margin:0;padding:10px" onclick="slfEdit(-1,-1)">Schließen</button></div></div>`;
+    }
+    return `<div class="card" style="padding:12px 14px"><div class="sm" style="margin-bottom:8px"><b style="color:var(--tx)">${esc(cat)}</b></div><div class="chips">${chips}</div>${sg}${ed}</div>`}).join('');
+  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}${G.stopBy!=null?`<p class="sm" style="margin:4px 0 0">✋ Stopp gerufen von <b style="color:var(--tx)">${esc(S.P[G.stopBy])}</b></p>`:''}<p class="sm" style="margin:4px 0 0">Tippe ein Wort an, um die Schreibweise zu korrigieren (Tippfehler) oder es zu streichen (z. B. keine echte Stadt). Farbig = zählt, durchgestrichen = zählt nicht, ✎ = korrigiert.</p>${rows}
   ${boardHTML(c.pts,{label:'Punkte in dieser Runde',unit:' P'})}
   <button onclick="slfDCommit()">${last?'Endergebnis 🏆':'Runde werten'}</button>`);
+  if(G.edit){const e=$('slfe');if(e)setTimeout(()=>{try{e.focus()}catch(x){}},60)}
 }
-function slfBad(k,i){G.bad[k][i]=!G.bad[k][i];const sc=app.scrollTop;slfReview();app.scrollTop=sc}
+function slfKeep(f){const sc=app.scrollTop;f();slfReview();app.scrollTop=sc}
+function slfEdit(k,i){slfKeep(()=>{G.edit=(G.edit&&G.edit.k===k&&G.edit.i===i)||k<0?null:{k,i}})}
+function slfFix(){
+  const e=$('slfe');if(!e||!G.edit)return;const {k,i}=G.edit,v=e.value.trim().slice(0,30),raw=(G.ans[i]||[])[k]||'';
+  if(!v){toast('Das Wort darf nicht leer sein');return}
+  slfKeep(()=>{G.fix[k][i]=(v===raw)?null:v;G.edit=null});
+}
+function slfUnfix(k,i){slfKeep(()=>{G.fix[k][i]=null;G.edit=null})}
+function slfSame(k,i,j){slfKeep(()=>{G.fix[k][j]=slfEff(k,i)})}
+function slfBad(k,i){slfKeep(()=>{G.bad[k][i]=!G.bad[k][i]})}
 function slfDCommit(){G.sc=slfCalc().pts;slfCommit()}
 function slfAdj(i,d){G.sc[i]=Math.max(0,Math.min(100,G.sc[i]+d));const e=$('sc'+i);if(e)e.textContent=G.sc[i]}
 function slfCommit(){
@@ -5946,6 +5977,7 @@ document.addEventListener('keydown',e=>{
     if(t.hasAttribute&&t.hasAttribute('data-nx')){e.preventDefault();const ins=[...t.closest('.card,[data-p]').querySelectorAll('input.txt')],i=ins.indexOf(t);if(ins[i+1])ins[i+1].focus();return}
     if(t.closest&&t.closest('#pl')){e.preventDefault();const ins=[...document.querySelectorAll('#pl input')],i=ins.indexOf(t);if(i<ins.length-1)ins[i+1].focus();else savePlayers();return}
     if(t.id==='slfn'){e.preventDefault();slfAddCat();return}
+    if(t.id==='slfe'){e.preventDefault();slfFix();return}
     if(t.id==='jc'){e.preventDefault();netJoinStart();return}
     if(t.id==='myn'){const b=t.closest('.card')&&t.closest('.card').querySelector('button:not(.sec)');if(b){e.preventDefault();b.click()}else if($('jc')){e.preventDefault();$('jc').focus()}}
     return;
