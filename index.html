@@ -2698,7 +2698,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.8';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.9';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4386,7 +4386,7 @@ OPT.most={rounds:10,timer:30,cats:{}};
 function moCat(i,el){const k=MCATS[i];OPT.most.cats[k]=!OPT.most.cats[k];el.classList.toggle('on')}
 GAMES.most={name:'Wer würde am ehesten?',e:'🗳️',tag:'Geheim abstimmen, Mehrheit erraten',c:['#a855f7','#ec4899'],min:3,teams:false,
   desc:'Eine Aussage, alle stimmen geheim ab, auf wen sie am besten passt. Wer liegt mit der Gruppe auf einer Linie?',
-  rules:'Eine Aussage erscheint („Wer würde am ehesten …“). Jeder stimmt <b>geheim</b> für einen Mitspieler ab (nicht für sich selbst). Danach wird aufgedeckt, wer wie viele Stimmen hat und wer wen gewählt hat. Der oder die <b>Meistgewählte</b> hat „gewonnen“ – und <b>jeder, der für ihn oder sie gestimmt hat, bekommt +1</b>. Bei Gleichstand gelten alle Erstplatzierten. Am Ende gibt es den Titel „Meiste Stimmen des Abends“. Mit Timer zählt eine nicht abgegebene Stimme nicht.',
+  rules:'Eine Aussage erscheint („Wer würde am ehesten …“). Jeder stimmt <b>geheim</b> für einen Mitspieler ab (auch für dich selbst darfst du stimmen). Danach wird aufgedeckt, wer wie viele Stimmen hat und wer wen gewählt hat. Der oder die <b>Meistgewählte</b> hat „gewonnen“ – und <b>jeder, der für ihn oder sie gestimmt hat, bekommt +1</b>. Bei Gleichstand gelten alle Erstplatzierten. Am Ende gibt es den Titel „Meiste Stimmen des Abends“. Mit Timer zählt eine nicht abgegebene Stimme nicht.',
   opts:()=>`<p class="sm" style="margin:0 0 8px">Kategorien (nichts gewählt = alle)</p><div class="chips">${MCATS.map((k,i)=>`<span class="chip ${OPT.most.cats[k]?'on':''}" onclick="moCat(${i},this)">${esc(k)}</span>`).join('')}</div>
   <p class="sm" style="margin:16px 0 8px">Runden</p>${seg('most','rounds',[5,10,15,20])}<p class="sm" style="margin:14px 0 8px">Zeit zum Abstimmen</p>${seg('most','timer',[0,15,30,45],v=>v?v+' s':'Aus')}`,
   start:moStart};
@@ -4405,7 +4405,7 @@ function moRound(){
 function moCard(pi,online){
   return `<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:10px">${av(pi)}<span class="sm">${esc(S.P[pi])} stimmt ab</span></div>
   <div class="sm">Wer würde am ehesten …</div><div class="q" style="margin:6px 0 12px">${esc(G.st)}</div>
-  ${S.P.map((p,i)=>i===pi?'':`<button class="opt" style="--k:${i}" ${online?`data-sub="v" data-v="${i}"`:`onclick="moPick(${i},this)"`}>${av(i)}<span>${esc(p)}</span></button>`).join('')}</div>`;
+  ${S.P.map((p,i)=>`<button class="opt" style="--k:${i}" ${online?`data-sub="v" data-v="${i}"`:`onclick="moPick(${i},this)"`}>${av(i)}<span>${esc(p)}${i===pi?' (ich)':''}</span></button>`).join('')}</div>`;
 }
 function moVote(){scr(`${moProg()}${moCard(G.i,false)}`);if(G.o.timer)tmrShow(G.o.timer*1000,moTimeUp)}
 function moNext(){G.i++;if(G.i<S.P.length)hand(G.i,'Stimme geheim ab – niemand schaut mit!',moVote,moProg());else moResult()}
@@ -4417,7 +4417,7 @@ function moTimeUp(){tmrHide();sfx.bad();vib([60,40,60]);G.v[G.i]=null;toast('⏰
 function moPar(){
   parBegin({head:moProg,dur:G.o.timer?[G.o.timer*1000]:null,msg:'Alle stimmen geheim und gleichzeitig ab …',steps:[
     {k:'v',timeout:pi=>{G.v[pi]=null},html:pi=>moCard(pi,true),
-     sub:(pi,d)=>{const t=Number(d.v);if(d.v==null||!Number.isInteger(t)||t<0||t>=S.P.length||t===pi)return 'Ungültige Wahl.';G.v[pi]=t;return true}}
+     sub:(pi,d)=>{const t=Number(d.v);if(d.v==null||!Number.isInteger(t)||t<0||t>=S.P.length)return 'Ungültige Wahl.';G.v[pi]=t;return true}}
   ],done:moResult});
 }
 function moResult(){
