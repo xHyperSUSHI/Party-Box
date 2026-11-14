@@ -278,6 +278,15 @@ button.ttc:disabled{opacity:1;cursor:default}
 .de.on{cursor:default}
 .db{display:grid;place-items:center;aspect-ratio:1;font-weight:850;font-size:clamp(16px,6vw,28px);border-radius:6px;transition:background .3s}
 .db.own{background:var(--c);color:#fff;opacity:.9}
+.bsg{display:grid;grid-template-columns:20px repeat(var(--n),1fr);gap:2px;max-width:440px;margin:10px auto}
+.bl{display:grid;place-items:center;font-size:11px;color:var(--mu);font-weight:700}
+button.bc{aspect-ratio:1;padding:0;margin:0;width:auto;min-width:0;border-radius:5px;background:rgba(80,140,255,.16);border:1px solid rgba(120,170,255,.25);box-shadow:none;font-size:clamp(11px,3.6vw,18px);color:#fff;line-height:1}
+button.bc:disabled{opacity:1;cursor:default}
+button.bc.m{color:var(--mu);background:rgba(255,255,255,.05)}
+button.bc.h{background:rgba(255,46,77,.45)}
+button.bc.s{background:rgba(255,46,77,.8)}
+button.bc.sp{background:rgba(160,175,200,.6)}
+button.bc.lst{outline:2px solid var(--gold);outline-offset:-2px}
 .slfl{font-size:110px;font-weight:900;line-height:1;margin:6px 0 12px;background:linear-gradient(135deg,var(--gold),var(--red2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .stp{display:flex;align-items:center;gap:8px}.stp b{min-width:34px;text-align:center;font-size:20px}
 .stp .ib{width:40px;height:40px;margin:0}
@@ -2698,7 +2707,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-14.11';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-14.12';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4899,9 +4908,155 @@ function slfCommit(){
   G.r++;slfRound();
 }
 
+/* ---------- Schiffe versenken ---------- */
+OPT.bs={best:1,size:'klassisch',vs:'mensch',lvl:'schwer',again:'wechsel',a:0,b:1};
+function bsSel(k,i){const o=OPT.bs;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('bs')}
+const bsNm=k=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.bs[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="bsSel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
+GAMES.bs={name:'Schiffe versenken',e:'🚢',tag:'Der Klassiker auf dem Gitter',c:['#0ea5e9','#1d4ed8'],min:1,teams:false,
+  desc:'Versteck deine Flotte, errate die Felder des Gegners und versenke alle seine Schiffe zuerst.',
+  rules:'Beide Spieler verstecken ihre Schiffe <b>heimlich</b> auf dem Gitter (nacheinander am selben Gerät, niemand schaut zu). Danach schießt ihr abwechselnd auf ein Feld des Gegners: <b>Wasser</b>, <b>Treffer</b> oder <b>Schiff versenkt</b>. Wer zuerst alle gegnerischen Schiffe versenkt, gewinnt. Mit der Einstellung „Nach Treffer nochmal“ darf man bei einem Treffer weiterschießen. Allein spielst du gegen den Computer.',
+  opts:()=>{
+    const o=OPT.bs,solo=S.names.length<2;if(solo)o.vs='cpu';
+    let h=`<p class="sm" style="margin:0 0 8px">Spielfeld</p>${seg('bs','size',['klein','klassisch'],v=>v==='klein'?'Klein 8×8':'Klassisch 10×10')}<p class="sm" style="margin:14px 0 8px">Gewinnrunden (Best of)</p>${seg('bs','best',[1,3])}<p class="sm" style="margin:14px 0 8px">Nach einem Treffer</p>${seg('bs','again',['wechsel','nochmal'],v=>v==='wechsel'?'Gegner ist dran':'Nochmal schießen')}`;
+    h+=solo?`<p class="sm" style="margin:14px 0 8px">Gegner: 🤖 Computer (du spielst allein)</p>`:`<p class="sm" style="margin:14px 0 8px">Gegner</p>${seg('bs','vs',['mensch','cpu'],v=>v==='cpu'?'🤖 Computer':'🧑 Mensch')}`;
+    if(o.vs==='cpu')h+=`<p class="sm" style="margin:14px 0 8px">Schwierigkeit</p>${seg('bs','lvl',['leicht','schwer'],v=>v==='leicht'?'Leicht (zufällig)':'Schwer (jagt Treffer)')}${S.names.length>1?`<p class="sm" style="margin:14px 0 8px">Wer spielt?</p>${bsNm('a')}`:''}`;
+    else if(S.names.length>2)h+=`<p class="sm" style="margin:14px 0 8px">Spieler 1</p>${bsNm('a')}<p class="sm" style="margin:14px 0 8px">Spieler 2</p>${bsNm('b')}`;
+    return h;
+  },
+  start:bsStart};
+const BSL='ABCDEFGHIJ',bsLab=(n,i)=>BSL[i%n]+(Math.floor(i/n)+1);
+function bsStart(){
+  const o=G.o,a=Math.min(o.a,S.P.length-1);G.cpu=false;
+  if(o.vs==='cpu'||S.P.length<2){
+    G.cpu=true;G.pi=[a,-1];
+    G.ents=[{name:S.P[a],sub:'',emoji:'👑',av:(sz,cls)=>av(a,cls,sz)},{name:'Computer',sub:'Stufe: '+o.lvl,emoji:'🤖',av:(sz,cls)=>botAv(sz,cls)}];
+  }else{
+    const b=(o.b===a?(a+1)%S.P.length:Math.min(o.b,S.P.length-1));
+    G.pi=[a,b];G.ents=[a,b].map(i=>({name:S.P[i],sub:'',emoji:'👑',av:(sz,cls)=>av(i,cls,sz)}));
+  }
+  G.n=o.size==='klein'?8:10;G.ships=o.size==='klein'?[4,3,3,2]:[5,4,3,3,2];
+  G.pts=[0,0];G.need=Math.ceil(o.best/2);G.r=0;bsNew();
+}
+function bsNew(){
+  const m=G.n*G.n;
+  G.fl=[null,null];G.own=[null,null];G.sh=[Array(m).fill(0),Array(m).fill(0)];G.over=false;G.msg='';G.last=-1;G.cb=false;
+  bsPlaceFor(0);
+}
+function bsRandPlace(){   // zufällige, überlappungsfreie Flotte: Liste {len,cells}
+  const n=G.n;
+  for(let tries=0;tries<200;tries++){
+    const used=new Set(),out=[];let okk=true;
+    for(const len of G.ships){
+      let placed=false;
+      for(let k=0;k<200&&!placed;k++){
+        const v=Math.random()<.5,r=Math.floor(Math.random()*(v?n-len+1:n)),c=Math.floor(Math.random()*(v?n:n-len+1));
+        const cells=Array.from({length:len},(_,i)=>(r+(v?i:0))*n+c+(v?0:i));
+        if(cells.some(x=>used.has(x)))continue;
+        cells.forEach(x=>used.add(x));out.push({len,cells});placed=true;
+      }
+      if(!placed){okk=false;break}
+    }
+    if(okk)return out;
+  }
+  return [];
+}
+function bsBuild(e,placed){
+  G.fl[e]=placed.map(p=>({len:p.len,cells:p.cells.slice(),hit:0,sunk:false}));
+  G.own[e]=Array(G.n*G.n).fill(-1);G.fl[e].forEach((s,i)=>s.cells.forEach(c=>G.own[e][c]=i));
+}
+function bsProg(){return `<div class="sm" style="margin:6px 0">Runde ${G.r+1} · Best of ${G.o.best}</div>`}
+function bsPlaceFor(e){
+  if(e>1){bsBegin();return}
+  if(e===1&&G.cpu){bsBuild(1,bsRandPlace());bsBegin();return}
+  G.pl={e,placed:[],dir:'h'};
+  if(S.P.length>1)hand(G.pi[e],'Platziere deine Flotte – niemand schaut mit!',bsPlace,bsProg());
+  else bsPlace();
+}
+function bsPlace(){
+  const P=G.pl,n=G.n,occ=new Set();P.placed.forEach(p=>p.cells.forEach(c=>occ.add(c)));
+  const left=G.ships.length-P.placed.length;
+  let grid='<div></div>'+Array.from({length:n},(_,c)=>`<div class="bl">${BSL[c]}</div>`).join('');
+  for(let r=0;r<n;r++){grid+=`<div class="bl">${r+1}</div>`;for(let c=0;c<n;c++){const i=r*n+c;grid+=`<button class="bc kx ${occ.has(i)?'sp':''}" onclick="bsPut(${r},${c})" aria-label="${bsLab(n,i)}"></button>`}}
+  scr(`${bsProg()}<div class="card"><div class="row" style="align-items:center;gap:10px;margin-bottom:8px">${av(G.pi[P.e])}<span class="sm">${esc(S.P[G.pi[P.e]])} platziert die Flotte</span></div>
+  <div class="chips" style="margin-bottom:8px">${G.ships.map((l,i)=>`<span class="chip ${i<P.placed.length?'on':''}">${i<P.placed.length?'✓ ':''}${'▮'.repeat(l)}</span>`).join('')}</div>
+  <p class="sm" style="margin:0 0 8px">${left?`Tippe auf das Startfeld für das Schiff mit ${G.ships[P.placed.length]} Feldern (es liegt ${P.dir==='h'?'nach rechts':'nach unten'}).`:'Alle Schiffe liegen. Prüfe die Flotte und tippe auf „Fertig“.'}</p>
+  <div class="bsg" style="--n:${n}">${grid}</div>
+  <div class="row"><button class="sec" onclick="bsDir()">${P.dir==='h'?'↔ waagerecht':'↕ senkrecht'}</button><button class="sec" onclick="bsUndo()">↶ Zurück</button><button class="sec" onclick="bsRnd()">🎲 Zufällig</button></div>
+  <button class="ok" onclick="bsDone()">Fertig ✓</button></div>`);
+}
+function bsDir(){G.pl.dir=G.pl.dir==='h'?'v':'h';bsPlace()}
+function bsUndo(){G.pl.placed.pop();bsPlace()}
+function bsRnd(){G.pl.placed=bsRandPlace();bsPlace()}
+function bsPut(r,c){
+  const P=G.pl,n=G.n;if(P.placed.length>=G.ships.length){toast('Alle Schiffe liegen schon');return}
+  const len=G.ships[P.placed.length],v=P.dir==='v';
+  if((v?r+len:c+len)>n){toast('Das Schiff passt dort nicht hin');vib(40);return}
+  const cells=Array.from({length:len},(_,i)=>(r+(v?i:0))*n+c+(v?0:i)),occ=new Set();P.placed.forEach(p=>p.cells.forEach(x=>occ.add(x)));
+  if(cells.some(x=>occ.has(x))){toast('Dort liegt schon ein Schiff');vib(40);return}
+  P.placed.push({len,cells});sfx.pop();bsPlace();
+}
+function bsDone(){
+  const P=G.pl;if(P.placed.length<G.ships.length){toast('Platziere erst alle Schiffe');vib(40);return}
+  bsBuild(P.e,P.placed);bsPlaceFor(P.e+1);
+}
+function bsBegin(){G.t=G.r%2;bsTurn()}
+function bsSunkAll(e){return G.fl[e].every(s=>s.sunk)}
+function bsTurn(){
+  const n=G.n,t=G.t,e=1-t,lock=G.over||(G.cpu&&t===1);
+  let grid='<div></div>'+Array.from({length:n},(_,c)=>`<div class="bl">${BSL[c]}</div>`).join('');
+  for(let r=0;r<n;r++){grid+=`<div class="bl">${r+1}</div>`;for(let c=0;c<n;c++){
+    const i=r*n+c,v=G.sh[e][i],si=G.own[e][i],sunk=v===2&&si>=0&&G.fl[e][si].sunk,rev=G.over&&v===0&&si>=0;
+    grid+=`<button class="bc kx ${v===1?'m':v===2?(sunk?'s':'h'):''} ${rev?'sp':''} ${G.last===i?'lst':''}" ${v||lock?'disabled':''} onclick="bsShoot(${i})" aria-label="${bsLab(n,i)}">${v===1?'•':v===2?'✕':''}</button>`}}
+  const head=`<div class="c4s">${[0,1].map(x=>`<div class="c4p ${G.t===x&&!G.over?'on':''}">${G.ents[x].av(34)}<div><div class="nm">${esc(G.ents[x].name.replace(/^Team /,''))}</div><div class="sm">${G.fl[x].filter(s=>!s.sunk).length} Schiffe · ${G.pts[x]} / ${G.need}</div></div></div>`).join('')}</div>`;
+  const series=G.over&&G.pts[t]>=G.need;
+  const res=!G.over?'':`<div class="card ans" style="margin-top:14px"><div style="font-size:50px;animation:pop .6s both">${G.cpu&&t===1?'🤖':'🎉'}</div><div class="big">${esc(G.ents[t].name)} gewinnt ${series?'die Serie!':'die Runde!'}</div><div class="sm">Alle Schiffe versenkt · Stand ${G.pts[0]} : ${G.pts[1]}</div><button onclick="${series?"finish({unit:' Siege'})":'G.r++;bsNew()'}">${series?'Endergebnis 🏆':'Nächste Runde'}</button></div>`;
+  scr(`${bsProg()}${head}
+  <div class="sm" style="text-align:center;margin:8px 0">${G.over?'':`${esc(G.ents[t].name)} ${G.cpu&&t===1?'zielt …':'schießt auf das Gitter von '+esc(G.ents[e].name)}`}</div>
+  ${G.msg?`<div class="card" style="padding:10px 14px;margin:6px 0;text-align:center"><b>${G.msg}</b></div>`:''}
+  <div class="bsg" style="--n:${n}">${grid}</div>
+  <div class="chips" style="justify-content:center;margin-top:8px">${G.fl[e].map(s=>`<span class="chip ${s.sunk?'on':''}" style="${s.sunk?'text-decoration:line-through;opacity:.7':''}">${'▮'.repeat(s.len)}</span>`).join('')}</div>${res}`);
+  if(!G.over&&G.cpu&&t===1&&!G.cb){G.cb=true;const g=G;setTimeout(()=>{if(G!==g||G.over)return;G.cb=false;G.cpuGo=true;bsShoot(bsCpuPick())},800)}
+}
+function bsApply(t,i){   // Schuss von Spieler t auf Feld i beim Gegner
+  const e=1-t,si=G.own[e][i];G.last=i;
+  if(si<0){G.sh[e][i]=1;return 'miss'}
+  G.sh[e][i]=2;const s=G.fl[e][si];s.hit++;
+  if(s.hit>=s.len){s.sunk=true;return 'sunk'}
+  return 'hit';
+}
+function bsShoot(i){
+  if(G.over||(G.cpu&&G.t===1&&!G.cpuGo))return;
+  G.cpuGo=false;const t=G.t,e=1-t;if(G.sh[e][i])return;
+  const res=bsApply(t,i),who=G.ents[t].name,lab=bsLab(G.n,i);
+  G.msg=res==='miss'?`${esc(who)}: ${lab} – Wasser 💧`:res==='hit'?`${esc(who)}: ${lab} – Treffer! 💥`:`${esc(who)}: ${lab} – Schiff versenkt! 🔥`;
+  if(res==='miss'){sfx.pop();vib(15)}else{sfx.ok();vib([30,20,30])}
+  if(bsSunkAll(e)){G.over=true;G.pts[t]++;sfx.win();confetti(80,GOLD);bsTurn();return}
+  if(!(res!=='miss'&&G.o.again==='nochmal'))G.t=1-t;
+  G.cb=false;bsTurn();
+}
+function bsCpuPick(){
+  const n=G.n,sh=G.sh[0],free=[];for(let i=0;i<n*n;i++)if(!sh[i])free.push(i);
+  if(G.o.lvl==='schwer'){
+    const hits=[];for(let i=0;i<n*n;i++)if(sh[i]===2&&!G.fl[0][G.own[0][i]].sunk)hits.push(i);
+    if(hits.length){
+      const nb=new Set(),add=(r,c)=>{if(r>=0&&c>=0&&r<n&&c<n&&!sh[r*n+c])nb.add(r*n+c)};
+      const hs=new Set(hits);
+      hits.forEach(i=>{const r=Math.floor(i/n),c=i%n;
+        const line=hs.has(i-1)&&c>0||hs.has(i+1)&&c<n-1,col=hs.has(i-n)||hs.has(i+n);
+        if(line||!col){add(r,c-1);add(r,c+1)}
+        if(col||!line){add(r-1,c);add(r+1,c)}
+      });
+      if(nb.size)return pick([...nb]);
+    }
+    const par=free.filter(i=>(Math.floor(i/n)+i%n)%2===0);
+    if(par.length)return pick(par);
+  }
+  return pick(free);
+}
+
 /* ================= Kategorien & Trinkspiele (ab 18) ================= */
 const CATS=[{id:'quiz',n:'Quiz & Schätzen',s:'Quiz',e:'🧠',c:['#ff7a45','#ff2e4d']},{id:'party',n:'Party & Raten',s:'Party',e:'🎭',c:['#8f6cff','#3f7bff']},{id:'group',n:'Gruppe & Abstimmen',s:'Gruppe',e:'🗳️',c:['#c026d3','#ec4899']},{id:'brain',n:'Knobeln & Duell',s:'Knobeln',e:'🧩',c:['#14b8a6','#0ea5e9']},{id:'action',n:'Action & Reflex',s:'Action',e:'⚡',c:['#22c55e','#06b6d4']},{id:'drink',n:'Trinkspiele (ab 18)',s:'Trinken',e:'🍻',c:['#f59e0b','#ef4444']}];
-const GCAT={arsch:'quiz',bluff:'quiz',hilo:'quiz',pant:'party',taboo:'party',wave:'party',slf:'party',spy:'group',most:'group',memo:'brain',hang:'brain',code:'brain',c4:'brain',ttt:'brain',dots:'brain',react:'action',bomb:'action',never:'drink',kings:'drink'};
+const GCAT={arsch:'quiz',bluff:'quiz',hilo:'quiz',pant:'party',taboo:'party',wave:'party',slf:'party',spy:'group',most:'group',memo:'brain',bs:'brain',hang:'brain',code:'brain',c4:'brain',ttt:'brain',dots:'brain',react:'action',bomb:'action',never:'drink',kings:'drink'};
 const DRKV=['arsch','bluff','most','bomb','react'];   // Spiele mit optionaler Trink-Variante
 OPT.arsch.drink=OPT.bluff.drink=OPT.most.drink=OPT.bomb.drink=OPT.react.drink=false;
 let HCAT='all',DNEXT=null;try{HCAT=localStorage.getItem('pb_cat')||'all'}catch(e){}
@@ -5219,13 +5374,14 @@ window.hand=function(pi,msg,go,pr,tag){
   ACT=pi;PERM=null;WAIT=waitHTML(pi,pr,tag);HF=go;
   go();syncViews();
 };
-const PUBW=['neResult','kiTurn','kiShow','kiEnd','moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round','mmScreen','hgScreen','ckResult','ttScreen','dsScreen','slfRound','slfPlay','slfScore'];
+const PUBW=['neResult','kiTurn','kiShow','kiEnd','moResult','tEnd','hiResult','home','settings','gameSetup','wheel','startSession','finish','arResult','spyTalk','spyVote','spyEnd','bResult','pEnd','waLock','waReveal','rxResult','boRound','boBoom','c4Round','mmScreen','hgScreen','ckResult','ttScreen','dsScreen','slfRound','slfPlay','slfScore','bsTurn'];
 const PERMS={
   spyTalk:()=>'all',
   waGuess:()=>'all',
   spyGuess:()=>()=>G.spy,
   boLight:()=>()=>G.hold,
   c4Round:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.mi),
+  bsTurn:()=>()=>((G.over||(G.cpu&&G.t===1))?'host':G.pi[G.t]),
   mmScreen:()=>()=>(G.busy?'host':G.cur),
   hgScreen:()=>()=>(G.res?'host':G.cur),
   ttScreen:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.pi[G.turn]),
