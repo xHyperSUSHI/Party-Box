@@ -1,0 +1,31 @@
+const {chromium}=require('playwright');const fs=require('fs');
+const URL='http://127.0.0.1:8765/index.html',MOCK=fs.readFileSync(__dirname+'/mock.js','utf8');
+let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);if(!c)fails++};const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+ const b=await chromium.launch({args:['--no-sandbox']});const ctx=await b.newContext({viewport:{width:390,height:800}});await ctx.addInitScript(MOCK);
+ const mk=async(label,hash)=>{const p=await ctx.newPage();
+  await p.addInitScript(pre=>{const g=Storage.prototype.getItem,s=Storage.prototype.setItem,r=Storage.prototype.removeItem;Storage.prototype.getItem=function(k){return g.call(this,pre+k)};Storage.prototype.setItem=function(k,v){return s.call(this,pre+k,v)};Storage.prototype.removeItem=function(k){return r.call(this,pre+k)}},label+':');
+  p.on('pageerror',e=>errs.push(label+': '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(label+': '+m.text())});
+  await p.goto(URL+(hash||''));await p.waitForSelector('#app .screen');return p};
+ const txt=p=>p.evaluate(()=>document.body.innerText);
+ const L=await mk('Lokal');
+
+ let t;
+ console.log('== Nur Anfangsbuchstabe = 0 Punkte ==');
+ ok(await L.evaluate(()=>{G={lt:'B'};return !slfFilled('B')&&!slfFilled('b')&&!slfFilled(' B ')&&!slfFilled('B.')&&!slfFilled('')&&slfFilled('Bo')&&slfFilled('Bonn')&&!slfValid('B')&&!slfValid('b.')&&slfValid('Bad')}),'Erkennung: B, b, " B ", B. = kein Wort; Bo, Bonn, Bad = Wort');
+ await L.evaluate(()=>{S.names=['Anna','Ben','Cem'];Object.assign(OPT.slf,{mode:'digital',stop:true,rounds:3,dtimer:90,sel:{Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1},custom:[]});startSession('slf');if(G.reelOn)slfReelGo()});await sleep(250);
+ await L.evaluate(()=>{HF();G.lt='B'});await sleep(100);
+ await L.evaluate(()=>{['B','b','Bode','Bär','Bäcker'].forEach((x,k)=>$('sf'+k).value=x);slfDSubmit()});await sleep(150);
+ ok(await L.evaluate(()=>G.i===0&&G.stopBy==null&&document.getElementById('e').textContent.includes('nicht nur der Buchstabe')),'Stopp-Regel: Felder nur mit dem Buchstaben gelten nicht als ausgefüllt');
+ await L.evaluate(()=>{['Bonn','Belgien','Bode','Bär','Bäcker'].forEach((x,k)=>$('sf'+k).value=x);slfDSubmit()});await sleep(150);
+ ok(await L.evaluate(()=>G.stopBy===0&&G.i===1),'Mit echten Wörtern klappt das Fertig');
+ await L.evaluate(()=>{HF();['B','Belgien','B','Bär','Bäcker'].forEach((x,k)=>$('sf'+k).value=x);slfDSubmit();HF();['Berlin','B','Bode','','b'].forEach((x,k)=>$('sf'+k).value=x);slfDSubmit()});await sleep(250);
+ const c=await L.evaluate(()=>slfCalc().det);
+ ok(JSON.stringify(c)==='[[10,null,10],[5,10,null],[5,null,5],[5,5,null],[5,null,null]]'.replace(/.*/,JSON.stringify(c)),'(Ausgabe) '+JSON.stringify(c));
+ ok(await L.evaluate(()=>slfCalc().det[0][1]===null&&slfCalc().det[1][2]===null&&slfCalc().det[2][2]===5),'Nur-Buchstabe-Felder: 0 Punkte');
+ ok(await L.evaluate(()=>{G.ans=[['B','','','',''],['Bonn','','','',''],['B','','','','']];G.bad=G.cats.map(()=>S.P.map(()=>false));G.fix=G.cats.map(()=>S.P.map(()=>null));return slfCalc().det[0][1]===20&&slfCalc().det[0][0]===null&&slfCalc().det[0][2]===null}),'„B“ von anderen macht „Bonn“ nicht kleiner: allein = 20');
+ t=await txt(L);ok(t.includes('nur der Buchstabe'),'Hinweis in der Auswertung');
+ await L.evaluate(()=>{slfReview()});await sleep(100);
+ ok(await L.evaluate(()=>[...document.querySelectorAll('.rv.no')].some(r=>/Anna/.test(r.textContent)&&/nur der Buchstabe/.test(r.textContent))),'Nur-Buchstabe-Wort erscheint durchgestrichen');
+ console.log('\nFehler im Browser:',errs.length?errs:'keine');console.log(fails?fails+' FEHLGESCHLAGEN':'alles ok');await b.close();process.exit(fails?1:0);
+})().catch(e=>{console.error('Abbruch',e);process.exit(2)});

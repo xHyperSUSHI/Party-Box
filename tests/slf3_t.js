@@ -1,0 +1,91 @@
+const {chromium}=require('playwright');const fs=require('fs');
+const URL='http://127.0.0.1:8765/index.html',MOCK=fs.readFileSync(__dirname+'/mock.js','utf8');
+let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);if(!c)fails++};const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+ const b=await chromium.launch({args:['--no-sandbox']});const ctx=await b.newContext({viewport:{width:390,height:800}});await ctx.addInitScript(MOCK);
+ const mk=async(label,hash)=>{const p=await ctx.newPage();
+  await p.addInitScript(pre=>{const g=Storage.prototype.getItem,s=Storage.prototype.setItem,r=Storage.prototype.removeItem;Storage.prototype.getItem=function(k){return g.call(this,pre+k)};Storage.prototype.setItem=function(k,v){return s.call(this,pre+k,v)};Storage.prototype.removeItem=function(k){return r.call(this,pre+k)}},label+':');
+  p.on('pageerror',e=>errs.push(label+': '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(label+': '+m.text())});
+  await p.goto(URL+(hash||''));await p.waitForSelector('#app .screen');return p};
+ const txt=p=>p.evaluate(()=>document.body.innerText);
+ const L=await mk('Lokal');
+
+ let t;
+ console.log('== Vorlagen ==');
+ ok(await L.evaluate(()=>SLFP.every(p=>p.c.length>=5&&p.c.length<=6&&p.c.every(c=>SLFA.includes(c)))&&new Set(SLFA).size===SLFA.length),'Alle Vorlagen nutzen vorhandene Kategorien (5–6 je Vorlage), Pool ohne Doppelte');
+ await L.evaluate(()=>{localStorage.removeItem('pb_slfc');localStorage.setItem('pb_dnote','1');S.names=['Anna','Ben','Cem'];OPT.slf.sel={Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1};OPT.slf.custom=[];OPT.slf.mode='digital';pickGame('slf')});await sleep(300);
+ ok(await L.evaluate(()=>[...document.querySelectorAll('.chip.on')].some(c=>/Klassisch/.test(c.textContent))),'Start: „Klassisch“ ist markiert');
+ await L.evaluate(()=>[...document.querySelectorAll('.chip')].find(c=>/Weihnachten/.test(c.textContent)).click());await sleep(250);
+ ok(await L.evaluate(()=>slfAll().join()==='Weihnachtslied,Geschenk,Gebäck,Weihnachtsfilm,Festessen,Winterort'.split(',').sort((a,b)=>SLFA.indexOf(a)-SLFA.indexOf(b)).join()&&document.getElementById('slfcnt').textContent==='6'),'Weihnachten setzt genau 6 Kategorien');
+ ok(await L.evaluate(()=>[...document.querySelectorAll('.chip.on')].some(c=>/Weihnachten/.test(c.textContent))&&![...document.querySelectorAll('.chip.on')].some(c=>/Klassisch/.test(c.textContent))),'Markierung wechselt zur gewählten Vorlage');
+ ok(await L.evaluate(()=>JSON.parse(localStorage.getItem('pb_slfc')).sel.Geschenk===1),'Auswahl wird gemerkt');
+ await L.evaluate(()=>{OPT.slf.custom=['Zaubertrank'];gameSetup('slf')});await sleep(150);
+ await L.evaluate(()=>[...document.querySelectorAll('.chip')].find(c=>/Urlaub/.test(c.textContent)).click());await sleep(200);
+ ok(await L.evaluate(()=>OPT.slf.custom.join()==='Zaubertrank'&&slfAll().length===7),'Vorlage behält eigene Kategorien (6 + 1)');
+ // Spicy
+ await L.evaluate(()=>{localStorage.removeItem('pb_dnote');C.drink=true;gameSetup('slf')});await sleep(200);
+ await L.evaluate(()=>[...document.querySelectorAll('.chip')].find(c=>/Spicy/.test(c.textContent)).click());await sleep(250);
+ ok(await L.evaluate(()=>!!document.getElementById('dnote')&&!OPT.slf.sel.Ausrede),'Spicy: erst der Hinweis ab 18, noch nichts gewählt');
+ await L.evaluate(()=>dnoteNo());await sleep(100);
+ ok(await L.evaluate(()=>!OPT.slf.sel.Ausrede),'„Zurück“ übernimmt die Vorlage nicht');
+ await L.evaluate(()=>{[...document.querySelectorAll('.chip')].find(c=>/Spicy/.test(c.textContent)).click()});await sleep(150);
+ await L.evaluate(()=>dnoteYes());await sleep(250);
+ ok(await L.evaluate(()=>OPT.slf.sel.Ausrede===1&&OPT.slf.sel.Cocktail===1&&slfAll().length===7),'Nach „Verstanden“ gelten die Spicy-Kategorien');
+ await L.evaluate(()=>{C.drink=false;gameSetup('slf')});await sleep(200);
+ ok(!(await txt(L)).includes('Spicy'),'Mit ausgeschalteter Trinkspiel-Kategorie verschwindet „Spicy“');
+ await L.evaluate(()=>{C.drink=true;OPT.slf.custom=[];OPT.slf.sel={Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1};gameSetup('slf')});await sleep(200);
+ // Mehr Kategorien
+ ok(await L.evaluate(()=>{const d=document.querySelector('details');return !!d&&d.querySelectorAll('.chip').length===SLFA.length-5}),'„Mehr Kategorien“ zeigt alle nicht gewählten');
+ await L.evaluate(()=>{const d=document.querySelector('details');d.open=true;d.dispatchEvent(new Event('toggle'))});
+ await L.evaluate(()=>[...document.querySelectorAll('.chip')].find(c=>c.textContent==='＋ Vogel').click());await sleep(250);
+ ok(await L.evaluate(()=>OPT.slf.sel.Vogel===1&&document.querySelector('details').open),'Hinzufügen: Bereich bleibt offen');
+
+ console.log('== Wortlisten ==');
+ ok(await L.evaluate(()=>Object.keys(SLFW).every(k=>SLFW[k].split(';').every(w=>w&&SLFL.includes(w[0].toUpperCase())))&&Object.keys(SLFW).length===10),'Listen: 10 Kategorien, alle Wörter beginnen mit einem Spielbuchstaben');
+ ok(await L.evaluate(()=>{G={lt:'M',o:{check:'hinweis'},cats:['Stadt','Land','Beruf','Tier','Farbe'],fix:[[null],[null],[null],[null],[null]],ans:[['Muenchen','Mali','Bäckerin','Maus','Magenta']],bad:[[false]]};
+   const c=k=>slfChk(k,0);return c(0)==='ok'&&c(1)==='ok'}),'Fold: „Muenchen“ = München, „Mali“ = Land');
+ ok(await L.evaluate(()=>{G={lt:'B',o:{check:'hinweis'},cats:['Beruf','Beruf','Beruf','Stadt','Tier'],fix:[[null],[null],[null],[null],[null]],ans:[['Bäckerin','Ärztin','Bauer','Bohnn','Blobfisch']],bad:[[false]]};
+   return slfChk(0,0)==='ok'&&slfChk(2,0)==='ok'&&slfChk(3,0)&&slfChk(3,0).near==='Bonn'&&slfChk(4,0)==='unk'}),'Beruf auch weiblich („Bäckerin“), Tippfehler → „Bonn“, Unbekanntes → unk');
+ ok(await L.evaluate(()=>{G={lt:'B',o:{check:'hinweis'},cats:['Pflanze'],fix:[[null]],ans:[['Buche']],bad:[[false]]};return slfChk(0,0)===null}),'Kategorien ohne Liste werden nicht geprüft');
+ ok(await L.evaluate(()=>{G={lt:'B',o:{check:'aus'},cats:['Stadt'],fix:[[null]],ans:[['Qxzv']],bad:[[false]]};return slfChk(0,0)===null}),'Prüfung „Aus“: nichts wird markiert');
+
+ console.log('== Auswertung: Bedienung ==');
+ const play=async(mode,vals,extra)=>{await L.evaluate(([mode,extra])=>{S.names=['Anna','Ben','Cem'];Object.assign(OPT.slf,{mode:'digital',stop:false,rounds:3,check:mode,sel:{Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1},custom:[]},extra||{});startSession('slf');if(G.reelOn)slfReelGo()},[mode,extra]);await sleep(200);
+   await L.evaluate(vals=>{G.lt=vals[0][0][0].toUpperCase();vals.forEach(v=>{HF();v.forEach((x,k)=>$('sf'+k).value=x);slfDSubmit()})},vals);await sleep(300)};
+ await play('hinweis',[['Berlin','Belgien','Bode','Biber','Bäcker'],['Bonnn','Brasilien','Bode','Bär','Blubb'],['Bern','Bulgarien','','','']]);
+ ok(await L.evaluate(()=>slfCalc().pts.every(x=>x>0)),'Hinweis-Modus: unbekannte Wörter zählen');
+ t=await txt(L);ok(t.includes('Meintest du „Bonn“')&&t.includes('nicht in der Liste'),'Auswertung: „Meintest du Bonn?“ und „nicht in der Liste“');
+ ok(await L.evaluate(()=>document.querySelectorAll('.rvbar span').length===3),'Punkte-Leiste oben mit allen Spielern');
+ const before=await L.evaluate(()=>slfCalc().pts[0]);
+ await L.evaluate(()=>document.querySelector('.rv .rb').click());await sleep(150);
+ ok(await L.evaluate(b=>G.bad[0][0]===true&&slfCalc().pts[0]<b&&document.querySelector('.rv.no'),before),'Ein Tipp auf ✕ streicht das Wort (Punkte sinken sofort)');
+ await L.evaluate(()=>document.querySelector('.rv.no .rb').click());await sleep(150);
+ ok(await L.evaluate(b=>G.bad[0][0]===false&&slfCalc().pts[0]===b,before),'Derselbe Knopf (↺) nimmt es zurück');
+ await L.evaluate(()=>[...document.querySelectorAll('button')].find(b=>/Übernehmen/.test(b.textContent)).click());await sleep(150);
+ ok(await L.evaluate(()=>G.fix[0][1]==='Bonn'&&slfChk(0,1)==='ok'),'„Übernehmen“ setzt Bonn ein, Wort ist danach in der Liste');
+ await L.evaluate(()=>{const r=document.querySelector('.rv:nth-of-type(2) .rb:last-of-type');slfEdit(1,2)});await sleep(150);
+ ok(await L.evaluate(()=>!!document.getElementById('slfe')),'✎ öffnet die Korrektur in der Zeile');
+
+ console.log('== Streng ==');
+ await play('streng',[['Berlin','Belgien','Bode','Biber','Bäcker'],['Bonnn','Brasilien','Bode','Blobtier','Blubb'],['Bern','Bulgarien','','','']]);
+ ok(await L.evaluate(()=>slfCalc().det[0][1]===null&&slfCalc().det[3][1]===null&&slfCalc().det[4][1]===null&&slfCalc().det[0][0]===10),'Streng: Unbekanntes und Tippfehler zählen nicht, Bekanntes schon');
+ t=await txt(L);ok(t.includes('Trotzdem werten')&&t.includes('zählt nicht'),'Streng: „Trotzdem werten“ und Hinweis');
+ await L.evaluate(()=>{[...document.querySelectorAll('button')].filter(b=>/Trotzdem werten/.test(b.textContent))[0].click()});await sleep(150);
+ ok(await L.evaluate(()=>G.allow.some(r=>r.some(Boolean))),'„Trotzdem werten“ lässt das Wort zu');
+ await L.evaluate(()=>{const k=0;slfTake(0,1,'Bonn')});await sleep(150);
+ ok(await L.evaluate(()=>slfCalc().det[0][1]===10),'Korrigiert auf „Bonn“ (in der Liste) zählt wieder');
+ await play('streng',[['Berlin','Belgien','Bode','Biber','Bäcker'],['Berlin','Brasilien','Bode','Bär','Bäcker'],['Berlin','','','','']]);
+ ok(await L.evaluate(()=>slfCalc().det[0].join()==='5,5,5'),'Streng: gleiche, bekannte Wörter wie gewohnt 5 Punkte');
+
+ console.log('== Pärchen-Hinweis ohne Doppelung ==');
+ await play('hinweis',[['Hamburg','Haiti','','',''],['Hamburk','Hatii','','',''],['Hannover','','','','']].map(v=>v));
+ t=await txt(L);ok(t.includes('Meintest du „Hamburg“')&&t.includes('Meintest du „Haiti“')&&!t.includes('sehen fast gleich aus'),'Bekanntes Wort + Tippfehler: nur „Meintest du …“, kein zweiter Hinweis');
+ await play('hinweis',[['Hamburg','Haiti','Havel','Hase','Heizer'],['Hamburg','Hatii','Havel','Hase','Heizer'],['','','','','']].map(v=>v));
+ await L.evaluate(()=>{G.cats=['Pflanze','Land','Fluss','Tier','Beruf'];G.ans=[['Buchsbaum','','','',''],['Buchsbaun','','','',''],['','','','','']];G.fix=G.cats.map(()=>S.P.map(()=>null));G.bad=G.cats.map(()=>S.P.map(()=>false));G.lt='B';slfReview()});await sleep(200);
+ ok((await txt(L)).includes('sehen fast gleich aus'),'Ohne Liste (Pflanze) bleibt der Pärchen-Hinweis');
+ console.log('== Abdeckung typischer Antworten ==');
+ const typ=await L.evaluate(()=>{const T={Stadt:['Dortmund','Dresden','Berlin','Hamburg','München','Köln','Stuttgart','Paris','Rom','Madrid','London','Wien','Salzburg','Tokio','New York','Sydney','Bangkok','Kopenhagen','Neapel','Prag'],Land:['Deutschland','Dänemark','Frankreich','Spanien','Schweden','Norwegen','Brasilien','Argentinien','Kanada','Thailand','Ungarn','Türkei','Wales','Bayern','Tirol'],Fluss:['Donau','Elbe','Rhein','Main','Neckar','Isar','Inn','Weser','Nil','Amazonas','Themse','Seine','Wolga','Spree','Tiber'],Tier:['Dachs','Elefant','Giraffe','Hund','Katze','Löwe','Tiger','Pinguin','Wolf','Hase','Maus','Schwein','Rabe','Delfin','Panda','Nashorn'],Beruf:['Pilot','Arzt','Lehrer','Bäcker','Koch','Polizist','Maler','Gärtner','Tierarzt','Friseurin','Ärztin','Dachdecker','Kellner','Richter','Schreiner'],Vorname:['Daniel','Anna','Lukas','Hannah','Sophie','Thomas','Michael','Peter','Maria','Nina'],Farbe:['Blau','Rot','Grün','Gelb','Türkis','Rosa','Beige','Schwarz','Weiß','Lila'],Sportart:['Fußball','Tennis','Golf','Handball','Schwimmen','Boxen','Rudern','Segeln','Turnen','Wandern'],Getränk:['Wasser','Bier','Wein','Tee','Kaffee','Limonade','Saft','Sekt','Milch','Radler'],Körperteil:['Arm','Bein','Kopf','Hand','Fuß','Nase','Herz','Wade','Zahn','Knie']};
+   const miss=[];Object.keys(T).forEach(c=>T[c].forEach(w=>{G={lt:w[0].toUpperCase(),o:{check:'hinweis'},cats:[c],fix:[[null]],ans:[[w]],bad:[[false]]};if(!SLFL.includes(w[0].toUpperCase()))return;const x=slfChk(0,0);if(x!=='ok')miss.push(c+':'+w+'='+JSON.stringify(x))}));return miss});
+ ok(typ.length===0,'Typische Antworten werden alle erkannt'+(typ.length?': '+typ.join(' | '):''));
+ console.log('\nFehler im Browser:',errs.length?errs:'keine');console.log(fails?fails+' FEHLGESCHLAGEN':'alles ok');await b.close();process.exit(fails?1:0);
+})().catch(e=>{console.error('Abbruch',e);process.exit(2)});

@@ -1,0 +1,61 @@
+const {chromium}=require('playwright');const fs=require('fs');
+const URL='http://127.0.0.1:8765/index.html',MOCK=fs.readFileSync(__dirname+'/mock.js','utf8');
+let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);if(!c)fails++};const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+ const b=await chromium.launch({args:['--no-sandbox']});const ctx=await b.newContext({viewport:{width:390,height:800}});await ctx.addInitScript(MOCK);
+ const mk=async(label,hash)=>{const p=await ctx.newPage();
+  await p.addInitScript(pre=>{const g=Storage.prototype.getItem,s=Storage.prototype.setItem,r=Storage.prototype.removeItem;Storage.prototype.getItem=function(k){return g.call(this,pre+k)};Storage.prototype.setItem=function(k,v){return s.call(this,pre+k,v)};Storage.prototype.removeItem=function(k){return r.call(this,pre+k)}},label+':');
+  p.on('pageerror',e=>errs.push(label+': '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(label+': '+m.text())});
+  await p.goto(URL+(hash||''));await p.waitForSelector('#app .screen');return p};
+ const txt=p=>p.evaluate(()=>document.body.innerText);
+
+ console.log('== Arschkarte zu zweit (lokal) ==');
+ const L=await mk('Lokal');
+ await L.evaluate(()=>{S.names=['Anna','Ben'];OPT.arsch.cats={};OPT.arsch.timer=0;OPT.arsch.rounds=5;pickGame('arsch')});await sleep(300);
+ ok(!(await txt(L)).includes('Sekunden zum Tippen'),'Setup: kein Hinweis auf Tippzeit bei 2 Spielern');
+ await L.evaluate(()=>startSession('arsch'));await sleep(200);
+ ok(await L.evaluate(()=>G.tip===false),'Tippen ist bei 2 Spielern aus');
+ await L.evaluate(()=>HF());await sleep(200);
+ ok((await L.evaluate(()=>document.querySelector('button').textContent)).length>0&&(await L.$eval('button[onclick="arSubmit()"]',e=>e.textContent)).includes('Abschicken'),'Button heißt "Abschicken" statt "Weiter zum Tippen"');
+ await L.fill('#g','100');await L.evaluate(()=>arSubmit());await sleep(300);
+ ok(await L.evaluate(()=>!document.querySelector('.opt'))&&(await txt(L)).includes('Gerät weitergeben'),'Danach direkt Weitergeben an den Nächsten (kein Tipp-Bildschirm)');
+ ok((await txt(L)).includes('Schätzen – niemand'),'Hinweistext ohne "tippen"');
+ await L.evaluate(()=>HF());await sleep(200);await L.fill('#g','300');await L.evaluate(()=>arSubmit());await sleep(900);
+ const t=(await txt(L)).toLowerCase();
+ ok(t.includes('richtige antwort')&&!t.includes('tipp:')&&!t.includes('richtig +1'),'Auswertung ohne Tipp-Zeilen');
+ ok(await L.evaluate(()=>G.pts.reduce((a,x)=>a+x,0)===2||G.pts.reduce((a,x)=>a+x,0)===4),'Punkte nur fürs Näherliegen (+2, bei Gleichstand beide)');
+
+ console.log('== 4 Gewinnt allein gegen den Computer ==');
+ await L.evaluate(()=>{S.names=['Solo'];home()});await sleep(300);
+ ok((await txt(L)).toLowerCase().includes('ab 1'),'Kachel zeigt "ab 1"');
+ await L.evaluate(()=>pickGame('arsch'));await sleep(200);
+ ok(await L.evaluate(()=>CUR!=='arsch'||document.body.innerText.includes('mindestens')),'Arschkarte bleibt mit 1 Spieler gesperrt');
+ await L.evaluate(()=>{home();pickGame('c4')});await sleep(300);
+ ok((await txt(L)).includes('du spielst allein')&&!(await txt(L)).includes('🧑 Mensch'),'Setup: Gegner ist der Computer, keine Mensch-Auswahl');
+ await L.evaluate(()=>{OPT.c4.best=1;startSession('c4')});await sleep(300);
+ ok(await L.evaluate(()=>G.cpu===true&&G.ents[1].name==='Computer'),'Computer ist der Gegner');
+ await L.evaluate(()=>c4Drop(3));await sleep(1500);
+ ok(await L.evaluate(()=>G.bd.flat().filter(x=>x).length===2&&G.turn===0),'Spieler setzt, Computer antwortet, wieder am Zug');
+ console.log('== Spieler-Liste bis 1 ==');
+ await L.evaluate(()=>{S.names=['A','B'];playersScreen()});await sleep(200);
+ await L.evaluate(()=>delP());await L.evaluate(()=>delP());
+ ok(await L.evaluate(()=>S.names.length===1),'"− Spieler" geht bis auf 1, nicht weiter');
+
+ console.log('== Online zu zweit: Arschkarte parallel ohne Tippen ==');
+ const H=await mk('Host');await H.evaluate(()=>onlineMenu());await H.fill('#myn','Hosti');await H.evaluate(()=>netHostStart());
+ await H.waitForFunction(()=>NET.on&&NET.host&&NET.code);const code=await H.evaluate(()=>NET.code);
+ const A=await mk('Anna','#'+code);await A.fill('#myn','Anna');await A.evaluate(c=>netJoinStart(c),code);
+ await H.waitForFunction(()=>NET.m.length===2&&NET.m[1].conn&&NET.m[1].conn.open);await sleep(300);
+ await H.evaluate(()=>{OPT.arsch.cats={};OPT.arsch.timer=0;OPT.arsch.rounds=5;home();pickGame('arsch');startSession('arsch')});await sleep(600);
+ ok(await H.evaluate(()=>PAR&&PAR.steps.length===1),'Nur ein Schritt (Schätzen)');
+ await A.evaluate(()=>{const b=document.querySelector('[data-p]');b.querySelector('[data-f="g"]').value='42';b.querySelector('[data-sub="g"]').click()});await sleep(300);
+ ok(!(await A.evaluate(()=>!!document.querySelector('[data-sub="t"]'))),'Anna bekommt kein Tipp-Formular');
+ await H.evaluate(()=>{const b=document.querySelector('#hw [data-p]');b.querySelector('[data-f="g"]').value='99';b.querySelector('[data-sub="g"]').click()});await sleep(700);
+ for(const [n,p] of [['Host',H],['Anna',A]]){const x=(await txt(p)).toLowerCase();ok(x.includes('richtige antwort')&&!x.includes('tipp:'),n+' sieht die Auswertung ohne Tipp')}
+ console.log('== Online zu zweit mit Timer: nur eine Phase ==');
+ await H.evaluate(()=>{G.r++;OPT.arsch.timer=2;arRound()});await sleep(500);
+ ok(await H.evaluate(()=>PAR&&PAR.dur&&PAR.dur.length===1),'Timer hat nur die Schätzphase');
+ await sleep(3600);
+ ok(await H.evaluate(()=>PAR===null),'Nach Ablauf geht es direkt zur Auswertung');
+ console.log('\nFehler im Browser:',errs.length?errs:'keine');console.log(fails?fails+' FEHLGESCHLAGEN':'alles ok');await b.close();process.exit(fails?1:0);
+})().catch(e=>{console.error('Abbruch',e);process.exit(2)});

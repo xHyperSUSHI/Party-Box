@@ -77,7 +77,7 @@ Jedes Spiel ist `GAMES.<id>={name,e,tag,c,min,teams,desc,rules,opts(),start()}` 
 
 ## Testen
 
-- Playwright; Chrome liegt unter `/usr/bin/google-chrome` (`--no-sandbox`), in der Cloud-Umgebung reicht `chromium.launch()`. Scripts und temporäre Dateien **außerhalb** des Repos ablegen (Scratchpad).
+- **Test-Suites liegen in `tests/`** (Playwright, `tests/mock.js` = gemockter PeerJS über BroadcastChannel). Alle laufen lassen: `bash tests/run-all.sh` (startet selbst einen Server auf Port 8765, ca. 15–20 Minuten, am Ende „FERTIG: 0 Suite(s) mit Fehlern“); einzelne: `bash tests/run-all.sh kb room_t`. Neue Tests dort ablegen (Muster: eine bestehende Suite kopieren, `mk()`-Helfer für Tabs mit getrenntem localStorage). Während Tests laufen, `index.html` nicht bearbeiten. Playwright; Chrome liegt unter `/usr/bin/google-chrome` (`--no-sandbox`), in der Cloud-Umgebung reicht `chromium.launch()`. Wegwerf-Skripte (Screenshots, Debug) **außerhalb** des Repos ablegen (Scratchpad).
 - Online-Tests: `Peer` per BroadcastChannel mocken (2–4 Tabs im **selben** Browser-Kontext, lokaler `http.server`; `localStorage` pro Tab mit Präfix trennen, sonst teilen sich die Tabs Geräte-ID und `pb_sess`), PeerJS-Cloud nicht nötig. Prüfen: Spiegelung, Rechte, **Privatsphäre** (kein Mitspieler sieht fremde Geheimnisse), Verbindungsabbruch/Wiederbeitritt.
 - Vor jedem Commit: keine JS-Fehler im Browser (`pageerror`, `console.error`), lokaler Modus und Online-Modus laufen. Ist etwas nicht getestet, im Bericht sagen.
 
