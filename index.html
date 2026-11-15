@@ -2767,7 +2767,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-15.7';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-15.8';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5936,6 +5936,7 @@ function hbTick(){
   if(NET.host){
     const gap=hbPrev?now-hbPrev:0;hbPrev=now;
     if(gap>9000)netGrace(gap);
+    if(NET.peer){if(NET.peer.destroyed)netPeerRevive();else if(NET.peer.disconnected){try{NET.peer.reconnect()}catch(e){}}}
     NET.m.forEach((m,i)=>{
       if(i===0||!m.conn)return;
       sendTo(m,{t:'hb'});
@@ -5945,6 +5946,13 @@ function hbTick(){
     try{NET.conn&&NET.conn.open&&NET.conn.send({t:'ev',ty:'hb'})}catch(e){}
     if(NET.lastHost&&Date.now()-NET.lastHost>16000)netWaitStart();
   }
+}
+function netPeerRevive(){   // Peer wurde zerstört (z. B. nach langer Pause im Hintergrund): unter derselben Lobby-ID neu anmelden
+  if(!NET.host||NET.reviving)return;NET.reviving=true;
+  let p;try{p=new Peer(PRE+NET.code,{debug:0})}catch(e){NET.reviving=false;return}
+  p.on('open',()=>{NET.reviving=false;NET.peer=p;p.on('connection',netOnConn);toast('Verbindung zum Server wiederhergestellt')});
+  p.on('error',()=>{NET.reviving=false});
+  p.on('disconnected',()=>{if(NET.peer===p){try{p.reconnect()}catch(e){}}});
 }
 function hbStart(){hbStop();hbPrev=Date.now();hbT=setInterval(hbTick,4000)}
 function hbStop(){clearInterval(hbT);hbT=0}
@@ -5965,7 +5973,8 @@ function netWaitStart(){
     const el=Date.now()-NET.wait.t0;
     if(el>NET_GRACE){netWaitStop();netClientLost();return}
     netWaitBanner(true,el);
-    if(!(NET.conn&&NET.conn.open))netJoin(NET.code,NET.name,true);
+    // Nach Hintergrund/Funkloch ist eine Verbindung oft nur noch scheinbar „offen“: nach 10 s Stille trotzdem neu aufbauen (höchstens alle 8 s)
+    if(Date.now()-(NET.wait.tr||0)>=8000&&(!(NET.conn&&NET.conn.open)||el>=10000)){NET.wait.tr=Date.now();netJoin(NET.code,NET.name,true)}
   },5000);
 }
 function netWaitStop(){if(NET.wait){clearInterval(NET.wait.iv);NET.wait=null}netWaitBanner(false)}
@@ -6023,6 +6032,12 @@ function netClientFail(msg){
   scr(`${logo('Online')}<div class="card" style="text-align:center"><div style="font-size:42px">😕</div><p style="margin:8px 0 0">${msg}</p></div><button onclick="history.replaceState(null,'',location.pathname);home()">← Zurück</button>`);
 }
 let lostInfo=null;
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&NET.client&&NET.got&&!NET.wait){
+    const t=Date.now();NET.vis=t;
+    setTimeout(()=>{if(NET.client&&NET.vis===t&&NET.lastHost<t)netWaitStart()},6000);   // der Host meldet sich normalerweise alle 4 s
+  }
+});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&lostInfo&&!NET.on){const l=lostInfo;lostInfo=null;netJoin(l.code,l.name)}});
 function netClientLost(){
   const code=NET.code,name=NET.name;
