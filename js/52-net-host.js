@@ -16,7 +16,7 @@ function netHostStart(){
   const n=cleanName($('myn').value,'Host');setMyName(n);
   if(!window.Peer){toast('Online ist hier nicht verfügbar');return}
   netStatus('Lobby wird erstellt …');
-  netTryHost(0,n);
+  iceFetch().then(()=>netTryHost(0,n));
 }
 function netTryHost(tries,name){
   const code=netCode();let opened=false;

@@ -11,7 +11,7 @@ function netJoinStart(code){
   if(!nm){toast('Bitte einen Namen eingeben');return}
   if(code.length!==APP_CODE_LEN){toast('Bitte den '+APP_CODE_LEN+'-stelligen Code eingeben');return}
   if(!window.Peer){toast('Online ist hier nicht verfügbar');return}
-  setMyName(nm);netJoin(code,nm);
+  setMyName(nm);netStatus('Verbinde mit Lobby '+esc(code)+' …');iceFetch().then(()=>netJoin(code,nm));
 }
 /* Client-Sitzung merken: nach Neuladen/App-Neustart wieder in die Lobby (gleiche Geräte-ID übernimmt den Platz) */
 const SESS_KEY='pb_sess',SESS_MAX=3*36e5;
@@ -184,7 +184,8 @@ function netDiag(){
   const row=(id,t)=>`<div class="srow" id="${id}"><span style="font-size:22px;width:28px">⏳</span><div style="flex:1"><b>${t}</b><div class="sm">wird geprüft …</div></div></div>`;
   scr(`<button class="sec back" onclick="DIAG++;settings()">← Zurück</button>${logo('Verbindungstest',1)}
   <div class="card">${row('dg1','Vermittlungsserver')}${row('dg2','Direkte Verbindung (STUN)')}${row('dg3','Umleitung (TURN)')}</div>
-  <div class="card" id="dgr"><p class="sm" style="margin:0">Der Test dauert bis zu 15 Sekunden. Er prüft nur dieses Gerät im aktuellen Netz – am besten auf beiden Geräten machen.</p></div>`);
+  <p class="sm" id="dgv" style="margin:-4px 2px 10px">Zugangsdaten werden geholt …</p>
+  <div class="card" id="dgr"><p class="sm" style="margin:0">Der Test dauert bis zu 20 Sekunden. Er prüft nur dieses Gerät im aktuellen Netz – am besten auf beiden Geräten machen.</p></div>`);
   const set=(id,ok,txt)=>{if(run!==DIAG)return;const e=$(id);if(!e)return;e.querySelector('span').textContent=ok?'✅':'❌';e.querySelector('.sm').textContent=txt};
   const res={};
   const done=()=>{if(run!==DIAG||!('sig' in res)||!('ice' in res))return;const e=$('dgr');if(!e)return;
@@ -195,19 +196,23 @@ function netDiag(){
     else t='Weder direkte Verbindung noch Umleitung möglich – dieses Netz sperrt solche Verbindungen. Online geht hier nur, wenn alle im selben WLAN sind, oder über einen Handy-Hotspot.';
     e.innerHTML=`<p style="margin:0">${t}</p>`};
   // 1) Vermittlungsserver (PeerJS-Cloud)
-  try{let fin=false;const p=new Peer(undefined,peerOpts());
+  try{let fin=false;const p=new Peer(undefined,{debug:0});
     const end=(ok,txt)=>{if(fin)return;fin=true;try{p.destroy()}catch(e){}res.sig=ok;set('dg1',ok,txt);done()};
     p.on('open',()=>end(true,'erreichbar'));p.on('error',e=>end(false,'nicht erreichbar ('+((e&&e.type)||'Fehler')+')'));
     setTimeout(()=>end(false,'keine Antwort'),10000);
   }catch(e){res.sig=false;set('dg1',false,'nicht verfügbar');done()}
-  // 2+3) Kandidaten sammeln: srflx = STUN klappt, relay = TURN klappt
-  try{const pc=new RTCPeerConnection(NET_ICE);let fin=false;const ty={};
-    const end=()=>{if(fin)return;fin=true;try{pc.close()}catch(e){}
-      res.srflx=!!ty.srflx;res.relay=!!ty.relay;res.ice=true;
-      set('dg2',res.srflx,res.srflx?'öffentliche Adresse gefunden':'keine Antwort – Netz sperrt STUN');
-      set('dg3',res.relay,res.relay?'Umleitung erreichbar'+(ty.tcp?' (auch über TCP)':''):'nicht erreichbar');done()};
-    pc.onicecandidate=e=>{if(!e.candidate){end();return}const c=e.candidate,t=c.type||((/ typ (\w+)/.exec(c.candidate||'')||[])[1]);if(t)ty[t]=1;if(t==='relay'&&/tcp/i.test(c.candidate||''))ty.tcp=1};
-    pc.createDataChannel('t');pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(end);
-    setTimeout(end,14000);
-  }catch(e){res.ice=true;set('dg2',false,'nicht verfügbar');set('dg3',false,'nicht verfügbar');done()}
+  // 2+3) erst TURN-Zugangsdaten holen, dann Kandidaten sammeln: srflx = STUN klappt, relay = TURN klappt
+  iceFetch().then(()=>{
+    if(run!==DIAG)return;
+    const via=$('dgv');if(via)via.textContent=iceValid()?'Umleitung über: Cloudflare (eigener TURN, auch Port 443)':'Umleitung über: öffentliche PeerJS-Server (Cloudflare nicht erreichbar)';
+    try{const pc=new RTCPeerConnection(peerOpts().config);let fin=false;const ty={};
+      const end=()=>{if(fin)return;fin=true;try{pc.close()}catch(e){}
+        res.srflx=!!ty.srflx;res.relay=!!ty.relay;res.ice=true;
+        set('dg2',res.srflx,res.srflx?'öffentliche Adresse gefunden':'keine Antwort – Netz sperrt STUN');
+        set('dg3',res.relay,res.relay?'Umleitung erreichbar'+(ty.tcp?' (auch über TCP/443)':''):'nicht erreichbar');done()};
+      pc.onicecandidate=e=>{if(!e.candidate){end();return}const c=e.candidate,t=c.type||((/ typ (\w+)/.exec(c.candidate||'')||[])[1]);if(t)ty[t]=1;if(t==='relay'&&/tcp/i.test(c.candidate||''))ty.tcp=1};
+      pc.createDataChannel('t');pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(end);
+      setTimeout(end,14000);
+    }catch(e){res.ice=true;set('dg2',false,'nicht verfügbar');set('dg3',false,'nicht verfügbar');done()}
+  });
 }

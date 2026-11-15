@@ -17,7 +17,39 @@ const NET_ICE={iceServers:[
   {urls:'stun:stun.cloudflare.com:3478'},
   {urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478','turn:eu-0.turn.peerjs.com:3478?transport=tcp','turn:us-0.turn.peerjs.com:3478?transport=tcp'],username:'peerjs',credential:'peerjsp'}
 ]};
-const peerOpts=()=>({debug:0,config:NET_ICE});
+/* Eigener TURN über Cloudflare: Worker cloudflare/turn-worker.js gibt kurzlebige Zugangsdaten (24 h) aus; das geheime
+   Token liegt nur bei Cloudflare. Die App holt sie vor dem Verbinden (iceFetch, max. 5 s, gemerkt in pb_ice) und prüft sie (iceOk).
+   Ohne Antwort bleibt es bei NET_ICE (Google/Cloudflare-STUN + PeerJS-TURN). */
+const TURN_URL='https://party-box-turn.sascha-hoter-69.workers.dev/';
+let ICE_CF=null; // {s:[iceServers], exp:ms}
+function iceOk(a){
+  if(!Array.isArray(a)||!a.length||a.length>6)return null;
+  const re=/^(stun|turns?):[a-z0-9.-]{1,100}(:\d{1,5})?(\?transport=(udp|tcp))?$/i,out=[];
+  for(const x of a){
+    if(!x||typeof x!=='object')return null;
+    const u=[].concat(x.urls);if(!u.length||u.length>10||!u.every(v=>typeof v==='string'&&re.test(v)))return null;
+    const o={urls:u.slice()};
+    if(x.username!=null){if(typeof x.username!=='string'||x.username.length>512)return null;o.username=x.username}
+    if(x.credential!=null){if(typeof x.credential!=='string'||x.credential.length>512)return null;o.credential=x.credential}
+    out.push(o);
+  }
+  return out;
+}
+const iceValid=()=>ICE_CF&&ICE_CF.exp>Date.now();
+function iceLoad(){if(iceValid())return;try{const x=JSON.parse(localStorage.getItem('pb_ice')||'null');const s=x&&iceOk(x.s);if(s&&x.exp>Date.now())ICE_CF={s,exp:+x.exp}}catch(e){}}
+function iceFetch(){
+  iceLoad();if(!TURN_URL||(ICE_CF&&ICE_CF.exp-Date.now()>2*36e5))return Promise.resolve(ICE_CF);
+  const t=new Promise(r=>setTimeout(()=>r(null),5000));
+  const f=fetch(TURN_URL,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
+    const s=j&&iceOk(j.iceServers);if(!s)return null;
+    const ttl=Math.min(86400,Math.max(600,+j.ttl||86400));
+    ICE_CF={s,exp:Date.now()+ttl*1000-36e5};
+    try{localStorage.setItem('pb_ice',JSON.stringify(ICE_CF))}catch(e){}
+    return ICE_CF}).catch(()=>null);
+  return Promise.race([f,t]).then(()=>ICE_CF);
+}
+/* Mit Cloudflare-TURN: Google-STUN + Cloudflare (STUN/TURN inkl. 443/TLS); ohne: NET_ICE. Höchstens wenige Server, sonst dauert die Suche länger. */
+const peerOpts=()=>{iceLoad();return {debug:0,config:iceValid()?{iceServers:[{urls:'stun:stun.l.google.com:19302'}].concat(ICE_CF.s)}:NET_ICE}};
 const netCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<APP_CODE_LEN;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
 const isOpen=m=>!!(m&&m.conn&&m.conn.open);
 const sendTo=(m,o)=>{try{if(isOpen(m))m.conn.send(o)}catch(e){}};

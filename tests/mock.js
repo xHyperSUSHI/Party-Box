@@ -24,5 +24,7 @@
   else if(m.k==='close'){const c=p.conns[m.cid];if(c&&c.open){c.open=false;c._e('close')}}
  };
  window.__MockPeer=Peer;
+ // TURN-Worker (Cloudflare) ohne Internet: feste Testantwort
+ const f0=window.fetch;window.fetch=function(u,o){if(String(u&&u.url||u).includes('workers.dev'))return Promise.resolve(new Response(JSON.stringify(window.__TURN_RESP||{iceServers:[{urls:['stun:stun.cloudflare.com:3478']},{urls:['turn:turn.cloudflare.com:3478?transport=udp','turns:turn.cloudflare.com:443?transport=tcp'],username:'u',credential:'c'}],ttl:86400}),{headers:{'Content-Type':'application/json'}}));return f0.apply(this,arguments)};
  Object.defineProperty(window,'Peer',{configurable:true,get(){return Peer},set(){}});
 })();
