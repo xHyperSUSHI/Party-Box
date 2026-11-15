@@ -1,5 +1,5 @@
 /* Party Box – Service Worker: Netzwerk zuerst (immer die neueste Version), bei fehlendem Netz aus dem Cache. */
-const CACHE='pbox-v7';
+const CACHE='pbox-v8';
 const ASSETS=[
   'index.html',
   'manifest.webmanifest',
