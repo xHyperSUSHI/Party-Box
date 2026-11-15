@@ -2767,7 +2767,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-15.8';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-15.9';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5807,7 +5807,34 @@ function netTryHost(tries,name){
     NET.m=[{name,conn:null,last:Date.now(),view:'mirror',perm:true}];S.names=[name];
     startMirror();wake();hbStart();
     p.on('connection',netOnConn);
-    lobbyScreen();
+    hostSave();lobbyScreen();
+  });
+}
+/* Host-Lobby merken: Wird die Seite im Hintergrund vom System beendet/neu geladen, baut der Host die Lobby beim nächsten Start unter
+   demselben Code wieder auf; die Mitspieler warten ja bis zu 3 Minuten und verbinden sich dann still neu. Ein laufendes Spiel geht dabei verloren. */
+function hostSave(){try{if(NET.host&&NET.code&&NET.m&&NET.m[0])localStorage.setItem('pb_host',JSON.stringify({code:NET.code,name:NET.m[0].name,t:Date.now()}))}catch(e){}}
+function hostClear(){try{localStorage.removeItem('pb_host')}catch(e){}}
+function hostGet(){try{const x=JSON.parse(localStorage.getItem('pb_host')||'null');if(x&&x.code&&x.name&&Date.now()-x.t<SESS_MAX)return x}catch(e){}return null}
+function hostRestoreCancel(){hostClear();home()}
+function netHostRestore(h,tries){
+  tries=tries||0;
+  if(tries===0)netStatus('Lobby '+esc(h.code)+' wird wiederhergestellt …<br><span class="sm">Deine Mitspieler warten und kommen gleich zurück.</span>','hostRestoreCancel()');
+  let p;try{p=new Peer(PRE+h.code,{debug:0})}catch(e){hostClear();home();return}
+  let opened=false;
+  p.on('error',e=>{
+    if(opened){if(!(e&&e.type==='unavailable-id'))toast('Netzwerk: '+((e&&e.type)||'Fehler'));return}
+    try{p.destroy()}catch(_){}
+    if(e&&e.type==='unavailable-id'&&tries<20){setTimeout(()=>{if(!NET.on&&hostGet())netHostRestore(h,tries+1)},3000);return}   // der alte Eintrag beim Vermittlungsserver braucht einen Moment
+    hostClear();toast('Lobby konnte nicht wiederhergestellt werden');home();
+  });
+  p.on('disconnected',()=>{if(opened&&NET.peer===p){try{p.reconnect()}catch(e){}}});
+  p.on('open',()=>{
+    opened=true;NET.peer=p;NET.on=true;NET.host=true;NET.client=false;NET.code=h.code;NET.inGame=false;
+    NET.localNames=S.names.slice();
+    NET.m=[{name:h.name,conn:null,last:Date.now(),view:'mirror',perm:true}];S.names=[h.name];
+    startMirror();wake();hbStart();
+    p.on('connection',netOnConn);
+    hostSave();lobbyScreen();toast('🔄 Lobby '+h.code+' wiederhergestellt – deine Mitspieler kommen gleich zurück');
   });
 }
 function netOnConn(c){
@@ -5877,6 +5904,7 @@ function netShare(){
   try{navigator.clipboard.writeText(link).then(()=>toast('Link kopiert'),()=>toast(link))}catch(e){toast(link)}
 }
 function netStop(){
+  hostClear();
   if(NET.host){
     NET.m.forEach((m,i)=>{if(i>0&&isOpen(m)){sendTo(m,{t:'bye',why:'Der Host hat die Lobby geschlossen.'});setTimeout(()=>{try{m.conn.close()}catch(e){}},300)}});
     stopMirror();hbStop();
@@ -5935,6 +5963,7 @@ function hbTick(){
   const now=Date.now();
   if(NET.host){
     const gap=hbPrev?now-hbPrev:0;hbPrev=now;
+    hostSave();
     if(gap>9000)netGrace(gap);
     if(NET.peer){if(NET.peer.destroyed)netPeerRevive();else if(NET.peer.disconnected){try{NET.peer.reconnect()}catch(e){}}}
     NET.m.forEach((m,i)=>{
@@ -6333,6 +6362,9 @@ applyTheme();
   const hh=(location.hash||'').replace('#','').toUpperCase().replace(/[^A-Z0-9]/g,''),ss=sessGet();
   // Gemerkte Lobby (gleicher Code oder kein Code im Link): automatisch wieder verbinden
   if(window.Peer&&ss&&(hh.length!==APP_CODE_LEN||hh===ss.code)){netJoin(ss.code,ss.name);return}
+  // Host war gerade noch in einer Lobby (Seite wurde neu geladen): Lobby unter demselben Code wieder aufbauen
+  const hs=hostGet();
+  if(window.Peer&&hs&&hh.length!==APP_CODE_LEN){netHostRestore(hs);return}
   if(hh.length===APP_CODE_LEN&&window.Peer)joinScreen(hh);else home();
 })();
 
