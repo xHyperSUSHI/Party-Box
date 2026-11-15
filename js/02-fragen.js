@@ -148,7 +148,7 @@ function genDates(){
   let x=t0+Math.floor(Math.random()*(t1-t0)),y=t0+Math.floor(Math.random()*(t1-t0));if(x>y)[x,y]=[y,x];
   const f=t=>{const d=new Date(t);return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}`};
   const days=Math.round((y-x)/864e5);if(days<30)return genDates();
-  return [`Wie viele Tage liegen zwischen dem ${f(x)} und dem ${f(y)}?`,days,'Tage','Tipp: Ein Jahr hat 365 Tage (im Schaltjahr 366), ein Monat im Schnitt etwa 30. Rechne Jahre, Monate und Tage getrennt.'];
+  return [`Wie viele Tage liegen zwischen dem ${f(x)} und dem ${f(y)}?`,days,'Tage','Tipp: Rechne Jahre, Monate und Tage getrennt – und denk an Schaltjahre und unterschiedlich lange Monate.'];
 }
 function genAgo(){const e=pick(EV),now=new Date().getFullYear();return [`Wie viele Jahre ist es her, dass ${e[1]}?`,now-e[2],'Jahre',`Worum geht es: ${EVI[e[0]]||''}. Überlege, in welchem Jahr das war, und rechne bis heute.`]}
 function genGap(){let a=pick(EV),b=pick(EV);while(a===b||a[2]===b[2])b=pick(EV);return [`Wie viele Jahre liegen zwischen dem Jahr, in dem ${a[1]}, und dem Jahr, in dem ${b[1]}?`,Math.abs(a[2]-b[2]),'Jahre',`Erstes Ereignis: ${EVI[a[0]]||''}. Zweites Ereignis: ${EVI[b[0]]||''}. Gefragt ist der Abstand der beiden Jahreszahlen.`]}

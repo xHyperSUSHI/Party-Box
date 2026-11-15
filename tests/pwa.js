@@ -10,7 +10,7 @@ ok(await p.evaluate(()=>!!navigator.serviceWorker.controller),'Seite steht nach 
 const man=await p.evaluate(async()=>{const l=document.querySelector('link[rel=manifest]').href;const r=await fetch(l);return r.json()});
 ok(man.name==='Party Box'&&man.display==='standalone'&&man.icons.length===3,'Manifest lesbar (Name, standalone, 3 Icons)');
 ok(await p.evaluate(async()=>{const rs=await Promise.all([...document.querySelectorAll('link[rel=icon],link[rel=apple-touch-icon]')].map(l=>fetch(l.href)));return rs.every(r=>r.ok)}),'Icons erreichbar');
-const keys=await p.evaluate(async()=>{const c=await caches.open('pbox-v1');return (await c.keys()).map(r=>new URL(r.url).pathname.split('/').pop())});
+const keys=await p.evaluate(async()=>{const n=(await caches.keys()).find(k=>/^pbox-/.test(k));const c=await caches.open(n);return (await c.keys()).map(r=>new URL(r.url).pathname.split('/').pop())});
 ok(keys.includes('index.html')&&keys.includes('icon-512.png'),'Cache gefüllt: '+keys.join(','));
 await ctx.setOffline(true);
 await p.reload();await p.waitForSelector('#app .screen',{timeout:8000});
