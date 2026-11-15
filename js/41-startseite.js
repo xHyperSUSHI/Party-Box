@@ -1,7 +1,7 @@
 /* ---------- Startseite mit Kategorien ---------- */
 Object.keys(GCAT).forEach(k=>{if(GAMES[k])GAMES[k].cat=GCAT[k]});
 function home(){
-  setLive(false);stopAll();TH=['var(--red2)','var(--red)'];CUR=null;S.P=null;
+  setLive(false);stopAll();TH=['var(--red2)','var(--red)'];CUR=null;S.P=null;profSync();
   const n=S.names.length,dr=drinkOn(),cats=CATS.filter(c=>dr||c.id!=='drink');
   if(HCAT!=='all'&&!cats.some(c=>c.id===HCAT))HCAT='all';
   const ids=Object.keys(GAMES).filter(id=>dr||GAMES[id].cat!=='drink');

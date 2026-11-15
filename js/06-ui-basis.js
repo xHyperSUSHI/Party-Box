@@ -20,12 +20,12 @@ function setOpt(g,k,v){OPT[g][k]=v;keepScroll(()=>gameSetup(g))}
 /* ---------- Home ---------- */
 /* ---------- Spieler ---------- */
 function playersScreen(){
-  setLive(false);S.P=null;TH=['var(--red2)','var(--red)'];
+  setLive(false);S.P=null;TH=['var(--red2)','var(--red)'];profSync();const pn=NET.on?'':profGet().n;
   scr(`<button class="sec back" onclick="savePlayers()">← Fertig</button>${logo('Mitspieler')}
   <div class="card"><div id="pl"></div><div class="row"><button class="sec" onclick="addP()">+ Spieler</button><button class="sec" onclick="delP()">− Spieler</button></div></div>
   <p class="sm">Bis zu 10 Spieler. Allein geht nur 4 Gewinnt gegen den Computer, alle anderen Spiele brauchen mindestens 2 oder 3. Namen und Einstellungen merkt sich die Party Box auf diesem Gerät. Tipp aufs Bild, um einen Charakter zu gestalten.</p>`);
   const pl=$('pl');
-  S.names.forEach((n,i)=>pl.insertAdjacentHTML('beforeend',`<div class="row" style="align-items:center;margin-top:10px"><div class="avb" onclick="charOpen(${i})" aria-label="Charakter bearbeiten">${av(i)}<i>✎</i></div><input style="margin:0" data-i="${i}" value="${esc(/^Spieler \d+$/.test(n.trim())?'':n)}" maxlength="16" placeholder="Spieler ${i+1}"></div>`));
+  S.names.forEach((n,i)=>pl.insertAdjacentHTML('beforeend',`<div class="row" style="align-items:center;margin-top:10px"><div class="avb" onclick="charOpen(${i})" aria-label="Charakter bearbeiten">${av(i)}<i>✎</i></div>${i===0&&pn?'<div class="pme" onclick="profOpen(\'players\')"><b>'+esc(pn)+'</b><small>Das bist du · Name und Charakter im Profil</small></div>':''}<input style="margin:0${i===0&&pn?';display:none':''}" data-i="${i}" value="${esc(/^Spieler \d+$/.test(n.trim())?'':n)}" maxlength="16" placeholder="Spieler ${i+1}"></div>`));
 }
 function saveNames(){document.querySelectorAll('#pl input').forEach(e=>S.names[+e.dataset.i]=e.value)}
 function addP(){saveNames();if(S.names.length<10)S.names.push('Spieler '+(S.names.length+1));playersScreen()}

@@ -312,3 +312,14 @@ function roomScene(meIdx){
   return `<div class="lroom" aria-label="Wohnzimmer">${lab}<div class="lrwin"><i></i></div><div class="lrlamp"></div><div class="lrpic"></div><div class="lrplant"><i></i><i></i><i></i></div>
   <div class="lrrug"></div><div class="lrsofa"><i class="lb"></i><i class="ls"></i><i class="la1"></i><i class="la2"></i></div>${figs}</div>`;
 }
+/* Das eigene Profil spielt immer mit (nur „Ein Gerät“): Profilname steht als Spieler 1 in S.names.
+   Steht dort noch ein Standardname, wird er ersetzt; fehlt das Profil, kommt es nach vorne; steht es weiter hinten, rückt es nach vorne. */
+function profSync(){
+  if(NET.on)return;const p=profGet();if(!p.n)return;
+  const k=S.names.findIndex(n=>chKey(n)===chKey(p.n));
+  if(k===0){if(S.names[0]!==p.n){S.names[0]=p.n;saveCfg()}return}
+  if(k>0)S.names.splice(k,1);
+  if(k<0&&S.names.length&&chDefault(S.names[0]))S.names[0]=p.n;
+  else{S.names.unshift(p.n);if(S.names.length>10)S.names.pop()}
+  saveCfg();
+}
