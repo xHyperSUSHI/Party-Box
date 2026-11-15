@@ -43,7 +43,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  await sleep(500);
  for(let i=0;i<4;i++)ok(JSON.stringify(await ownP(pages[i]))===`[${i}]`,`${names[i]} sieht nur sein eigenes Formular (data-p=${i})`);
  ok(await H.evaluate(()=>getComputedStyle(document.getElementById('hw')).display==='block'&&document.getElementById('app').style.visibility==='hidden'),'Host sieht Formular im Overlay');
- if(process.env.SHOT){await H.screenshot({path:'par-host.png'});await cl.Anna.screenshot({path:'par-anna.png'});await sub(cl.Ben,'g',{g:'5'});await sub(cl.Ben,'t',null,0);await sleep(300);await cl.Ben.screenshot({path:'par-ben-status.png'})}
+ if(process.env.SHOT){await H.screenshot({path:require('os').tmpdir()+'/par-host.png'});await cl.Anna.screenshot({path:require('os').tmpdir()+'/par-anna.png'});await sub(cl.Ben,'g',{g:'5'});await sub(cl.Ben,'t',null,0);await sleep(300);await cl.Ben.screenshot({path:require('os').tmpdir()+'/par-ben-status.png'})}
  // Fehlerfall
  await sub(cl.Cem,'g',{g:'abc'});await sleep(250);
  ok((await txt(cl.Cem)).includes('Bitte eine Zahl'),'Cem: Eingabe "abc" wird mit Hinweis abgelehnt');

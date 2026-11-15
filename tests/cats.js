@@ -36,7 +36,7 @@ let fails=0;const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);if(!c)fails++}
  ok(await p.evaluate(()=>document.querySelector('.chips').querySelectorAll('.chip').length===6),'Setup zeigt 6 Kategorie-Chips');
  await p.evaluate(()=>{[...document.querySelectorAll('.chips .chip')].find(c=>c.textContent.includes('Lustig')).click()});
  ok(await p.evaluate(()=>OPT.arsch.cats['Lustig & Alltag 🤪']===true&&[...document.querySelectorAll('.chip.on')].length===1),'Chip antippen wählt die Kategorie');
- await p.screenshot({path:'cats-setup.png'});
+ await p.screenshot({path:require('os').tmpdir()+'/cats-setup.png'});
  await p.evaluate(()=>{OPT.arsch.rounds=20;OPT.arsch.timer=0;startSession('arsch')});await p.waitForTimeout(300);
  ok(await p.evaluate(()=>G.deck.every(q=>QX['Lustig & Alltag 🤪'].some(x=>x[0]===q[0]))&&G.rounds===20),'Spiel nur mit Lustig & Alltag (20 Runden)');
  await p.evaluate(()=>{home();OPT.arsch.cats={'Tiere & Natur 🐾':true};OPT.arsch.rounds=20;pickGame('arsch');startSession('arsch')});await p.waitForTimeout(300);

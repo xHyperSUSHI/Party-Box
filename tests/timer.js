@@ -44,7 +44,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  ok(st['n:cem'].g.arsch.w===0&&st['n:cem'].g.arsch.s.cards===3,'Verlierer: kein Sieg, Arschkarten gezählt');
  await L.evaluate(()=>{home();statsScreen()});await sleep(300);
  const stx=await txt(L);ok(stx.includes('Anna')&&stx.includes('Arschkarte')&&stx.includes('Siegquote'),'Statistik-Screen zeigt Spieler und Spiel');
- await L.screenshot({path:'stats.png'});
+ await L.screenshot({path:require('os').tmpdir()+'/stats.png'});
  await L.evaluate(()=>{window.confirm=()=>true;statsScreen()});
  await L.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>/zurücksetzen/.test(x.textContent));b.click()});await sleep(200);
  ok(await L.evaluate(()=>Object.keys(stGet()).length===0),'Zurücksetzen löscht die Statistik');

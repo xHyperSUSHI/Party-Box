@@ -38,7 +38,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  await L.click('.qm');await sleep(100);
  ok(await L.evaluate(()=>!document.querySelector('.qinfo').hidden&&document.querySelector('.qinfo').innerText.includes('Eisberg')),'Antippen zeigt die Erklärung');
  ok(await L.evaluate(()=>!document.querySelector('.qinfo').innerText.includes('1912')),'... ohne die Jahreszahl');
- await L.screenshot({path:'info-local.png'});
+ await L.screenshot({path:require('os').tmpdir()+'/info-local.png'});
  await L.click('.qm');await sleep(100);
  ok(await L.evaluate(()=>document.querySelector('.qinfo').hidden),'Nochmal antippen blendet aus');
  ok(await L.evaluate(()=>{const i=document.getElementById('g');return i&&document.querySelector('.qm').closest('.row')!==null}),'Eingabefeld bleibt nutzbar');

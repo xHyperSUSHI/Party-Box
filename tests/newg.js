@@ -84,7 +84,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  await L.evaluate(()=>HF());await sleep(150);await L.evaluate(k=>document.querySelectorAll('.opt')[k].click(),ans.ok);await sleep(700); // Cem richtig
  ok(await L.evaluate(()=>G.pts.join()==='1,0,1'),'Richtig +1, falsch 0: '+await L.evaluate(()=>G.pts.join()));
  t=await txt(L);ok(t.toLowerCase().includes('richtig')&&(t.includes('✅')||t.includes('❌')),'Auswertung zeigt richtige Seite und Ergebnisse');
- await L.screenshot({path:'hilo-result.png'});
+ await L.screenshot({path:require('os').tmpdir()+'/hilo-result.png'});
  await L.evaluate(()=>{home();OPT.hilo.timer=2;pickGame('hilo');startSession('hilo');HF()});await sleep(2600);
  ok(await L.evaluate(()=>G.pk[0]===null),'Timer: keine Wahl = falsch');
  await L.evaluate(()=>{home();statsScreen()});await sleep(200);
