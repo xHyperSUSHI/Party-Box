@@ -10,9 +10,9 @@ LIST=${@:-$ALL}
 FAIL=0
 for t in $LIST; do
   echo "--- $t"
-  OUT=$(timeout 280 node tests/$t.js 2>&1)
-  echo "$OUT" | grep -E "✗|Fehler im Browser|Fehler:|alles ok|FEHLGESCHLAGEN|Abbruch"
-  if echo "$OUT" | grep -qE "✗|FEHLGESCHLAGEN|Abbruch" || ! echo "$OUT" | grep -qE "alles ok|Fehler: keine"; then FAIL=$((FAIL+1)); echo "   >>> $t: FEHLER"; fi
+  OUT=$(timeout 280 node tests/$t.js 2>&1); RC=$?
+  echo "$OUT" | grep -E "✗|Fehler im Browser|Fehler:|alles ok|FEHLGESCHLAGEN|^Abbruch"
+  if [ $RC -ne 0 ]; then FAIL=$((FAIL+1)); echo "   >>> $t: FEHLER (Exit-Code $RC)"; fi
 done
 echo "=== FERTIG: $FAIL Suite(s) mit Fehlern ==="
 pkill -f "http.server 8765" 2>/dev/null

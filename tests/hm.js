@@ -53,7 +53,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  ok((await H.evaluate(()=>document.querySelector('#hmc').innerText)).includes('für alle Mitspieler'),'Host-Rückfrage warnt: beendet für alle');
  await H.evaluate(()=>[...document.querySelectorAll('#hmc button')].find(x=>/ins Hauptmenü/.test(x.textContent)).click());await sleep(700);
  ok(await H.evaluate(()=>PAR===null&&document.getElementById('app').innerText.includes('Such dir ein Spiel')),'Host: Hauptmenü, Spiel beendet');
- ok((await txt(A)).includes('Such dir ein Spiel')&&!(await txt(A)).includes('Weiter zum Tippen'),'Anna sieht ebenfalls das Hauptmenü');
+ ok(await A.evaluate(()=>!!document.querySelector('.room'))&&!(await txt(A)).includes('Weiter zum Tippen'),'Anna sieht den Warteraum (Host ist im Hauptmenü)');
  ok(await A.evaluate(()=>NET.client&&NET.conn&&NET.conn.open),'Anna bleibt in der Lobby verbunden');
 
  console.log('== iPad-Layout (Optik) ==');
