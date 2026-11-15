@@ -14,7 +14,12 @@ const isOpen=m=>!!(m&&m.conn&&m.conn.open);
 const sendTo=(m,o)=>{try{if(isOpen(m))m.conn.send(o)}catch(e){}};
 let wakeL=null;
 function wake(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(l=>{wakeL=l}).catch(()=>{})}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(NET.on&&document.visibilityState==='visible')wake()});
+document.addEventListener('visibilitychange',()=>{
+  if(NET.on&&document.visibilityState==='visible'){
+    wake();
+    if(NET.host){const gap=hbPrev?Date.now()-hbPrev:0;netGrace(gap>9000?gap:0);hbPrev=Date.now();if(NET.peer&&NET.peer.disconnected){try{NET.peer.reconnect()}catch(e){}}}
+  }
+});
 
 /* ---------- Wer darf was? ---------- */
 function devIdx(i){return(i===0||isOpen(NET.m[i]))?i:0}                 // Gerät des Spielers i (getrennt → Host)
@@ -86,10 +91,11 @@ function syncViews(){
   flush();
   NET.m.forEach((m,i)=>{
     const own=PAR?parOwn(i):null;
-    const el=eligible(i),want=own!=null?'own':(el?'mirror':'wait');
+    const el=eligible(i),room=!NET.inGame&&i>0&&!NET.setup,want=own!=null?'own':(room?'room':(el?'mirror':'wait'));
     if(i===0){if(own!=null)hostOwn(own);else hostView(el);m.view=want;return}
     if(!isOpen(m)){m.view='none';return}
     if(want==='own'){if(m.view!=='own'||m.oh!==own){sendTo(m,{t:'own',html:own});m.view='own';m.oh=own}}
+    else if(want==='room'){const h=roomHTML(i);if(m.view!=='room'||m.rh!==h){sendTo(m,{t:'wait',html:h});m.view='room';m.rh=h}}
     else if(want==='mirror'&&m.view!=='mirror'){tagAll();sendTo(m,{t:'full',html:app.innerHTML});m.view='mirror'}
     else if(want==='wait'&&(m.view!=='wait'||m.wh!==WAIT)){sendTo(m,{t:'wait',html:WAIT});m.view='wait';m.wh=WAIT}
     if(PAR&&PAR.dur&&m.tmId!==PAR.id+':'+PAR.k){sendTo(m,{t:'tm',ms:Math.max(0,PAR.end-Date.now())});m.tmId=PAR.id+':'+PAR.k}
@@ -179,6 +185,17 @@ function parSub(mi,d){
   scr(parScreen());syncViews();
 }
 function fxSend(o){if(!NET.host)return;NET.m.forEach((m,i)=>{if(i>0&&m.view==='mirror'&&isOpen(m))sendTo(m,{t:'fx',k:o.k,a:o.a})})}
+/* Warteraum für Mitspieler: solange kein Spiel läuft, sehen sie nicht das Menü des Hosts, sondern wer da ist und worauf gewartet wird */
+function roomHTML(i){
+  const me=NET.m[i];if(!me)return '';
+  const st=NET.scr==='lobby'?'Alle versammeln sich – der Host startet gleich ein Spiel.':NET.scr==='settings'?'Der Host ist gerade in den Einstellungen …':(CUR&&GAMES[CUR]?`Der Host richtet <b>${esc(GAMES[CUR].name)}</b> ein …`:(NET.scr==='home'?'Der Host sucht ein Spiel aus …':'Der Host ist gerade im Menü …'));
+  return `<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${logo('Lobby',1)}
+  <div class="card room"><div class="sm">Lobby-Code</div><div class="big" style="letter-spacing:6px;font-size:38px">${esc(NET.code)}</div>
+  <div class="roomme">${av(i,'l')}<div><div class="sm">Du bist dabei als</div><b style="font-size:22px">${esc(me.name)}</b></div></div>
+  <div class="roomst"><span class="rdots"><i></i><i></i><i></i></span><span>${st}</span></div></div>
+  <div class="card"><div class="sm" style="margin-bottom:4px">In der Lobby (${NET.m.length})</div>${NET.m.map((m,k)=>`<div class="row" style="align-items:center;margin-top:8px">${av(k,'',32)}<b style="flex:1">${esc(m.name)}${k===0?' <span class="sm">· Host</span>':''}${k===i?' <span class="sm">· du</span>':''}</b><i class="dot2${k===0||isOpen(m)?'':' off'}"></i></div>`).join('')}</div>
+  <p class="sm" style="text-align:center;margin:10px 0">Lass die App offen – es geht gleich los. 🎉</p></div>`;
+}
 function waitHTML(pi,pr,tag){
   return `<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${pr||''}<div class="card hand">${av(pi,'l')}<p style="margin:0">${tag?tag+' – ':''}Gerade dran</p><div class="big">${esc(S.P?S.P[pi]:nameOf(pi))}</div><p>Warte kurz … ${NET.on?'🔒':''}</p></div></div>`;
 }

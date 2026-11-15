@@ -33,7 +33,34 @@ function netTryHost(tries,name){
     NET.m=[{name,conn:null,last:Date.now(),view:'mirror',perm:true}];S.names=[name];
     startMirror();wake();hbStart();
     p.on('connection',netOnConn);
-    lobbyScreen();
+    hostSave();lobbyScreen();
+  });
+}
+/* Host-Lobby merken: Wird die Seite im Hintergrund vom System beendet/neu geladen, baut der Host die Lobby beim nächsten Start unter
+   demselben Code wieder auf; die Mitspieler warten ja bis zu 3 Minuten und verbinden sich dann still neu. Ein laufendes Spiel geht dabei verloren. */
+function hostSave(){try{if(NET.host&&NET.code&&NET.m&&NET.m[0])localStorage.setItem('pb_host',JSON.stringify({code:NET.code,name:NET.m[0].name,t:Date.now()}))}catch(e){}}
+function hostClear(){try{localStorage.removeItem('pb_host')}catch(e){}}
+function hostGet(){try{const x=JSON.parse(localStorage.getItem('pb_host')||'null');if(x&&x.code&&x.name&&Date.now()-x.t<SESS_MAX)return x}catch(e){}return null}
+function hostRestoreCancel(){hostClear();home()}
+function netHostRestore(h,tries){
+  tries=tries||0;
+  if(tries===0)netStatus('Lobby '+esc(h.code)+' wird wiederhergestellt …<br><span class="sm">Deine Mitspieler warten und kommen gleich zurück.</span>','hostRestoreCancel()');
+  let p;try{p=new Peer(PRE+h.code,{debug:0})}catch(e){hostClear();home();return}
+  let opened=false;
+  p.on('error',e=>{
+    if(opened){if(!(e&&e.type==='unavailable-id'))toast('Netzwerk: '+((e&&e.type)||'Fehler'));return}
+    try{p.destroy()}catch(_){}
+    if(e&&e.type==='unavailable-id'&&tries<20){setTimeout(()=>{if(!NET.on&&hostGet())netHostRestore(h,tries+1)},3000);return}   // der alte Eintrag beim Vermittlungsserver braucht einen Moment
+    hostClear();toast('Lobby konnte nicht wiederhergestellt werden');home();
+  });
+  p.on('disconnected',()=>{if(opened&&NET.peer===p){try{p.reconnect()}catch(e){}}});
+  p.on('open',()=>{
+    opened=true;NET.peer=p;NET.on=true;NET.host=true;NET.client=false;NET.code=h.code;NET.inGame=false;
+    NET.localNames=S.names.slice();
+    NET.m=[{name:h.name,conn:null,last:Date.now(),view:'mirror',perm:true}];S.names=[h.name];
+    startMirror();wake();hbStart();
+    p.on('connection',netOnConn);
+    hostSave();lobbyScreen();toast('🔄 Lobby '+h.code+' wiederhergestellt – deine Mitspieler kommen gleich zurück');
   });
 }
 function netOnConn(c){
@@ -52,7 +79,7 @@ function netOnConn(c){
         let nm=nm0,k=2;while(NET.m.some(x=>x.name===nm))nm=nm0.slice(0,13)+' '+(k++);
         m={name:nm,cid};NET.m.push(m);
       }
-      m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;m.oh=null;m.tmId=null;mem=m;
+      m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;m.oh=null;m.rh=null;m.tmId=null;mem=m;
       sendTo(m,{t:'welcome',idx:NET.m.indexOf(m),name:m.name,code:NET.code});
       netMembersChanged();
       return;
@@ -77,7 +104,7 @@ function netPrune(){
   S.names=NET.m.map(x=>x.name);
 }
 function lobbyScreen(){
-  setLive(false);ACT=null;parEnd();PERM=null;NET.scr='lobby';TH=['var(--red2)','var(--red)'];stopAll();S.P=null;
+  setLive(false);ACT=null;parEnd();PERM=null;NET.scr='lobby';NET.setup=false;TH=['var(--red2)','var(--red)'];stopAll();S.P=null;
   const link=location.href.split('#')[0]+'#'+NET.code;
   let qr='';try{const q=qrcode(0,'M');q.addData(link);q.make();qr=q.createSvgTag({cellSize:6,margin:0,scalable:true})}catch(e){}
   scr(`<button class="sec back" onclick="home()">← Spiele</button>${logo('Lobby')}
@@ -86,14 +113,24 @@ function lobbyScreen(){
   <button class="sec" onclick="netShare()">🔗 Link teilen</button></div>
   <div class="card"><h2>Spieler (${NET.m.length})</h2>${NET.m.map((m,i)=>`<div class="row" style="align-items:center;margin-top:8px">${av(i,'',34)}<b style="flex:1">${esc(m.name)}${i===0?' <span class="sm">· Host</span>':''}</b><i class="dot2${i===0||isOpen(m)?'':' off'}"></i></div>`).join('')}
   ${NET.m.length<2?'<p class="sm" style="margin-bottom:0">Warte auf Mitspieler …</p>':''}</div>
-  <button onclick="home()">Spiel auswählen ➜</button>`);
+  <button onclick="home()">Spiel auswählen ➜</button><button class="sec" onclick="lobClose()">🚪 Lobby schließen</button>`);
+  if(NET.host)syncViews();
 }
+function lobClose(){
+  if(document.getElementById('lcd'))return;
+  const d=document.createElement('div');d.className='pk';d.id='lcd';d.style.zIndex=70;
+  d.innerHTML=`<div><h2>Lobby schließen?</h2><p style="margin-top:-4px">Alle Mitspieler werden getrennt, die Lobby ${esc(NET.code)} ist danach weg.</p><button class="sec" onclick="lobNo()">Abbrechen</button><button onclick="lobYes()">Lobby schließen</button></div>`;
+  document.body.appendChild(d);setTimeout(()=>{const b=d.querySelector('button.sec');if(b)b.focus()},30);
+}
+function lobNo(){const d=document.getElementById('lcd');if(d)d.remove()}
+function lobYes(){lobNo();netStop();home();toast('Lobby geschlossen')}
 function netShare(){
   const link=location.href.split('#')[0]+'#'+NET.code;
   try{if(navigator.share){navigator.share({title:'Party Box',text:'Komm in meine Lobby ('+NET.code+')',url:link}).catch(()=>{});return}}catch(e){}
   try{navigator.clipboard.writeText(link).then(()=>toast('Link kopiert'),()=>toast(link))}catch(e){toast(link)}
 }
 function netStop(){
+  hostClear();
   if(NET.host){
     NET.m.forEach((m,i)=>{if(i>0&&isOpen(m)){sendTo(m,{t:'bye',why:'Der Host hat die Lobby geschlossen.'});setTimeout(()=>{try{m.conn.close()}catch(e){}},300)}});
     stopMirror();hbStop();
@@ -138,21 +175,62 @@ function netEvent(m,d){
 }
 
 /* ---------- Herzschlag ---------- */
-let hbT=0;
-function hbStart(){
-  hbStop();
-  hbT=setInterval(()=>{
-    if(NET.host){
-      NET.m.forEach((m,i)=>{
-        if(i===0||!m.conn)return;
-        sendTo(m,{t:'hb'});
-        if(isOpen(m)&&Date.now()-m.last>16000){try{m.conn.close()}catch(e){}m.view='none';netMembersChanged()}
-      });
-    }else if(NET.client){
-      try{NET.conn&&NET.conn.open&&NET.conn.send({t:'ev',ty:'hb'})}catch(e){}
-      if(NET.lastHost&&Date.now()-NET.lastHost>16000)netClientLost();
-    }
-  },4000);
+let hbT=0,hbPrev=0;
+/* Host im Hintergrund (andere App, Display aus): Die Zeitgeber stehen still, danach sähe jeder Mitspieler „lange stumm“ aus.
+   Darum: Merkt der Host eine Lücke, bekommen alle Verbindungen eine Gnadenfrist und laufende Zeitfenster werden verlängert. */
+function netGrace(gap){
+  NET.m.forEach(m=>{if(isOpen(m))m.last=Date.now()});
+  if(gap>0){
+    if(PAR&&PAR.end){PAR.end+=gap;NET.m.forEach(m=>{m.tmId=null});try{syncViews()}catch(e){}}
+    if(typeof TM!=='undefined'&&TM&&TM.end)TM.end+=gap;
+  }
 }
+function hbTick(){
+  const now=Date.now();
+  if(NET.host){
+    const gap=hbPrev?now-hbPrev:0;hbPrev=now;
+    hostSave();
+    if(gap>9000)netGrace(gap);
+    if(NET.peer){if(NET.peer.destroyed)netPeerRevive();else if(NET.peer.disconnected){try{NET.peer.reconnect()}catch(e){}}}
+    NET.m.forEach((m,i)=>{
+      if(i===0||!m.conn)return;
+      sendTo(m,{t:'hb'});
+      if(isOpen(m)&&Date.now()-m.last>16000){try{m.conn.close()}catch(e){}m.view='none';netMembersChanged()}
+    });
+  }else if(NET.client){
+    try{NET.conn&&NET.conn.open&&NET.conn.send({t:'ev',ty:'hb'})}catch(e){}
+    if(NET.lastHost&&Date.now()-NET.lastHost>16000)netWaitStart();
+  }
+}
+function netPeerRevive(){   // Peer wurde zerstört (z. B. nach langer Pause im Hintergrund): unter derselben Lobby-ID neu anmelden
+  if(!NET.host||NET.reviving)return;NET.reviving=true;
+  let p;try{p=new Peer(PRE+NET.code,{debug:0})}catch(e){NET.reviving=false;return}
+  p.on('open',()=>{NET.reviving=false;NET.peer=p;p.on('connection',netOnConn);toast('Verbindung zum Server wiederhergestellt')});
+  p.on('error',()=>{NET.reviving=false});
+  p.on('disconnected',()=>{if(NET.peer===p){try{p.reconnect()}catch(e){}}});
+}
+function hbStart(){hbStop();hbPrev=Date.now();hbT=setInterval(hbTick,4000)}
 function hbStop(){clearInterval(hbT);hbT=0}
+/* Client: Host ist kurz weg – bis zu 3 Minuten warten (Bild bleibt stehen, Verbindung wird still erneuert) */
+const NET_GRACE=180000;
+function netWaitBanner(on,ms){
+  let b=document.getElementById('hwait');
+  if(!on){if(b)b.remove();return}
+  if(!b){b=document.createElement('div');b.id='hwait';document.body.appendChild(b)}
+  const left=Math.max(0,Math.round((NET_GRACE-(ms||0))/1000));
+  b.textContent='⏳ Der Host ist kurz weg – ich warte … (noch '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0')+')';
+}
+function netWaitStart(){
+  if(!NET.client||NET.wait)return;
+  NET.wait={t0:Date.now()};netWaitBanner(true,0);
+  NET.wait.iv=setInterval(()=>{
+    if(!NET.client||!NET.wait){netWaitStop();return}
+    const el=Date.now()-NET.wait.t0;
+    if(el>NET_GRACE){netWaitStop();netClientLost();return}
+    netWaitBanner(true,el);
+    // Nach Hintergrund/Funkloch ist eine Verbindung oft nur noch scheinbar „offen“: nach 10 s Stille trotzdem neu aufbauen (höchstens alle 8 s)
+    if(Date.now()-(NET.wait.tr||0)>=8000&&(!(NET.conn&&NET.conn.open)||el>=10000)){NET.wait.tr=Date.now();netJoin(NET.code,NET.name,true)}
+  },5000);
+}
+function netWaitStop(){if(NET.wait){clearInterval(NET.wait.iv);NET.wait=null}netWaitBanner(false)}
 

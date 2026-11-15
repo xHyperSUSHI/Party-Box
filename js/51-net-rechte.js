@@ -18,6 +18,7 @@ const PERMS={
   ttScreen:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.pi[G.turn]),
   dsScreen:()=>()=>(G.fin?'host':G.cur),
   waLock:()=>'all',
+  slfShow:()=>'all',
   kiTurn:()=>()=>G.cur,
   kiShow:()=>()=>G.cur
 };
@@ -27,8 +28,8 @@ function wrapPub(n,permFn){
   window[n]=function(){
     ACT=null;parEnd();PERM=permFn?permFn():null;
     if(n==='startSession')NET.inGame=true;
-    if(MENU.indexOf(n)>=0){NET.inGame=false;NET.scr=(n==='home')?'home':null;netPrune()}
-    else NET.scr=null;
+    if(MENU.indexOf(n)>=0){NET.inGame=false;NET.setup=(n==='gameSetup');NET.scr=(n==='home')?'home':(n==='settings'?'settings':null);netPrune()}
+    else{NET.scr=null;NET.setup=false}
     const r=f.apply(this,arguments);
     if(NET.host)syncViews();
     return r;

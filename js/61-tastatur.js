@@ -31,6 +31,7 @@ document.addEventListener('keydown',e=>{
   const t=e.target,tag=t&&t.tagName,k=e.key,typing=/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||(t&&t.isContentEditable);
   if(k==='Escape'){
     if(typing){t.blur();return}
+    if($('lcd')){lobNo();e.preventDefault();return}
     if($('dnote')){dnoteNo();e.preventDefault();return}
     if($('hmc')){hmNo();e.preventDefault();return}
     if(document.body.classList.contains('live')){hmAsk();e.preventDefault()}
@@ -46,7 +47,7 @@ document.addEventListener('keydown',e=>{
     if(t.id==='myn'){const b=t.closest('.card')&&t.closest('.card').querySelector('button:not(.sec)');if(b){e.preventDefault();b.click()}else if($('jc')){e.preventDefault();$('jc').focus()}}
     return;
   }
-  if($('hmc')||$('dnote'))return;                       // Rückfrage offen: nur Tab/Enter/Leertaste auf den Knöpfen
+  if($('hmc')||$('dnote')||$('lcd'))return;                       // Rückfrage offen: nur Tab/Enter/Leertaste auf den Knöpfen
   if(tag==='BUTTON'||tag==='A')return;                  // fokussierte Knöpfe lösen Enter/Leertaste selbst aus
   if(t&&t.getAttribute&&t.getAttribute('role')==='button'&&(k==='Enter'||k===' ')){e.preventDefault();t.click();return}
   const root=kbRoot(),lc=k.length===1?k.toLowerCase():k;

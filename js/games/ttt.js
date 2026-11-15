@@ -1,6 +1,6 @@
 /* ---------- Drei gewinnt ---------- */
 OPT.ttt={best:3,vs:'mensch',lvl:'schwer',a:0,b:1};
-function ttSel(k,i){const o=OPT.ttt;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('ttt')}
+function ttSel(k,i){const o=OPT.ttt;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;keepScroll(()=>gameSetup('ttt'))}
 const ttNm=k=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.ttt[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="ttSel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
 GAMES.ttt={name:'Drei gewinnt',e:'❌',tag:'Der Schulhof-Klassiker',c:['#f43f5e','#f97316'],min:1,teams:false,
   desc:'Tic-Tac-Toe: Drei in einer Reihe gewinnt. Gegen einen Freund oder den Computer.',

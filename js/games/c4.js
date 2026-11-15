@@ -1,7 +1,7 @@
 /* ================= 4 Gewinnt ================= */
 OPT.c4={vs:'mensch',lvl:'mittel',best:3,a:0,b:1};
 const nmSel=(k)=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.c4[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="c4Sel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
-function c4Sel(k,i){OPT.c4[k]=i;if(OPT.c4.a===OPT.c4.b)OPT.c4[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('c4')}
+function c4Sel(k,i){OPT.c4[k]=i;if(OPT.c4.a===OPT.c4.b)OPT.c4[k==='a'?'b':'a']=(i+1)%S.names.length;keepScroll(()=>gameSetup('c4'))}
 GAMES.c4={name:'4 Gewinnt',e:'🔴',tag:'Der Duell-Klassiker',c:['#3b82f6','#1d4ed8'],min:1,teams:true,nt2:true,
   desc:'Wirf abwechselnd Steine ein und bring vier in eine Reihe – waagerecht, senkrecht oder diagonal.',
   rules:'Tippe auf eine Spalte, der Stein fällt ganz nach unten. Wer zuerst vier eigene Steine in einer Reihe hat, gewinnt die Runde. Gespielt wird auf mehrere Gewinnrunden („Best of“). Der Startspieler wechselt jede Runde. Im Teammodus spielen zwei Teams gegeneinander, die Mitglieder wechseln sich ab. Gegen den Computer gibt es drei Stufen.',

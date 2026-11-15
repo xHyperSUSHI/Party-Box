@@ -1,0 +1,47 @@
+const {chromium}=require('playwright');
+let fails=0;const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);if(!c)fails++};
+(async()=>{
+ const b=await chromium.launch({args:['--no-sandbox']});const errs=[];
+ const p=await b.newPage({viewport:{width:390,height:900}});p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
+ await p.goto('file:///home/user/Party-Box/index.html');await p.waitForSelector('.gt');
+ const r=await p.evaluate(()=>{
+  const out={};
+  out.cats=QCATS.slice();
+  const all=[].concat(Q,...Object.values(QX));
+  out.bad=all.filter(q=>!(typeof q[0]==='string'&&isFinite(q[1])&&q[1]!==0&&typeof q[2]==='string')).map(q=>q[0]);
+  const t=all.map(q=>q[0]);out.dups=t.filter((x,i)=>t.indexOf(x)!==i);
+  const deck=(cats,n)=>{OPT.arsch.cats={};cats.forEach(c=>OPT.arsch.cats[c]=true);return buildDeck(n)};
+  out.each={};
+  QCATS.forEach(c=>{const d=deck([c],10);out.each[c]={len:d.length,uniq:new Set(d.map(q=>q[0])).size,fromPool:QPOOL[c]?d.filter(q=>QPOOL[c]().some(x=>x[0]===q[0])).length:0}});
+  const l=deck(['Lustig & Alltag 🤪'],20);out.lustig20={len:l.length,allX:l.every(q=>QX['Lustig & Alltag 🤪'].some(x=>x[0]===q[0]))};
+  const t20=deck(['Tiere & Natur 🐾'],20);out.tiere20=t20.length;
+  out.none=deck([],10).length;
+  const r20=deck(['Rechnen & Orte 🧮'],20);out.rechnen20={len:r20.length,uniq:new Set(r20.map(q=>q[0])).size};
+  let e=0;for(let i=0;i<300;i++){try{deck(['Rechnen & Orte 🧮','Jahreszahlen 📅'],15)}catch(x){e++}}out.errs=e;
+  const mix=deck(['Lustig & Alltag 🤪','Essen & Trinken 🍕'],10);out.mix={len:mix.length};
+  return out;
+ });
+ console.log(JSON.stringify(r.cats));
+ ok(r.cats.length===6,'6 Kategorien');
+ ok(r.bad.length===0,'Alle Fragen haben Text, Zahl ≠ 0 und Einheit');
+ ok(r.dups.length===0,'Keine doppelten Fragetexte'+(r.dups.length?': '+r.dups:''));
+ for(const c in r.each)ok(r.each[c].len===10&&r.each[c].uniq===10,`${c}: 10 eindeutige Fragen (${JSON.stringify(r.each[c])})`);
+ ok(r.lustig20.len===20&&r.lustig20.allX,'Lustig & Alltag bei 20 Runden: nur Fragen dieser Kategorie');
+ ok(r.tiere20===14,'Tiere & Natur hat nur 14 Fragen → Deck kürzer: '+r.tiere20);
+ ok(r.none===10,'Nichts gewählt = alle (10 Fragen)');
+ ok(r.rechnen20.len===20&&r.rechnen20.uniq===20,'Rechnen & Orte: 20 generierte, eindeutige Fragen');
+ ok(r.errs===0,'300 Durchläufe ohne Fehler');
+ // UI
+ await p.evaluate(()=>{OPT.arsch.cats={};pickGame('arsch')});await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>document.querySelector('.chips').querySelectorAll('.chip').length===6),'Setup zeigt 6 Kategorie-Chips');
+ await p.evaluate(()=>{[...document.querySelectorAll('.chips .chip')].find(c=>c.textContent.includes('Lustig')).click()});
+ ok(await p.evaluate(()=>OPT.arsch.cats['Lustig & Alltag 🤪']===true&&[...document.querySelectorAll('.chip.on')].length===1),'Chip antippen wählt die Kategorie');
+ await p.screenshot({path:require('os').tmpdir()+'/cats-setup.png'});
+ await p.evaluate(()=>{OPT.arsch.rounds=20;OPT.arsch.timer=0;startSession('arsch')});await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>G.deck.every(q=>QX['Lustig & Alltag 🤪'].some(x=>x[0]===q[0]))&&G.rounds===20),'Spiel nur mit Lustig & Alltag (20 Runden)');
+ await p.evaluate(()=>{home();OPT.arsch.cats={'Tiere & Natur 🐾':true};OPT.arsch.rounds=20;pickGame('arsch');startSession('arsch')});await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>G.rounds===14&&G.deck.length===14),'Zu wenige Fragen: Spiel wird auf 14 Runden gekürzt');
+ await p.evaluate(()=>{HF()});await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>document.querySelector('.q').textContent.length>10),'Frage wird angezeigt: '+await p.evaluate(()=>document.querySelector('.q').textContent));
+ console.log('Fehler im Browser:',errs.length?errs:'keine');console.log(fails?fails+' FEHLGESCHLAGEN':'alles ok');await b.close();process.exit(fails?1:0);
+})();

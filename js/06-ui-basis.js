@@ -11,7 +11,9 @@ const tb=(t,sz,cls)=>`<div class="av ${cls||''}" style="${sz?`width:${sz}px;heig
 const logo=(txt,sm)=>`<div class="logo"><div class="rc"></div><h1${sm?' style="font-size:30px"':''}>${txt}</h1></div>`;
 const prg=(d,t,lab)=>`<div class="sm">${lab}</div><div class="prog"><i style="width:${Math.min(100,d/t*100)}%"></i></div>`;
 const seg=(g,k,vals,lab)=>`<div class="row">${vals.map(v=>`<button class="${OPT[g][k]===v?'':'sec'} sg" onclick="setOpt('${g}','${k}',${typeof v==='string'?`'${v}'`:v})">${lab?lab(v):v}</button>`).join('')}</div>`;
-function setOpt(g,k,v){OPT[g][k]=v;gameSetup(g)}
+/* Einstellungen ändern lädt den Bildschirm neu – die Scrollposition bleibt dabei erhalten */
+function keepScroll(f){const sc=app.scrollTop;f();app.scrollTop=sc}
+function setOpt(g,k,v){OPT[g][k]=v;keepScroll(()=>gameSetup(g))}
 
 /* ---------- Home ---------- */
 /* ---------- Spieler ---------- */

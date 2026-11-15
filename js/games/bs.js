@@ -1,6 +1,6 @@
 /* ---------- Schiffe versenken ---------- */
 OPT.bs={best:1,size:'klassisch',vs:'mensch',lvl:'schwer',again:'wechsel',a:0,b:1};
-function bsSel(k,i){const o=OPT.bs;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('bs')}
+function bsSel(k,i){const o=OPT.bs;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;keepScroll(()=>gameSetup('bs'))}
 const bsNm=k=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.bs[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="bsSel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
 GAMES.bs={name:'Schiffe versenken',e:'🚢',tag:'Der Klassiker auf dem Gitter',c:['#0ea5e9','#1d4ed8'],min:1,teams:false,
   desc:'Versteck deine Flotte, errate die Felder des Gegners und versenke alle seine Schiffe zuerst.',

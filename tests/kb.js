@@ -1,0 +1,133 @@
+const {chromium}=require('playwright');const fs=require('fs');
+const URL='http://127.0.0.1:8765/index.html',MOCK=fs.readFileSync(__dirname+'/mock.js','utf8');
+let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);if(!c)fails++};const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+ const b=await chromium.launch({args:['--no-sandbox']});const ctx=await b.newContext({viewport:{width:1180,height:820}});await ctx.addInitScript(MOCK);
+ const mk=async(label,hash)=>{const p=await ctx.newPage();
+  await p.addInitScript(pre=>{const g=Storage.prototype.getItem,s=Storage.prototype.setItem,r=Storage.prototype.removeItem;Storage.prototype.getItem=function(k){return g.call(this,pre+k)};Storage.prototype.setItem=function(k,v){return s.call(this,pre+k,v)};Storage.prototype.removeItem=function(k){return r.call(this,pre+k)}},label+':');
+  p.on('pageerror',e=>errs.push(label+': '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(label+': '+m.text())});
+  await p.goto(URL+(hash||''));await p.waitForSelector('#app .screen');return p};
+ const L=await mk('Lokal');const K=L.keyboard;
+ await L.evaluate(()=>{S.names=['Anna','Ben','Cem'];OPT.arsch.timer=0;OPT.arsch.rounds=5;home()});await sleep(300);
+
+ console.log('== Startseite, Setup, Arschkarte nur mit Tastatur ==');
+ await K.press('1');await sleep(300);
+ ok(await L.evaluate(()=>CUR==='arsch'),'Taste 1 öffnet das erste Spiel (Arschkarte)');
+ ok(await L.evaluate(()=>[...document.querySelectorAll('.chip')].every(c=>c.tabIndex===0&&c.getAttribute('role')==='button')),'Kategorie-Chips sind per Tab erreichbar');
+ await L.evaluate(()=>document.querySelector('.chip').focus());await K.press(' ');
+ ok(await L.evaluate(()=>document.querySelector('.chip').classList.contains('on')),'Leertaste schaltet ein fokussiertes Chip um');
+ await L.evaluate(()=>{OPT.arsch.cats={};});
+ await L.evaluate(()=>{document.activeElement&&document.activeElement.blur()});
+ await K.press('Enter');await sleep(300);
+ ok(await L.evaluate(()=>G&&G.id==='arsch'),'Enter startet das Spiel ("Los geht\'s")');
+ await K.press('Enter');await sleep(400);
+ ok(await L.evaluate(()=>!!document.getElementById('g')),'Enter bestätigt "Ich bin\'s"');
+ await K.type('500');await K.press('Enter');await sleep(500);
+ ok(await L.evaluate(()=>G.g[0]===500&&document.querySelectorAll('.opt').length===2),'Zahl tippen + Enter schickt ab, Tipp-Bildschirm erscheint');
+ await K.press('1');await sleep(800);
+ ok(await L.evaluate(()=>G.t[0]===1),'Taste 1 wählt den ersten Tipp (Ben)');
+ await K.press('Enter');await sleep(400);await K.type('900');await K.press('Enter');await sleep(500);await K.press('2');await sleep(800);
+ await K.press('Enter');await sleep(400);await K.type('300');await K.press('Enter');await sleep(500);await K.press('1');await sleep(1500);
+ ok((await L.evaluate(()=>document.body.innerText)).toLowerCase().includes('richtige antwort'),'Nach dem dritten Spieler erscheint die Auswertung');
+ await K.press('Enter');await sleep(400);
+ ok(await L.evaluate(()=>G.r===1),'Enter in der Auswertung → nächste Frage');
+
+ console.log('== Esc / Hauptmenü ==');
+ await L.evaluate(()=>{document.activeElement&&document.activeElement.blur()});
+ await K.press('Escape');await sleep(200);
+ ok(await L.evaluate(()=>!!document.getElementById('hmc')&&document.activeElement.textContent.includes('Weiter spielen')),'Esc öffnet die Rückfrage, Fokus liegt auf "Weiter spielen"');
+ await K.press('Enter');await sleep(150);
+ ok(await L.evaluate(()=>!document.getElementById('hmc')&&G.id==='arsch'),'Enter dort = Weiter spielen (nichts wird beendet)');
+ await K.press('Escape');await sleep(100);await K.press('Escape');await sleep(100);
+ ok(await L.evaluate(()=>!document.getElementById('hmc')),'Zweites Esc schließt die Rückfrage');
+ await K.press('Escape');await sleep(100);await K.press('Tab');await K.press('Enter');await sleep(300);
+ ok(await L.evaluate(()=>document.body.innerText.includes('Such dir ein Spiel')),'Esc, Tab, Enter → Hauptmenü');
+
+ console.log('== Einstellungen: Schalter per Tastatur ==');
+ await L.evaluate(()=>settings());await sleep(200);
+ const fx=await L.evaluate(()=>C.fx);
+ await L.evaluate(()=>{const r=[...document.querySelectorAll('.trow')].find(x=>x.innerText.includes('Animationen'));r.focus()});
+ ok(await L.evaluate(()=>document.querySelector('.trow').getAttribute('role')==='button'),'Schalter-Zeilen sind fokussierbar');
+ await K.press('Enter');await sleep(200);
+ ok(await L.evaluate(f=>C.fx===!f,fx),'Enter schaltet die Einstellung um');
+ ok((await L.evaluate(()=>document.body.innerText)).includes('Tastatur'),'Einstellungen zeigen die Tastenkürzel');
+ await L.evaluate(()=>{C.fx=true;saveCfg();home()});
+
+ console.log('== Reflex: Leertaste ==');
+ await L.evaluate(()=>{OPT.react.rounds=3;pickGame('react')});await sleep(200);
+ await L.evaluate(()=>document.activeElement&&document.activeElement.blur());
+ await K.press('Enter');await sleep(300);await K.press('Enter');await sleep(300);
+ await L.waitForFunction(()=>G.rs==='go',null,{timeout:9000});await sleep(200);
+ await K.press(' ');await sleep(300);
+ ok(await L.evaluate(()=>typeof G.times[0]==='number'&&G.times[0]>=100&&G.times[0]<1500),'Leertaste tippt im Reflex-Spiel: '+await L.evaluate(()=>G.times[0])+' ms');
+ await K.press('Enter');await sleep(300);
+ ok(await L.evaluate(()=>G.i===1),'Enter auf dem Ergebnis → nächster Spieler');
+
+ console.log('== 4 Gewinnt ==');
+ await L.evaluate(()=>{S.names=['Anna','Ben'];OPT.c4.vs='mensch';OPT.c4.best=3;home();pickGame('c4');startSession('c4')});await sleep(400);
+ await K.press('4');await sleep(300);
+ ok(await L.evaluate(()=>G.bd[5][3]===1),'Ziffer 4 wirft in die vierte Spalte');
+ await K.press('ArrowRight');await K.press('ArrowRight');await K.press('Enter');await sleep(300);
+ ok(await L.evaluate(()=>G.bd[5][5]===2),'Pfeile + Enter: Spieler 2 wirft in Spalte 6');
+ await K.press('1');await sleep(300);await K.press('ArrowDown');await sleep(300);
+ ok(await L.evaluate(()=>G.bd[5][0]===1&&G.bd[4][5]===2),'Weitere Züge: Ziffer 1 und ↓ in der markierten Spalte 6');
+ await L.evaluate(()=>{S.names=['Anna','Ben','Cem']});
+
+ console.log('== Wellenlänge: Pfeile ==');
+ await L.evaluate(()=>{OPT.wave.rounds=1;home();pickGame('wave');startSession('wave')});await sleep(300);
+ await K.press('Enter');await sleep(300);await K.press('Enter');await sleep(300);
+ ok(await L.evaluate(()=>!!document.getElementById('sp')&&document.getElementById('sp').hasAttribute('data-ptr')),'Rate-Bildschirm mit Regler');
+ await K.press('ArrowRight');await K.press('ArrowRight');await K.press('ArrowRight');await sleep(200);
+ const g1=await L.evaluate(()=>G.guess);
+ await K.press('Shift+ArrowLeft');await sleep(200);
+ const g2=await L.evaluate(()=>G.guess);
+ ok(Math.abs(g1-53)<1.5&&Math.abs(g2-(g1-5))<1.5,`→→→ ergibt ${g1}, Shift+← ergibt ${g2}`);
+ await K.press('Enter');await sleep(500);
+ ok((await L.evaluate(()=>document.body.innerText)).includes('für'),'Enter loggt den Marker ein (Auflösung)');
+
+ console.log('== Tabu: T, S, Enter, Ziffern ==');
+ await L.evaluate(()=>{OPT.taboo.secs=60;OPT.taboo.rounds=1;home();pickGame('taboo');startSession('taboo')});await sleep(300);
+ await K.press('Enter');await sleep(400);
+ await K.press('t');await sleep(100);await K.press('s');await sleep(100);
+ ok(await L.evaluate(()=>G.tabu===1&&G.skips===1),'T zählt Tabu, S überspringt');
+ await K.press('Enter');await sleep(200);
+ ok(await L.evaluate(()=>!!document.getElementById('pk')),'Enter = Erraten, Auswahl erscheint');
+ await K.press('1');await sleep(200);
+ ok(await L.evaluate(()=>G.pts[1]===1&&!document.getElementById('pk')),'Ziffer 1 wählt den Rater (Ben +1)');
+
+ console.log('== Info-Taste I ==');
+ await L.evaluate(()=>{OPT.arsch.timer=0;home();pickGame('arsch');startSession('arsch');G.q=Q.find(q=>q[0]==='In welchem Jahr sank die Titanic?');HF()});await sleep(300);
+ await K.press('Escape');await sleep(100);await K.press('i');await sleep(100);
+ ok(await L.evaluate(()=>!document.querySelector('.qinfo').hidden),'I klappt die Info auf');
+ await K.press('i');
+ ok(await L.evaluate(()=>document.querySelector('.qinfo').hidden),'I klappt sie wieder zu');
+ await L.evaluate(()=>home());
+
+ console.log('== Namen-Eingabe ==');
+ await L.evaluate(()=>{S.names=['Spieler 1','Spieler 2','Spieler 3'];playersScreen()});await sleep(200);
+ await L.evaluate(()=>document.querySelector('#pl input').focus());
+ await K.type('Sascha');await K.press('Enter');await K.type('Leni');
+ ok(await L.evaluate(()=>{const i=[...document.querySelectorAll('#pl input')];return i[0].value==='Sascha'&&i[1].value==='Leni'}),'Enter springt zum nächsten Namensfeld');
+ await K.press('Enter');await K.press('Enter');await sleep(300);
+ ok(await L.evaluate(()=>S.names[0]==='Sascha'&&S.names[1]==='Leni'&&document.body.innerText.includes('Such dir ein Spiel')),'Enter im letzten Feld speichert und geht zurück');
+
+ console.log('== Online: Tastatur auf dem Mitspieler-Handy ==');
+ const H=await mk('Host');await H.evaluate(()=>onlineMenu());await H.fill('#myn','Hosti');await H.evaluate(()=>netHostStart());
+ await H.waitForFunction(()=>NET.on&&NET.host&&NET.code);const code=await H.evaluate(()=>NET.code);
+ const A=await mk('Anna','#'+code);await A.fill('#myn','Anna');await A.evaluate(c=>netJoinStart(c),code);
+ const B=await mk('Ben','#'+code);await B.fill('#myn','Ben');await B.evaluate(c=>netJoinStart(c),code);
+ await H.waitForFunction(()=>NET.m.length===3&&NET.m.every((m,i)=>i===0||m.conn&&m.conn.open));await sleep(300);
+ await H.evaluate(()=>{OPT.most.timer=0;OPT.most.rounds=5;home();pickGame('most');startSession('most')});await sleep(600);
+ await A.keyboard.press('1');await sleep(300);
+ ok(await H.evaluate(()=>G.v[1]!==undefined&&G.v[1]!==null),'Anna wählt per Ziffer 1 (Stimme kommt beim Host an: '+await H.evaluate(()=>G.v[1])+')');
+ await B.keyboard.press('2');await H.keyboard.press('1');await sleep(800);
+ ok(await H.evaluate(()=>PAR===null&&document.getElementById('app').innerText.includes('Gewählt von')),'Alle per Tastatur abgestimmt, Auflösung erscheint');
+ await H.evaluate(()=>{OPT.react.rounds=3;home();pickGame('react');startSession('react')});await sleep(500);
+ await H.waitForFunction(()=>G.rs==='go',null,{timeout:9000});await H.keyboard.press(' ');await sleep(300);
+ await H.keyboard.press('Enter');await sleep(500);                     // Host fertig → Anna dran
+ await A.waitForSelector('#rx.g',{timeout:9000});await sleep(250);
+ await A.keyboard.press(' ');await sleep(1000);
+ const am=await H.evaluate(()=>G.times[1]);
+ ok(typeof am==='number'&&am>=80&&am<3000,'Reflex: Leertaste auf Annas Handy, Zeit beim Host: '+am+' ms');
+ console.log('\nFehler im Browser:',errs.length?errs:'keine');console.log(fails?fails+' FEHLGESCHLAGEN':'alles ok');await b.close();process.exit(fails?1:0);
+})().catch(e=>{console.error('Abbruch',e);process.exit(2)});

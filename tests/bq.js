@@ -1,0 +1,15 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch({args:['--no-sandbox']});const p=await b.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
+await p.goto('http://127.0.0.1:8765/index.html');await p.waitForSelector('#app .screen');let f=0;const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);if(!c)f++};
+ok(await p.evaluate(()=>BQZ.length>=10&&BQW.length>=25&&BQZ.every(q=>q[0].includes('…')&&q[1])&&new Set(BQ.concat(BQZ,BQW).map(q=>q[0])).size===BQ.length+BQZ.length+BQW.length),'Daten: Zitate/Wörter vorhanden, Fragen eindeutig');
+await p.evaluate(()=>{S.names=['A','B','C'];OPT.bluff.rounds=3;OPT.bluff.cats={};pickGame('bluff')});
+ok(await p.evaluate(()=>[...document.querySelectorAll('.chip')].filter(c=>/Wissen|Zitate|Wörter/.test(c.textContent)).length===3),'Setup: 3 Fragenart-Chips');
+await p.evaluate(()=>{startSession('bluff')});
+ok(await p.evaluate(()=>new Set(G.qs.map(q=>BQZ.includes(q)?'z':BQW.includes(q)?'w':'k')).size===3),'Alle Arten gemischt: 3 Runden = je eine Art');
+await p.evaluate(()=>{OPT.bluff.cats={'Zitate 💬':true};startSession('bluff')});
+ok(await p.evaluate(()=>G.qs.length===3&&G.qs.every(q=>BQZ.includes(q))),'Nur Zitate gewählt');
+await p.evaluate(()=>{HF();});await p.waitForSelector('#bt');
+ok((await p.evaluate(()=>document.body.innerText)).includes('Vervollständige das Zitat'),'Zitatfrage wird angezeigt');
+await p.evaluate(()=>{$('bt').value=G.q[1];bSubmit()});
+ok(await p.evaluate(()=>document.getElementById('e').textContent.includes('Zu nah')),'Echte Antwort wird als Fälschung abgelehnt');
+console.log('Fehler:',errs.length?errs:'keine');await b.close();process.exit(f?1:0)})();

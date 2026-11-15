@@ -23,14 +23,14 @@ function myCid(){
   try{let c=localStorage.getItem('pb_cid');if(!c){c=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('pb_cid',c)}return NET.cid=c}
   catch(e){return NET.cid=Math.random().toString(36).slice(2)+Date.now().toString(36)}
 }
-function netJoin(code,name){
+function netJoin(code,name,quiet){
   lostInfo=null;
   // Ein früherer Versuch/eine frühere Verbindung desselben Geräts wird beendet, sonst steht man doppelt in der Lobby
   const oc=NET.conn,op=NET.peer;NET.conn=null;NET.peer=null;hbStop();
   try{oc&&oc.close()}catch(e){}try{op&&op.destroy()}catch(e){}
   const jid=NET.jid=(NET.jid||0)+1;
-  netStatus('Verbinde mit Lobby '+esc(code)+' …','netLeave()');
-  NET.on=true;NET.client=true;NET.host=false;NET.code=code;NET.name=name;NET.perm=true;NET.lastHost=Date.now();NET.got=false;
+  if(!quiet)netStatus('Verbinde mit Lobby '+esc(code)+' …','netLeave()');
+  NET.on=true;NET.client=true;NET.host=false;NET.code=code;NET.name=name;NET.perm=true;NET.lastHost=Date.now();if(!quiet)NET.got=false;
   document.body.classList.add('cl','live');
   let p;try{p=new Peer(undefined,{debug:0})}catch(e){netClientFail('Verbindung nicht möglich.');return}
   NET.peer=p;
@@ -41,7 +41,7 @@ function netJoin(code,name){
     const c=p.connect(PRE+code,{reliable:true,serialization:'json'});NET.conn=c;
     c.on('open',()=>{clearTimeout(to);NET.lastHost=Date.now();c.send({t:'hi',n:name,id:myCid()});hbStart();wake()});
     c.on('data',d=>{if(NET.conn===c)netClientData(d)});
-    c.on('close',()=>{if(NET.client&&NET.conn===c)netClientLost()});
+    c.on('close',()=>{if(NET.client&&NET.conn===c)netWaitStart()});
     c.on('error',()=>{});
   });
   $('lv').style.display='block';$('lv').textContent='🌐 '+code+' · '+name;
@@ -51,6 +51,12 @@ function netClientFail(msg){
   scr(`${logo('Online')}<div class="card" style="text-align:center"><div style="font-size:42px">😕</div><p style="margin:8px 0 0">${msg}</p></div><button onclick="history.replaceState(null,'',location.pathname);home()">← Zurück</button>`);
 }
 let lostInfo=null;
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&NET.client&&NET.got&&!NET.wait){
+    const t=Date.now();NET.vis=t;
+    setTimeout(()=>{if(NET.client&&NET.vis===t&&NET.lastHost<t)netWaitStart()},6000);   // der Host meldet sich normalerweise alle 4 s
+  }
+});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&lostInfo&&!NET.on){const l=lostInfo;lostInfo=null;netJoin(l.code,l.name)}});
 function netClientLost(){
   const code=NET.code,name=NET.name;
@@ -62,7 +68,7 @@ function netLeave(){
   netCleanup();history.replaceState(null,'',location.pathname);home();
 }
 function netCleanup(){
-  hbStop();tmrHide();
+  hbStop();netWaitStop();tmrHide();
   try{NET.conn&&NET.conn.close()}catch(e){}
   try{NET.peer&&NET.peer.destroy()}catch(e){}
   NET.on=false;NET.client=false;NET.conn=null;NET.peer=null;NET.got=false;
@@ -84,7 +90,7 @@ function parseInto(el,html){
 function netClientData(d){netClientData0(d);rxWatch();kbPrep()}
 function netClientData0(d){
   if(!d||typeof d!=='object')return;
-  NET.lastHost=Date.now();NET.got=true;
+  NET.lastHost=Date.now();NET.got=true;if(NET.wait)netWaitStop();
   if(d.t==='welcome'){NET.idx=d.idx;if(d.name&&d.name!==NET.name){NET.name=d.name;$('lv').textContent='🌐 '+NET.code+' · '+d.name}sessSave()}
   else if(d.t==='full'||d.t==='wait'){
     parseInto(app,String(d.html||''));window.scrollTo(0,0);app.scrollTop=0;

@@ -1,6 +1,6 @@
 /* ---------- Einstellungen ---------- */
 const tg=(k,l,sub)=>`<div class="trow" onclick="setC('${k}',${!C[k]})"><span>${l}${sub?`<br><span class="sm">${sub}</span>`:''}</span><i class="sw ${C[k]?'on':''}"></i></div>`;
-function setC(k,v){C[k]=v;if(k==='sips'&&!v&&typeof DRKV!=='undefined')DRKV.forEach(g=>{OPT[g].drink=false});saveCfg();applyTheme();if(k==='sound'&&v)sfx.ok();settings()}
+function setC(k,v){C[k]=v;if(k==='sips'&&!v&&typeof DRKV!=='undefined')DRKV.forEach(g=>{OPT[g].drink=false});saveCfg();applyTheme();if(k==='sound'&&v)sfx.ok();keepScroll(settings)}
 async function checkUpdate(){
   const e=$('upd');if(!e)return;e.textContent='Prüfe …';
   try{
@@ -44,14 +44,15 @@ function gameSetup(id){
   setLive(false);stopAll();CUR=id;const d=GAMES[id];TH=d.c;
   scr(`<button class="sec back" onclick="home()">← Spiele</button>
   <div class="hero"><div class="he">${d.e}</div><h1 style="margin:4px 0;font-size:34px;letter-spacing:-1px">${d.name}</h1><p style="margin:0">${d.desc}</p></div>
+  ${NET.host?'<p class="sm" style="text-align:center;margin:6px 0 0">👀 Deine Mitspieler sehen live mit, was du hier einstellst – redet gern darüber!</p>':''}
   ${modeCard()}
   <div class="card"><h2>Einstellungen</h2>${d.opts()}${DRKV.includes(id)?drinkChip(id):''}</div>
   <div class="card" style="padding:14px 18px"><details><summary>Regeln</summary>${d.rules}</details></div>
   <button onclick="startSession('${id}')">Los geht's</button>`);
 }
 const teamOn=()=>S.mode==='team'&&S.names.length>=4&&CUR&&GAMES[CUR].teams;
-function setMode(m){S.mode=m;gameSetup(CUR)}
-function setNt(k){S.nt=k;gameSetup(CUR)}
+function setMode(m){S.mode=m;keepScroll(()=>gameSetup(CUR))}
+function setNt(k){S.nt=k;keepScroll(()=>gameSetup(CUR))}
 const tmKey=()=>S.names.map(n=>n.trim()).join('\u0001')+'|'+S.nt;
 const validTm=()=>!!S.tm&&S.tmKey===tmKey();
 function tmList(tm,lastP){
