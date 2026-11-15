@@ -70,10 +70,11 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  r=await H.evaluate(()=>NET.m.map(m=>m.av?m.av.h:null));
  ok(JSON.stringify(r)==='[0,3,null]','Host kennt die Charaktere: Host, Anna (lang), Ben ohne');
  r=await H.evaluate(()=>({room:document.querySelectorAll('#app .lroom .lrf').length,sit:document.querySelectorAll('#app .lroom .lrs').length,ch:document.querySelectorAll('#app .av.ch').length}));
- ok(r.room===3&&r.sit===3&&r.ch===2,'Host-Lobby: Wohnzimmer mit 3 Figuren auf dem Sofa, 2 Charakter-Avatare in der Liste');
+ ok(r.room===3&&r.sit===3,'Host-Lobby: Wohnzimmer mit 3 Figuren auf dem Sofa');
  r=await A.evaluate(()=>({room:document.querySelectorAll('#app .lroom .lrf').length,me:!!document.querySelector('#app .rmfig svg.fig'),ch:document.querySelectorAll('#app .av.ch').length,on:[...document.querySelectorAll('#app [onclick],#app [onerror]')].length}));
- ok(r.room===3&&r.me&&r.ch===2,'Annas Warteraum: Wohnzimmer, eigene Figur, Charaktere der anderen');
+ ok(r.room===3&&r.me&&await A.evaluate(()=>!!document.querySelector('.lrn.me')),'Annas Warteraum: Wohnzimmer, eigene Figur, sie ist markiert');
  ok(r.on===0,'... ohne ausführbare Attribute (strip)');
+ ok(await H.evaluate(()=>app.scrollHeight<=app.clientHeight+1)&&await A.evaluate(()=>app.scrollHeight<=app.clientHeight+1),'Lobby (Host) und Warteraum passen ohne Scrollen auf den Bildschirm (390×800)');
  if(SHOT){await A.screenshot({path:SHOT+'/warteraum.png',fullPage:true});await H.screenshot({path:SHOT+'/lobby.png',fullPage:true})}
  // Spiel starten: Avatare kommen über die Spiegelung zu den Mitspielern
  await H.evaluate(()=>{localStorage.setItem('pb_dnote','1');CUR='most';gameSetup('most');startSession('most')});await sleep(900);

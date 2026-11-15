@@ -296,18 +296,19 @@ function podiumHTML(idx,vals,unit){
 }
 /* Wohnzimmer (Online-Lobby beim Host und Warteraum der Mitspieler): die ersten drei sitzen auf dem Sofa, die anderen
    laufen herum oder winken. Reines HTML/SVG + CSS-Animation, läuft dadurch auch in der Spiegelung. */
-function roomScene(){
-  const ms=(NET.m||[]).slice(0,10);
+function roomScene(meIdx){
+  const ms=(NET.m||[]).slice(0,10),all=(NET.m||[]).length;
   const lanes=[[8,'walk',26],[16,'wave',0],[4,'walk',31],[12,'stand',0],[20,'walk',23],[6,'wave',0],[14,'walk',35]];
   const figs=ms.map((m,i)=>{
     const on=i===0||isOpen(m),nm=esc(m.name);
-    const tag=`<span class="lrn">${nm}</span>`;
+    const tag=`<span class="lrn${i===meIdx?' me':''}">${i===0?'👑 ':''}${nm}${i===meIdx?' (du)':''}</span>`;
     const svg=pose=>figSVG(m.av,{pose,ini:m.name});
     if(i<3){const x=[50,30,70][i];return `<div class="lrf lrs${on?'':' off'}" style="left:${x}%">${svg('sit')}${tag}</div>`}
     const [b,pose,dur]=lanes[(i-3)%lanes.length],x=8+((i-3)*29)%78;
     if(pose==='walk')return `<div class="lrf lrw${on?'':' off'}" style="left:${x}%;bottom:${b}%;animation-duration:${dur}s;animation-delay:-${(i*7)%dur}s"><div class="lrflip" style="animation-duration:${dur}s;animation-delay:-${(i*7)%dur}s">${svg('walk')}</div>${tag}</div>`;
     return `<div class="lrf${on?'':' off'}" style="left:${x}%;bottom:${b}%">${svg(pose)}${tag}</div>`;
   }).join('');
-  return `<div class="lroom" aria-label="Wohnzimmer"><div class="lrwin"><i></i></div><div class="lrlamp"></div><div class="lrpic"></div><div class="lrplant"><i></i><i></i><i></i></div>
+  const lab=`<div class="lrlab">In der Lobby (${all})${ms[0]?' · Host: '+esc(ms[0].name):''}${all<2?'<br><small>Warte auf Mitspieler …</small>':''}</div>`;
+  return `<div class="lroom" aria-label="Wohnzimmer">${lab}<div class="lrwin"><i></i></div><div class="lrlamp"></div><div class="lrpic"></div><div class="lrplant"><i></i><i></i><i></i></div>
   <div class="lrrug"></div><div class="lrsofa"><i class="lb"></i><i class="ls"></i><i class="la1"></i><i class="la2"></i></div>${figs}</div>`;
 }

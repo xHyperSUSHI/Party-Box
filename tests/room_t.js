@@ -34,8 +34,8 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  ok((await room(A)).txt.includes('in den Einstellungen'),'Host in den Einstellungen: „gerade in den Einstellungen“');
  // Zugang / Abgang
  await B.evaluate(()=>{NET.conn.close()});await sleep(1500);
- const off=await A.evaluate(()=>document.querySelectorAll('.room ~ .card .dot2.off').length);
- ok(await H.evaluate(()=>!isOpen(NET.m[2]))&&(await room(A)).txt.length>0,'Ben getrennt: Warteraum bleibt bei Anna ('+off+' graue Punkte)');
+ const off=await A.evaluate(()=>document.querySelectorAll('.lroom .lrf.off').length);
+ ok(await H.evaluate(()=>!isOpen(NET.m[2]))&&(await room(A)).txt.length>0,'Ben getrennt: Warteraum bleibt bei Anna ('+off+' graue Figuren)');
  await sleep(6500);
  ok((await room(B)).room&&(await room(B)).txt.includes('Ben'),'Ben ist nach dem stillen Neuverbinden wieder im Warteraum');
  // Spiel startet -> Spiegelung

@@ -107,14 +107,10 @@ function lobbyScreen(){
   setLive(false);ACT=null;parEnd();PERM=null;NET.scr='lobby';NET.setup=false;TH=['var(--red2)','var(--red)'];stopAll();S.P=null;
   const link=location.href.split('#')[0]+'#'+NET.code;
   let qr='';try{const q=qrcode(0,'M');q.addData(link);q.make();qr=q.createSvgTag({cellSize:6,margin:0,scalable:true})}catch(e){}
-  scr(`<button class="sec back" onclick="home()">← Spiele</button>${logo('Lobby')}
-  <div class="card" style="text-align:center"><div class="sm">Lobby-Code</div><div class="big" style="letter-spacing:6px;font-size:42px">${NET.code}</div>
-  <div class="qrbox">${qr}</div><p class="sm" style="margin:0">QR-Code scannen oder Link öffnen und den Code eingeben.</p>
-  <button class="sec" onclick="netShare()">🔗 Link teilen</button></div>
+  scr(`<div class="lbtop"><button class="sec back" onclick="home()">← Spiele</button>${logo('Lobby',1)}</div>
+  <div class="lbgrid"><div class="card lbcode"><div class="qrbox">${qr}</div><div class="lbc"><div class="sm">Lobby-Code</div><div class="big">${NET.code}</div><p class="sm">QR-Code scannen oder Link öffnen und den Code eingeben.</p><button class="sec" onclick="netShare()">🔗 Link teilen</button></div></div>
   ${roomScene()}
-  <div class="card"><h2>Spieler (${NET.m.length})</h2>${NET.m.map((m,i)=>`<div class="row" style="align-items:center;margin-top:8px">${av(i,'',34)}<b style="flex:1">${esc(m.name)}${i===0?' <span class="sm">· Host</span>':''}</b><i class="dot2${i===0||isOpen(m)?'':' off'}"></i></div>`).join('')}
-  ${NET.m.length<2?'<p class="sm" style="margin-bottom:0">Warte auf Mitspieler …</p>':''}</div>
-  <button onclick="home()">Spiel auswählen ➜</button><button class="sec" onclick="lobClose()">🚪 Lobby schließen</button>`);
+  <div class="lbbtn"><button onclick="home()">Spiel auswählen ➜</button><button class="sec" onclick="lobClose()">🚪 Lobby schließen</button></div></div>`);
   if(NET.host)syncViews();
 }
 function lobClose(){
