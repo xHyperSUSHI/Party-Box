@@ -9,15 +9,25 @@ function home(){
   const head=(c,l,link)=>`<div class="sech"${link?` onclick="setHCat('${c.id}')"`:' style="cursor:default"'}><span class="ci" style="--c1:${c.c[0]};--c2:${c.c[1]}">${c.e}</span><div class="ct"><b>${c.n}</b><small>${l.length} ${l.length==1?'Spiel':'Spiele'}</small></div>${link?'<em>Alle ›</em>':''}</div>`;
   let body='';
   if(HCAT==='all'){let k=0;cats.forEach(c=>{const l=ids.filter(id=>GAMES[id].cat===c.id);if(l.length){body+=head(c,l,true)+`<div class="rowh">${l.map((id,q)=>tile(id,k+q)).join('')}</div>`;k+=l.length}})}
-  else{const c=cats.find(x=>x.id===HCAT),l=ids.filter(id=>GAMES[id].cat===HCAT);body=`<button class="sec back" style="margin-top:14px" onclick="setHCat('all')">← Alle Kategorien</button>${head(c,l,false)}<div class="grid">${l.map((id,k)=>tile(id,k)).join('')}</div>`}
+  else{const c=cats.find(x=>x.id===HCAT),l=ids.filter(id=>GAMES[id].cat===HCAT);body=`${head(c,l,false)}<div class="grid">${l.map((id,k)=>tile(id,k)).join('')}</div>`}
   const stack=S.names.slice(0,5).map((nm,i)=>av(i,'',34)).join('')+(n>5?`<div class="av" style="width:34px;height:34px;font-size:13px;background:#2a2f45">+${n-5}</div>`:'');
-  scr(`<div class="row" style="justify-content:space-between;align-items:center"><div class="logo" style="margin:6px 0"><div class="rc"></div><h1 style="font-size:34px">Party Box</h1></div><div class="row" style="gap:8px;width:auto">${NET.on?'':'<button class="sec ib" onclick="statsScreen()" aria-label="Statistik">📊</button>'}<button class="sec ib" onclick="settings()" aria-label="Einstellungen">⚙️</button></div></div>
-  <p class="subt">Such dir ein Spiel aus. Danach wählst du den Modus.</p>
-  <div class="mode2"><button class="${NET.on?'sec':''} sg" onclick="goLocal()">📱 Ein Gerät</button><button class="${NET.on?'':'sec'} sg" onclick="goOnline()">🌐 Online${NET.on?' · '+NET.code:''}</button></div>
-  <div class="pbar" onclick="${NET.on?'lobbyScreen()':'playersScreen()'}"><div class="stack">${stack}</div><div class="pt"><b>${S.names.map(nm=>esc(nm.trim()||'?')).join(', ')}</b><small>${n} ${n==1?'Spieler':'Spieler'}${NET.on?' · Lobby &amp; QR':''}</small></div><em>${NET.on?'Lobby ›':'ändern ›'}</em></div>
-  ${HCAT==='all'?`<div class="rnd" onclick="randomGame()"><span>🎲</span><div><b>Zufallsspiel</b><small>Wir suchen eins, das zu euch passt</small></div><em>›</em></div>`:''}
-  ${body}`);
+  const p=profGet(),me=p.av,nm=p.n;
+  // Neu hier? – nur ohne Profil und ohne gespielte Spiele, bis „Verstanden“
+  let intro=false;try{intro=!nm&&!localStorage.getItem('pb_intro')&&!Object.keys(stGet()).length}catch(e){}
+  const chips=`<div class="hcats">${[{id:'all',e:'✨',n:'Alle'}].concat(cats).map(c=>`<span class="chip${HCAT===c.id?' on':''}" onclick="setHCat('${c.id}')">${c.e} ${c.n}</span>`).join('')}</div>`;
+  scr(`<div class="hgrid"><div class="hside">
+  <div class="htop"><div class="logo"><div class="rc"></div><h1>Party Box</h1></div><div class="row" style="gap:8px;width:auto">${NET.on?'':'<button class="sec ib" onclick="statsScreen()" aria-label="Statistik">📊</button>'}<button class="sec ib" onclick="settings()" aria-label="Einstellungen">⚙️</button></div></div>
+  <div class="card hcard">
+   <div class="hme" onclick="profOpen('home')">${me?charAv(me,'',54):`<div class="av" style="width:54px;height:54px;font-size:26px;background:linear-gradient(135deg,#3a4160,#2a2f45)">🙂</div>`}<div class="hmt"><small>${nm?'Hallo 👋':'Willkommen!'}</small><b>${nm?esc(nm):'Profil anlegen'}</b></div><em>${me?'Profil ›':'Charakter ›'}</em></div>
+   <div class="mode2"><button class="${NET.on?'sec':''} sg" onclick="goLocal()">📱 Ein Gerät</button><button class="${NET.on?'':'sec'} sg" onclick="goOnline()">🌐 Online${NET.on?' · '+NET.code:''}</button></div>
+   <div class="pbar" onclick="${NET.on?'lobbyScreen()':'playersScreen()'}"><div class="stack">${stack}</div><div class="pt"><b>${S.names.map(x=>esc(x.trim()||'?')).join(', ')}</b><small>${n} Spieler${NET.on?' · Lobby &amp; QR':''}</small></div><em>${NET.on?'Lobby ›':'ändern ›'}</em></div>
+  </div>
+  ${intro?`<div class="card hnew"><b>Neu hier? So geht's</b><ol><li>Leg dein <a onclick="profOpen('home')">Profil &amp; deinen Charakter</a> an.</li><li>Trag eure <a onclick="playersScreen()">Mitspieler</a> ein – oder spielt <a onclick="goOnline()">online</a> mit mehreren Handys.</li><li>Tipp ein Spiel an. Ein Gerät wandert reihum.</li></ol><button class="sec" onclick="introOk()">Verstanden</button></div>`:''}
+  <div class="rnd" onclick="randomGame()"><span>🎲</span><div><b>Zufallsspiel</b><small>Wir suchen eins, das zu euch passt</small></div><em>›</em></div>
+  <div class="hstage" onclick="${NET.on?'lobbyScreen()':'playersScreen()'}">${S.names.slice(0,6).map((x,i)=>`<div class="hsf">${figOf(i,i===0?'wave':'stand')}<span>${esc(x.trim()||'?')}</span></div>`).join('')}</div>
+  </div><div class="hmain">${chips}${body}</div></div>`);
 }
+function introOk(){try{localStorage.setItem('pb_intro','1')}catch(e){}keepScroll(home)}
 function pickGame(id){
   const d=GAMES[id];
   if(S.names.length<d.min){toast(`${d.name} braucht mindestens ${d.min} Spieler`);vib(60);return}

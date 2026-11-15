@@ -41,7 +41,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  await K.press('Escape');await sleep(100);await K.press('Escape');await sleep(100);
  ok(await L.evaluate(()=>!document.getElementById('hmc')),'Zweites Esc schließt die Rückfrage');
  await K.press('Escape');await sleep(100);await K.press('Tab');await K.press('Enter');await sleep(300);
- ok(await L.evaluate(()=>document.body.innerText.includes('Such dir ein Spiel')),'Esc, Tab, Enter → Hauptmenü');
+ ok(await L.evaluate(()=>!!document.querySelector('#app .hgrid')),'Esc, Tab, Enter → Hauptmenü');
 
  console.log('== Einstellungen: Schalter per Tastatur ==');
  await L.evaluate(()=>settings());await sleep(200);
@@ -109,7 +109,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  await K.type('Sascha');await K.press('Enter');await K.type('Leni');
  ok(await L.evaluate(()=>{const i=[...document.querySelectorAll('#pl input')];return i[0].value==='Sascha'&&i[1].value==='Leni'}),'Enter springt zum nächsten Namensfeld');
  await K.press('Enter');await K.press('Enter');await sleep(300);
- ok(await L.evaluate(()=>S.names[0]==='Sascha'&&S.names[1]==='Leni'&&document.body.innerText.includes('Such dir ein Spiel')),'Enter im letzten Feld speichert und geht zurück');
+ ok(await L.evaluate(()=>S.names[0]==='Sascha'&&S.names[1]==='Leni'&&!!document.querySelector('#app .hgrid')),'Enter im letzten Feld speichert und geht zurück');
 
  console.log('== Online: Tastatur auf dem Mitspieler-Handy ==');
  const H=await mk('Host');await H.evaluate(()=>onlineMenu());await H.fill('#myn','Hosti');await H.evaluate(()=>netHostStart());

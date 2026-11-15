@@ -26,7 +26,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  ok(await L.evaluate(()=>!document.getElementById('hmc')&&!!document.getElementById('g')),'"Weiter spielen": Dialog weg, Spiel läuft weiter (Eingabefeld da)');
  await L.click('#hm');await sleep(150);
  await L.evaluate(()=>[...document.querySelectorAll('#hmc button')].find(x=>/ins Hauptmenü/.test(x.textContent)).click());await sleep(300);
- ok((await txt(L)).includes('Such dir ein Spiel')&&!(await vis(L)),'"Ja": Hauptmenü, Knopf wieder weg');
+ ok(await L.evaluate(()=>!!document.querySelector('#app .hgrid'))&&!(await vis(L)),'"Ja": Hauptmenü, Knopf wieder weg');
  ok(await L.evaluate(()=>getComputedStyle(document.getElementById('tmr')).display==='none'),'Kein Timer mehr sichtbar');
  // anderes Spiel: Pantomime Weitergeben-Screen & Spion
  await L.evaluate(()=>{pickGame('react');startSession('react')});await sleep(200);
@@ -52,7 +52,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  await H.click('#hm');await sleep(200);
  ok((await H.evaluate(()=>document.querySelector('#hmc').innerText)).includes('für alle Mitspieler'),'Host-Rückfrage warnt: beendet für alle');
  await H.evaluate(()=>[...document.querySelectorAll('#hmc button')].find(x=>/ins Hauptmenü/.test(x.textContent)).click());await sleep(700);
- ok(await H.evaluate(()=>PAR===null&&document.getElementById('app').innerText.includes('Such dir ein Spiel')),'Host: Hauptmenü, Spiel beendet');
+ ok(await H.evaluate(()=>PAR===null&&!!document.querySelector('#app .hgrid')),'Host: Hauptmenü, Spiel beendet');
  ok(await A.evaluate(()=>!!document.querySelector('.room'))&&!(await txt(A)).includes('Weiter zum Tippen'),'Anna sieht den Warteraum (Host ist im Hauptmenü)');
  ok(await A.evaluate(()=>NET.client&&NET.conn&&NET.conn.open),'Anna bleibt in der Lobby verbunden');
 

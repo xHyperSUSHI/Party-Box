@@ -63,7 +63,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
  await A.click('#hm');await sleep(200);
  ok((await A.evaluate(()=>document.querySelector('#hmc').innerText)).includes('Lobby verlassen'),'Rückfrage: "Lobby verlassen"');
  await A.evaluate(()=>[...document.querySelectorAll('#hmc button')].find(x=>/Lobby verlassen/.test(x.textContent)).click());await sleep(500);
- ok(await A.evaluate(()=>!NET.on&&document.getElementById('app').innerText.includes('Such dir ein Spiel')),'Anna ist raus und im Hauptmenü');
+ ok(await A.evaluate(()=>!NET.on&&!!document.querySelector('#app .hgrid')),'Anna ist raus und im Hauptmenü');
  ok(!(await vis(A)),'Knopf danach weg');
  ok(await H.evaluate(()=>!isOpen(NET.m[1])),'Host sieht Anna getrennt');
  console.log('\nFehler im Browser:',errs.length?errs:'keine');console.log(fails?fails+' FEHLGESCHLAGEN':'alles ok');await b.close();process.exit(fails?1:0);

@@ -524,3 +524,32 @@ body.calm .fig,body.calm .fig g{animation:none!important}
 @media (min-width:700px){.lroom{height:320px}.lrf{width:74px;height:166px;margin-left:-37px}.lrn{font-size:12px;bottom:-16px}}
 body.calm .lrw,body.calm .lrflip{animation:none!important}
 .rmfig{width:56px;height:124px;flex:none}
+/* ---------- Startseite 3.0 ---------- */
+.htop{display:flex;justify-content:space-between;align-items:center;margin:2px 0 4px}
+.htop .logo{margin:4px 0}.htop .logo h1{font-size:30px}
+.hcard{padding:14px;margin-top:8px}
+.hme{display:flex;align-items:center;gap:12px;cursor:pointer;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.hmt{flex:1;min-width:0}.hmt small{display:block;color:var(--mu);font-size:12px}.hmt b{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hme em{font-style:normal;color:var(--mu);font-size:13px;font-weight:700}
+.hcard .mode2{margin:0}
+.hcard .pbar{margin:10px 0 0;background:rgba(255,255,255,.04)}
+.hnew{border:1px solid rgba(255,193,69,.35);background:linear-gradient(135deg,rgba(255,193,69,.12),rgba(255,122,69,.08))}
+.hnew b{font-size:16px}.hnew ol{margin:8px 0 10px;padding-left:20px;color:var(--mu);font-size:14px;line-height:1.5}
+.hnew a{color:var(--tx);font-weight:700;text-decoration:underline;cursor:pointer}
+.hcats{display:flex;gap:8px;overflow-x:auto;margin:16px -16px 0;padding:2px 16px 4px;scrollbar-width:none}
+.hcats::-webkit-scrollbar{display:none}
+.hcats .chip{flex:none;margin:0;white-space:nowrap}
+.hmain .sech:first-of-type{margin-top:14px}
+@media (min-width:900px){
+ .screen:has(.hgrid){max-width:1160px}
+ .hgrid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:26px;align-items:start}
+ .hside{position:sticky;top:0}
+ .hcats{margin:6px 0 0;padding:2px 0 4px;flex-wrap:wrap}
+ .hmain .rowh{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+}
+.hstage{display:none}
+@media (min-width:900px){
+ .hstage{display:flex;justify-content:center;align-items:flex-end;gap:2px;margin-top:14px;padding:14px 10px 26px;border-radius:22px;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.1));border:1px solid var(--line);min-height:150px}
+ .hsf{position:relative;flex:0 1 66px;height:150px}
+ .hsf span{position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);font-size:11px;font-weight:800;color:var(--mu);white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis}
+}
