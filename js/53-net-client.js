@@ -93,6 +93,13 @@ function netClientData(d){netClientData0(d);rxWatch();kbPrep()}
 function netClientData0(d){
   if(!d||typeof d!=='object')return;
   NET.lastHost=Date.now();NET.got=true;if(NET.wait)netWaitStop();
+  if(d.t==='part'){   // Teil eines großen Pakets (sendTo): sammeln, vollständig → wie ein normales Paket behandeln
+    if(typeof d.s!=='string'||d.s.length>NET_PART||!Number.isInteger(d.n)||d.n<1||d.n>200||!Number.isInteger(d.i)||d.i<0||d.i>=d.n)return;
+    let P=NET.parts;if(!P||P.id!==d.id||P.n!==d.n)P=NET.parts={id:d.id,n:d.n,a:[],c:0};
+    if(P.a[d.i]==null){P.a[d.i]=d.s;P.c++}
+    if(P.c===P.n){NET.parts=null;let o=null;try{o=JSON.parse(P.a.join(''))}catch(e){}if(o&&typeof o==='object'&&o.t!=='part')netClientData0(o)}
+    return;
+  }
   if(d.t==='welcome'){NET.idx=d.idx;if(d.name&&d.name!==NET.name){NET.name=d.name;$('lv').textContent='🌐 '+NET.code+' · '+d.name}sessSave()}
   else if(d.t==='full'||d.t==='wait'){
     parseInto(app,String(d.html||''));window.scrollTo(0,0);app.scrollTop=0;

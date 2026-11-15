@@ -5,7 +5,7 @@
   constructor(peer,remote,id){this.peer=remote;this._p=peer;this.id=id;this.open=false;this._h={}}
   on(e,f){(this._h[e]=this._h[e]||[]).push(f);return this}
   _e(e,a){(this._h[e]||[]).forEach(f=>f(a))}
-  send(d){if(!this.open)return;const m={k:'data',to:this.peer,from:this._p.id,cid:this.id,d:JSON.parse(JSON.stringify(d))};const L=window.__LAT||0;if(L)setTimeout(()=>bc.postMessage(m),L);else bc.postMessage(m)}
+  send(d){if(!this.open)return;if(window.__MAXMSG&&JSON.stringify(d).length>window.__MAXMSG)throw new TypeError('Message too large');const m={k:'data',to:this.peer,from:this._p.id,cid:this.id,d:JSON.parse(JSON.stringify(d))};const L=window.__LAT||0;if(L)setTimeout(()=>bc.postMessage(m),L);else bc.postMessage(m)}
   close(){if(!this.open)return;this.open=false;bc.postMessage({k:'close',to:this.peer,from:this._p.id,cid:this.id});this._e('close')}
  }
  class Peer{

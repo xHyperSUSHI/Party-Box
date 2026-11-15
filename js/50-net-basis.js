@@ -52,7 +52,14 @@ function iceFetch(){
 const peerOpts=()=>{iceLoad();return {debug:0,config:iceValid()?{iceServers:[{urls:'stun:stun.l.google.com:19302'}].concat(ICE_CF.s)}:NET_ICE}};
 const netCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<APP_CODE_LEN;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
 const isOpen=m=>!!(m&&m.conn&&m.conn.open);
-const sendTo=(m,o)=>{try{if(isOpen(m))m.conn.send(o)}catch(e){}};
+/* Große Pakete in Teile zerlegen: WebRTC-Nachrichten sind begrenzt (Safari typ. 64 KB, PeerJS teilt JSON nicht auf).
+   Ganze Bildschirme mit Charakter-SVGs werden schnell größer – ohne Aufteilung kämen sie bei Mitspielern nicht an. */
+const NET_PART=12000;let PARTID=0;
+const sendTo=(m,o)=>{try{if(!isOpen(m))return;const s=JSON.stringify(o);
+  if(s.length<=NET_PART){m.conn.send(o);return}
+  const id=++PARTID,n=Math.ceil(s.length/NET_PART);
+  for(let i=0;i<n;i++)m.conn.send({t:'part',id,i,n,s:s.slice(i*NET_PART,(i+1)*NET_PART)});
+}catch(e){}};
 let wakeL=null;
 function wake(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(l=>{wakeL=l}).catch(()=>{})}catch(e){}}
 document.addEventListener('visibilitychange',()=>{
