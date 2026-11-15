@@ -2767,7 +2767,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-15.9';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-15.10';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5535,7 +5535,8 @@ const myName=()=>{try{return localStorage.getItem('pb_my')||''}catch(e){return '
 const setMyName=n=>{try{localStorage.setItem('pb_my',n)}catch(e){}};
 const netCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<APP_CODE_LEN;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
 const isOpen=m=>!!(m&&m.conn&&m.conn.open);
-const sendTo=(m,o)=>{try{if(isOpen(m))m.conn.send(o)}catch(e){}};
+const VIEWT={full:1,mut:1,wait:1,own:1};
+const sendTo=(m,o)=>{try{if(isOpen(m)){if(o&&VIEWT[o.t])o=Object.assign({q:m.sq=(m.sq|0)+1},o);else if(o&&o.t==='hb')o=Object.assign({q:m.sq|0},o);m.conn.send(o)}}catch(e){}};   // q = laufende Nummer der Bild-Pakete: der Client erkennt verpasste/fehlgeschlagene Updates und fordert ein neues Vollbild an
 let wakeL=null;
 function wake(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(l=>{wakeL=l}).catch(()=>{})}catch(e){}}
 document.addEventListener('visibilitychange',()=>{
@@ -5919,6 +5920,7 @@ function netStop(){
 function netEvent(m,d){
   const idx=NET.m.indexOf(m);
   if(idx<0)return;
+  if(d.ty==='resync'){m.view=null;m.oh=m.rh=m.wh=m.tmId=null;syncViews();return}
   if(d.ty==='sub'){parSub(idx,d);return}
   if(d.ty==='draft'){parDraft(idx,d);return}
   if(d.ty==='rx'){rxRemote(idx,d);return}
@@ -6097,18 +6099,26 @@ function parseInto(el,html){
   strip(t.content);
   el.replaceChildren(t.content);
 }
-function netClientData(d){netClientData0(d);rxWatch();kbPrep()}
+function netResync(){   // Bild passt nicht zum Host (Paket fehlt/Fehler): Vollbild anfordern, höchstens alle 3 s
+  const n=Date.now();if(NET.rsT&&n-NET.rsT<3000)return;NET.rsT=n;NET.mm=0;sendC({ty:'resync'});
+}
+function netClientData(d){try{netClientData0(d)}catch(e){netResync()}rxWatch();kbPrep()}
 function netClientData0(d){
   if(!d||typeof d!=='object')return;
   NET.lastHost=Date.now();NET.got=true;if(NET.wait)netWaitStop();
-  if(d.t==='welcome'){NET.idx=d.idx;if(d.name&&d.name!==NET.name){NET.name=d.name;$('lv').textContent='🌐 '+NET.code+' · '+d.name}sessSave()}
+  if(d.t==='welcome'){NET.rq=null;NET.mm=0;NET.idx=d.idx;if(d.name&&d.name!==NET.name){NET.name=d.name;$('lv').textContent='🌐 '+NET.code+' · '+d.name}sessSave()}
+  else if(d.t==='hb'){
+    if(d.q!=null&&NET.rq!=null&&d.q!==NET.rq){if(++NET.mm>=2)netResync()}else NET.mm=0;
+  }
   else if(d.t==='full'||d.t==='wait'){
+    NET.rq=d.q==null?null:d.q;NET.mm=0;
     parseInto(app,String(d.html||''));window.scrollTo(0,0);app.scrollTop=0;
     if(d.t==='full'&&NET.perm){const i=app.querySelector('input.num,input.txt');if(i)setTimeout(()=>{try{i.focus()}catch(e){}},120)}
   }
   else if(d.t==='mut'&&Array.isArray(d.ops)){
+    if(d.q!=null){if(NET.rq!=null&&d.q!==NET.rq+1)netResync();NET.rq=d.q}
     for(const o of d.ops){
-      const el=app.querySelector('[data-n="'+(+o.n)+'"]');if(!el)continue;
+      const el=app.querySelector('[data-n="'+(+o.n)+'"]');if(!el){netResync();continue}
       if(o.o==='h')parseInto(el,String(o.h||''));
       else if(o.o==='a'&&typeof o.k==='string'){
         if(o.k.slice(0,2)==='on'){if(o.v!=null)el.setAttribute('data-h-'+o.k.slice(2),'1');continue}
@@ -6117,6 +6127,7 @@ function netClientData0(d){
     }
   }
   else if(d.t==='own'){
+    NET.rq=d.q==null?null:d.q;NET.mm=0;
     parseInto(app,String(d.html||''));window.scrollTo(0,0);app.scrollTop=0;
     setTimeout(()=>{const i=app.querySelector('input[data-f]');if(i)try{i.focus()}catch(e){}},120);
   }
