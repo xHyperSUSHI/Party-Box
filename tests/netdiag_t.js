@@ -1,0 +1,30 @@
+// Verbindung über verschiedene Netze: ICE-Konfiguration (STUN/TURN), gezielte Meldung bei blockierter Verbindung, Verbindungstest in den Einstellungen
+const {chromium}=require('playwright');const fs=require('fs');
+const URL='http://127.0.0.1:8765/index.html',MOCK=fs.readFileSync(__dirname+'/mock.js','utf8');
+let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);if(!c)fails++};const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+ const b=await chromium.launch({args:['--no-sandbox']});const ctx=await b.newContext({viewport:{width:390,height:844}});await ctx.addInitScript(MOCK);
+ const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
+ await p.goto(URL);await p.waitForSelector('#app .screen');
+ console.log('== ICE-Konfiguration ==');
+ let r=await p.evaluate(()=>{const o=peerOpts(),u=[].concat(...o.config.iceServers.map(s=>[].concat(s.urls)));return {stun:u.filter(x=>x.startsWith('stun:')).length,turn:u.filter(x=>x.startsWith('turn:')).length,tcp:u.some(x=>/transport=tcp/.test(x)),cred:o.config.iceServers.every(s=>!String([].concat(s.urls)).includes('turn:')||(s.username&&s.credential))}});
+ ok(r.stun>=2&&r.turn>=2&&r.tcp&&r.cred,'Mehrere STUN-Server, TURN über UDP und TCP mit Zugangsdaten');
+ console.log('== Blockierte Verbindung ==');
+ await p.evaluate(()=>netJoin('ZZZZZ','Anna'));await sleep(300);
+ await p.evaluate(()=>NET.conn._e('iceStateChanged','failed'));await sleep(200);
+ r=await p.evaluate(()=>document.getElementById('app').innerText);
+ ok(/Keine direkte Verbindung/.test(r)&&/verschiedenen WLANs/.test(r),'ICE "failed" → sofort verständliche Meldung (verschiedene WLANs, Tipp Hotspot)');
+ ok(await p.evaluate(()=>!NET.on&&!!document.querySelector('#app a[onclick*="netDiag"]')),'... mit Link zum Verbindungstest, Online beendet');
+ console.log('== Verbindungstest ==');
+ await p.evaluate(()=>settings());
+ ok(await p.evaluate(()=>[...document.querySelectorAll('#app button')].some(x=>/Verbindungstest/.test(x.textContent))),'Einstellungen: Knopf "Verbindungstest"');
+ await p.evaluate(()=>netDiag());
+ ok(await p.evaluate(()=>document.querySelectorAll('#dg1,#dg2,#dg3').length===3),'Drei Prüfungen: Vermittlungsserver, STUN, TURN');
+ await p.waitForFunction(()=>[...document.querySelectorAll('#dg1 span,#dg2 span,#dg3 span')].every(s=>s.textContent!=='⏳'),null,{timeout:20000});
+ r=await p.evaluate(()=>({sig:document.querySelector('#dg1 span').textContent,res:document.getElementById('dgr').innerText}));
+ ok(r.sig==='✅','Vermittlungsserver (Mock) erreichbar');
+ ok(r.res.length>30&&!/dauert/.test(r.res),'Ergebnis mit Erklärung: '+r.res.slice(0,70)+' …');
+ await p.evaluate(()=>{DIAG++;settings()});
+ console.log('Fehler im Browser:',errs.length?errs:'keine');if(errs.length)fails++;
+ console.log(fails?fails+' FEHLGESCHLAGEN':'alles ok');await b.close();process.exit(fails?1:0);
+})().catch(e=>{console.error('Abbruch',e.message);process.exit(2)});

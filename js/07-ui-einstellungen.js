@@ -36,6 +36,7 @@ function settings(){
   <div class="card"><h2>Effekte</h2>${tg('fx','Animationen &amp; Konfetti','Aus = ruhiger und akkuschonender')}${tg('vib','Vibration')}${tg('sound','Ton','Ticken, Knall &amp; Jingles')}</div>
   <div class="card"><h2>App &amp; Fragen</h2><p class="sm" style="margin-top:-4px">Version <b style="color:var(--tx)">${APP_VERSION}</b> · ${[].concat(Q,...Object.values(QX)).length} feste Fragen plus automatisch erzeugte · ${BQ.length} Bluff-Fragen · ${Object.values(PW).reduce((a,l)=>a+l.length,0)} Pantomime-Begriffe</p>
   <div id="upd" class="sm" style="margin:8px 0"></div><button class="sec" onclick="checkUpdate()">🔄 Auf Update prüfen</button></div>
+  <div class="card"><h2>Online</h2><p class="sm" style="margin-top:-4px">Klappt das Zusammenspielen nicht (z.&nbsp;B. in verschiedenen WLANs)? Der Test zeigt, ob dieses Netz die Verbindung durchlässt.</p><button class="sec" onclick="netDiag()">📶 Verbindungstest</button></div>
   <div class="card"><h2>Farbwelt</h2><div class="chips">${[['feuer','🔥 Feuer'],['neon','🪩 Neon'],['ozean','🌊 Ozean']].map(t=>`<span class="chip ${C.theme===t[0]?'on':''}" onclick="setC('theme','${t[0]}')">${t[1]}</span>`).join('')}</div></div>`);
 }
 

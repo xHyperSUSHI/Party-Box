@@ -20,7 +20,7 @@ function netHostStart(){
 }
 function netTryHost(tries,name){
   const code=netCode();let opened=false;
-  let p;try{p=new Peer(PRE+code,{debug:0})}catch(e){netStatus('Verbindung nicht möglich.','onlineMenu()');return}
+  let p;try{p=new Peer(PRE+code,peerOpts())}catch(e){netStatus('Verbindung nicht möglich.','onlineMenu()');return}
   p.on('error',e=>{
     if(e&&e.type==='unavailable-id'&&tries<6){try{p.destroy()}catch(_){}netTryHost(tries+1,name);return}
     if(!opened)netStatus('Keine Verbindung zum Vermittlungsserver ('+((e&&e.type)||'Fehler')+').<br><span class="sm">Prüfe dein Internet und versuche es nochmal.</span>','onlineMenu()');
@@ -45,7 +45,7 @@ function hostRestoreCancel(){hostClear();home()}
 function netHostRestore(h,tries){
   tries=tries||0;
   if(tries===0)netStatus('Lobby '+esc(h.code)+' wird wiederhergestellt …<br><span class="sm">Deine Mitspieler warten und kommen gleich zurück.</span>','hostRestoreCancel()');
-  let p;try{p=new Peer(PRE+h.code,{debug:0})}catch(e){hostClear();home();return}
+  let p;try{p=new Peer(PRE+h.code,peerOpts())}catch(e){hostClear();home();return}
   let opened=false;
   p.on('error',e=>{
     if(opened){if(!(e&&e.type==='unavailable-id'))toast('Netzwerk: '+((e&&e.type)||'Fehler'));return}
@@ -201,7 +201,7 @@ function hbTick(){
 }
 function netPeerRevive(){   // Peer wurde zerstört (z. B. nach langer Pause im Hintergrund): unter derselben Lobby-ID neu anmelden
   if(!NET.host||NET.reviving)return;NET.reviving=true;
-  let p;try{p=new Peer(PRE+NET.code,{debug:0})}catch(e){NET.reviving=false;return}
+  let p;try{p=new Peer(PRE+NET.code,peerOpts())}catch(e){NET.reviving=false;return}
   p.on('open',()=>{NET.reviving=false;NET.peer=p;p.on('connection',netOnConn);toast('Verbindung zum Server wiederhergestellt')});
   p.on('error',()=>{NET.reviving=false});
   p.on('disconnected',()=>{if(NET.peer===p){try{p.reconnect()}catch(e){}}});

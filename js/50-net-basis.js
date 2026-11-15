@@ -9,6 +9,15 @@ const hwEl=$('hw');
 const cleanName=(n,fb)=>{n=String(n==null?'':n).replace(/[\u0000-\u001f\u007f<>&"'`]/g,'').trim().slice(0,16);return n||fb};
 const myName=()=>{try{return localStorage.getItem('pb_my')||''}catch(e){return ''}};
 const setMyName=n=>{try{localStorage.setItem('pb_my',n)}catch(e){}};
+/* Verbindungswege (ICE): STUN findet die öffentliche Adresse (reicht meist, auch in verschiedenen WLANs),
+   TURN leitet um, wenn ein Router/Netz direkte Verbindungen sperrt. Öffentliche PeerJS-TURN-Server sind Best-Effort;
+   ein eigener TURN (Port 443/TLS) bräuchte ein Konto, die Zugangsdaten stünden im öffentlichen Quelltext. */
+const NET_ICE={iceServers:[
+  {urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},
+  {urls:'stun:stun.cloudflare.com:3478'},
+  {urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478','turn:eu-0.turn.peerjs.com:3478?transport=tcp','turn:us-0.turn.peerjs.com:3478?transport=tcp'],username:'peerjs',credential:'peerjsp'}
+]};
+const peerOpts=()=>({debug:0,config:NET_ICE});
 const netCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<APP_CODE_LEN;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
 const isOpen=m=>!!(m&&m.conn&&m.conn.open);
 const sendTo=(m,o)=>{try{if(isOpen(m))m.conn.send(o)}catch(e){}};
