@@ -330,6 +330,11 @@ button.bc.lst{outline:2px solid #ffd166;outline-offset:-2px;animation:bslast 1.1
 /* Das Rad ist Teil des Spiels: es dreht auch bei „Bewegung reduzieren“ (System) und bei ausgeschalteten Effekten */
 @media (prefers-reduced-motion:reduce){.slfd{animation-duration:4.8s!important;animation-delay:0s!important}.slfm{animation-duration:.5s!important;animation-delay:4.8s!important}}
 #hwait{position:fixed;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);z-index:80;max-width:92vw;padding:9px 16px;border-radius:99px;background:rgba(255,200,61,.95);color:#1a1300;font-weight:750;font-size:13.5px;box-shadow:0 8px 26px rgba(0,0,0,.45);text-align:center}
+.room{text-align:center}
+.roomme{display:flex;align-items:center;gap:14px;justify-content:center;margin:14px 0;text-align:left}
+.roomst{display:flex;align-items:center;gap:10px;justify-content:center;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.07);font-size:14.5px;line-height:1.4;text-align:left}
+.rdots{display:inline-flex;gap:4px;flex:none}.rdots i{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:rdot 1.2s infinite both}.rdots i:nth-child(2){animation-delay:.2s}.rdots i:nth-child(3){animation-delay:.4s}
+@keyframes rdot{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1.15)}}
 .rvbar{position:sticky;top:0;z-index:6;display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;padding:8px 12px;margin:6px 0;border-radius:14px;background:rgba(11,13,20,.88);border:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-size:14px}
 .rvbar b{font-weight:700;color:var(--mu);margin-right:4px}
 .rv{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
@@ -2762,7 +2767,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-15.5';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-15.6';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5593,10 +5598,11 @@ function syncViews(){
   flush();
   NET.m.forEach((m,i)=>{
     const own=PAR?parOwn(i):null;
-    const el=eligible(i),want=own!=null?'own':(el?'mirror':'wait');
+    const el=eligible(i),room=!NET.inGame&&i>0,want=own!=null?'own':(room?'room':(el?'mirror':'wait'));
     if(i===0){if(own!=null)hostOwn(own);else hostView(el);m.view=want;return}
     if(!isOpen(m)){m.view='none';return}
     if(want==='own'){if(m.view!=='own'||m.oh!==own){sendTo(m,{t:'own',html:own});m.view='own';m.oh=own}}
+    else if(want==='room'){const h=roomHTML(i);if(m.view!=='room'||m.rh!==h){sendTo(m,{t:'wait',html:h});m.view='room';m.rh=h}}
     else if(want==='mirror'&&m.view!=='mirror'){tagAll();sendTo(m,{t:'full',html:app.innerHTML});m.view='mirror'}
     else if(want==='wait'&&(m.view!=='wait'||m.wh!==WAIT)){sendTo(m,{t:'wait',html:WAIT});m.view='wait';m.wh=WAIT}
     if(PAR&&PAR.dur&&m.tmId!==PAR.id+':'+PAR.k){sendTo(m,{t:'tm',ms:Math.max(0,PAR.end-Date.now())});m.tmId=PAR.id+':'+PAR.k}
@@ -5686,6 +5692,17 @@ function parSub(mi,d){
   scr(parScreen());syncViews();
 }
 function fxSend(o){if(!NET.host)return;NET.m.forEach((m,i)=>{if(i>0&&m.view==='mirror'&&isOpen(m))sendTo(m,{t:'fx',k:o.k,a:o.a})})}
+/* Warteraum für Mitspieler: solange kein Spiel läuft, sehen sie nicht das Menü des Hosts, sondern wer da ist und worauf gewartet wird */
+function roomHTML(i){
+  const me=NET.m[i];if(!me)return '';
+  const st=NET.scr==='lobby'?'Alle versammeln sich – der Host startet gleich ein Spiel.':NET.scr==='settings'?'Der Host ist gerade in den Einstellungen …':(CUR&&GAMES[CUR]?`Der Host richtet <b>${esc(GAMES[CUR].name)}</b> ein …`:(NET.scr==='home'?'Der Host sucht ein Spiel aus …':'Der Host ist gerade im Menü …'));
+  return `<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${logo('Lobby',1)}
+  <div class="card room"><div class="sm">Lobby-Code</div><div class="big" style="letter-spacing:6px;font-size:38px">${esc(NET.code)}</div>
+  <div class="roomme">${av(i,'l')}<div><div class="sm">Du bist dabei als</div><b style="font-size:22px">${esc(me.name)}</b></div></div>
+  <div class="roomst"><span class="rdots"><i></i><i></i><i></i></span><span>${st}</span></div></div>
+  <div class="card"><div class="sm" style="margin-bottom:4px">In der Lobby (${NET.m.length})</div>${NET.m.map((m,k)=>`<div class="row" style="align-items:center;margin-top:8px">${av(k,'',32)}<b style="flex:1">${esc(m.name)}${k===0?' <span class="sm">· Host</span>':''}${k===i?' <span class="sm">· du</span>':''}</b><i class="dot2${k===0||isOpen(m)?'':' off'}"></i></div>`).join('')}</div>
+  <p class="sm" style="text-align:center;margin:10px 0">Lass die App offen – es geht gleich los. 🎉</p></div>`;
+}
 function waitHTML(pi,pr,tag){
   return `<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${pr||''}<div class="card hand">${av(pi,'l')}<p style="margin:0">${tag?tag+' – ':''}Gerade dran</p><div class="big">${esc(S.P?S.P[pi]:nameOf(pi))}</div><p>Warte kurz … ${NET.on?'🔒':''}</p></div></div>`;
 }
@@ -5719,7 +5736,7 @@ function wrapPub(n,permFn){
   window[n]=function(){
     ACT=null;parEnd();PERM=permFn?permFn():null;
     if(n==='startSession')NET.inGame=true;
-    if(MENU.indexOf(n)>=0){NET.inGame=false;NET.scr=(n==='home')?'home':null;netPrune()}
+    if(MENU.indexOf(n)>=0){NET.inGame=false;NET.scr=(n==='home')?'home':(n==='settings'?'settings':null);netPrune()}
     else NET.scr=null;
     const r=f.apply(this,arguments);
     if(NET.host)syncViews();
@@ -5791,7 +5808,7 @@ function netOnConn(c){
         let nm=nm0,k=2;while(NET.m.some(x=>x.name===nm))nm=nm0.slice(0,13)+' '+(k++);
         m={name:nm,cid};NET.m.push(m);
       }
-      m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;m.oh=null;m.tmId=null;mem=m;
+      m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;m.oh=null;m.rh=null;m.tmId=null;mem=m;
       sendTo(m,{t:'welcome',idx:NET.m.indexOf(m),name:m.name,code:NET.code});
       netMembersChanged();
       return;
@@ -5825,8 +5842,17 @@ function lobbyScreen(){
   <button class="sec" onclick="netShare()">🔗 Link teilen</button></div>
   <div class="card"><h2>Spieler (${NET.m.length})</h2>${NET.m.map((m,i)=>`<div class="row" style="align-items:center;margin-top:8px">${av(i,'',34)}<b style="flex:1">${esc(m.name)}${i===0?' <span class="sm">· Host</span>':''}</b><i class="dot2${i===0||isOpen(m)?'':' off'}"></i></div>`).join('')}
   ${NET.m.length<2?'<p class="sm" style="margin-bottom:0">Warte auf Mitspieler …</p>':''}</div>
-  <button onclick="home()">Spiel auswählen ➜</button>`);
+  <button onclick="home()">Spiel auswählen ➜</button><button class="sec" onclick="lobClose()">🚪 Lobby schließen</button>`);
+  if(NET.host)syncViews();
 }
+function lobClose(){
+  if(document.getElementById('lcd'))return;
+  const d=document.createElement('div');d.className='pk';d.id='lcd';d.style.zIndex=70;
+  d.innerHTML=`<div><h2>Lobby schließen?</h2><p style="margin-top:-4px">Alle Mitspieler werden getrennt, die Lobby ${esc(NET.code)} ist danach weg.</p><button class="sec" onclick="lobNo()">Abbrechen</button><button onclick="lobYes()">Lobby schließen</button></div>`;
+  document.body.appendChild(d);setTimeout(()=>{const b=d.querySelector('button.sec');if(b)b.focus()},30);
+}
+function lobNo(){const d=document.getElementById('lcd');if(d)d.remove()}
+function lobYes(){lobNo();netStop();home();toast('Lobby geschlossen')}
 function netShare(){
   const link=location.href.split('#')[0]+'#'+NET.code;
   try{if(navigator.share){navigator.share({title:'Party Box',text:'Komm in meine Lobby ('+NET.code+')',url:link}).catch(()=>{});return}}catch(e){}
@@ -6158,6 +6184,7 @@ document.addEventListener('keydown',e=>{
   const t=e.target,tag=t&&t.tagName,k=e.key,typing=/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||(t&&t.isContentEditable);
   if(k==='Escape'){
     if(typing){t.blur();return}
+    if($('lcd')){lobNo();e.preventDefault();return}
     if($('dnote')){dnoteNo();e.preventDefault();return}
     if($('hmc')){hmNo();e.preventDefault();return}
     if(document.body.classList.contains('live')){hmAsk();e.preventDefault()}
@@ -6173,7 +6200,7 @@ document.addEventListener('keydown',e=>{
     if(t.id==='myn'){const b=t.closest('.card')&&t.closest('.card').querySelector('button:not(.sec)');if(b){e.preventDefault();b.click()}else if($('jc')){e.preventDefault();$('jc').focus()}}
     return;
   }
-  if($('hmc')||$('dnote'))return;                       // Rückfrage offen: nur Tab/Enter/Leertaste auf den Knöpfen
+  if($('hmc')||$('dnote')||$('lcd'))return;                       // Rückfrage offen: nur Tab/Enter/Leertaste auf den Knöpfen
   if(tag==='BUTTON'||tag==='A')return;                  // fokussierte Knöpfe lösen Enter/Leertaste selbst aus
   if(t&&t.getAttribute&&t.getAttribute('role')==='button'&&(k==='Enter'||k===' ')){e.preventDefault();t.click();return}
   const root=kbRoot(),lc=k.length===1?k.toLowerCase():k;
