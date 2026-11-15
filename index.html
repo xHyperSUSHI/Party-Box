@@ -2767,7 +2767,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-15.6';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-15.7';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3427,6 +3427,7 @@ function gameSetup(id){
   setLive(false);stopAll();CUR=id;const d=GAMES[id];TH=d.c;
   scr(`<button class="sec back" onclick="home()">← Spiele</button>
   <div class="hero"><div class="he">${d.e}</div><h1 style="margin:4px 0;font-size:34px;letter-spacing:-1px">${d.name}</h1><p style="margin:0">${d.desc}</p></div>
+  ${NET.host?'<p class="sm" style="text-align:center;margin:6px 0 0">👀 Deine Mitspieler sehen live mit, was du hier einstellst – redet gern darüber!</p>':''}
   ${modeCard()}
   <div class="card"><h2>Einstellungen</h2>${d.opts()}${DRKV.includes(id)?drinkChip(id):''}</div>
   <div class="card" style="padding:14px 18px"><details><summary>Regeln</summary>${d.rules}</details></div>
@@ -5031,12 +5032,28 @@ function slfShow(){
   <div class="chips" style="justify-content:center">${G.cats.map(c=>`<span class="chip on">${esc(c)}</span>`).join('')}</div>
   <p class="sm">Schreibt zu jeder Kategorie ein Wort mit ${G.lt}. Wer fertig ist, ruft „Stopp!“.</p><button onclick="slfStop()">✋ Stopp! Wir werten</button></div>`);
   sfx.pop();vib(40);
-  if(G.o.timer)tmrShow(G.o.timer*1000,slfStop);
+  if(G.o.timer)tmrShow(G.o.timer*1000,slfStopT);
 }
-function slfStop(){tmrHide();sfx.bad();slfScore()}
+function slfStop(timeUp){   // Zettel-Modus: online darf jeder „Stopp“ drücken, danach trägt jeder seine Punkte selbst ein
+  tmrHide();sfx.bad();
+  if(NET.host&&NET.m.length>1){
+    const who=timeUp===true?null:(NET.who==null?0:NET.who);
+    slfScoreOnline(who==null?'⏰ Zeit abgelaufen!':'✋ Stopp von '+S.P[who]+'!');
+    return;
+  }
+  G.scOnline=false;slfScore();
+}
+const slfStopT=()=>slfStop(true);
+function slfScoreOnline(msg){
+  G.sc=S.P.map(()=>0);G.scOnline=true;
+  parBegin({head:()=>prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`),dur:[180000],msg:msg+' Zählt eure Punkte vom Zettel zusammen (10 · 5 · 20 pro Wort) und tragt sie auf eurem Handy ein.',steps:[
+    {k:'s',timeout:pi=>{G.sc[pi]=0},html:pi=>`<div class="card"><p style="margin:0 0 10px;font-weight:800;font-size:17px">${esc(msg)}</p><div class="row" style="align-items:center;gap:10px;margin-bottom:8px">${av(pi)}<span class="sm">${esc(S.P[pi])}: Punkte in dieser Runde</span></div><div class="sm">Buchstabe ${esc(G.lt)} · Zettel zusammenzählen: 10 Punkte für ein eigenes Wort, 5 bei gleichem Wort, 20 wenn nur du eins hast.</div><input data-f="s" data-enter="s" class="num" type="text" inputmode="numeric" autocomplete="off" placeholder="0" style="margin-top:10px"><button data-sub="s">Abschicken</button></div>`,
+     sub:(pi,d)=>{const v=parseInt(String((d.f||{}).s==null?'':d.f.s).trim(),10);if(!Number.isInteger(v)||v<0||v>300)return 'Bitte eine Zahl von 0 bis 300 eingeben.';G.sc[pi]=v;return true}}
+  ],done:slfScore});
+}
 function slfScore(){
   const last=G.r+1>=G.rounds;
-  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}<div class="card"><div class="sm" style="margin-bottom:8px">Vergleicht eure Zettel und tragt die Punkte ein (10 · 5 · 20 pro Wort)</div>
+  scr(`${prg(G.r+1,G.rounds,`Runde ${G.r+1} von ${G.rounds} · Buchstabe ${G.lt}`)}<div class="card"><div class="sm" style="margin-bottom:8px">${G.scOnline?'Das haben die Spieler eingetragen – du kannst es hier noch korrigieren (±5)':'Vergleicht eure Zettel und tragt die Punkte ein (10 · 5 · 20 pro Wort)'}</div>
   ${S.P.map((p,i)=>`<div class="sb">${av(i,'',30)}<span class="nm">${esc(p)}</span><div class="bar" style="background:none"></div><div class="stp"><button class="sec ib" onclick="slfAdj(${i},-5)" aria-label="Minus 5">−</button><b id="sc${i}">${G.sc[i]}</b><button class="sec ib" onclick="slfAdj(${i},5)" aria-label="Plus 5">+</button></div></div>`).join('')}</div>
   ${boardHTML(G.pts,{label:'Gesamt vor dieser Runde',unit:' P'})}
   <button onclick="slfCommit()">${last?'Endergebnis 🏆':'Runde werten'}</button>`);
@@ -5199,7 +5216,7 @@ function slfBad(k,i){
   if(on)toast('🧠 Gemerkt: „'+w+'“ zählt in '+cat+' künftig nicht');
 }
 function slfDCommit(){G.sc=slfCalc().pts;slfCommit()}
-function slfAdj(i,d){G.sc[i]=Math.max(0,Math.min(100,G.sc[i]+d));const e=$('sc'+i);if(e)e.textContent=G.sc[i]}
+function slfAdj(i,d){G.sc[i]=Math.max(0,Math.min(300,G.sc[i]+d));const e=$('sc'+i);if(e)e.textContent=G.sc[i]}
 function slfCommit(){
   S.P.forEach((_,i)=>G.pts[i]+=G.sc[i]);
   if(G.r+1>=G.rounds){finish({unit:' P'});return}
@@ -5598,7 +5615,7 @@ function syncViews(){
   flush();
   NET.m.forEach((m,i)=>{
     const own=PAR?parOwn(i):null;
-    const el=eligible(i),room=!NET.inGame&&i>0,want=own!=null?'own':(room?'room':(el?'mirror':'wait'));
+    const el=eligible(i),room=!NET.inGame&&i>0&&!NET.setup,want=own!=null?'own':(room?'room':(el?'mirror':'wait'));
     if(i===0){if(own!=null)hostOwn(own);else hostView(el);m.view=want;return}
     if(!isOpen(m)){m.view='none';return}
     if(want==='own'){if(m.view!=='own'||m.oh!==own){sendTo(m,{t:'own',html:own});m.view='own';m.oh=own}}
@@ -5727,6 +5744,7 @@ const PERMS={
   ttScreen:()=>()=>((G.over||(G.cpu&&G.turn===1))?'host':G.pi[G.turn]),
   dsScreen:()=>()=>(G.fin?'host':G.cur),
   waLock:()=>'all',
+  slfShow:()=>'all',
   kiTurn:()=>()=>G.cur,
   kiShow:()=>()=>G.cur
 };
@@ -5736,8 +5754,8 @@ function wrapPub(n,permFn){
   window[n]=function(){
     ACT=null;parEnd();PERM=permFn?permFn():null;
     if(n==='startSession')NET.inGame=true;
-    if(MENU.indexOf(n)>=0){NET.inGame=false;NET.scr=(n==='home')?'home':(n==='settings'?'settings':null);netPrune()}
-    else NET.scr=null;
+    if(MENU.indexOf(n)>=0){NET.inGame=false;NET.setup=(n==='gameSetup');NET.scr=(n==='home')?'home':(n==='settings'?'settings':null);netPrune()}
+    else{NET.scr=null;NET.setup=false}
     const r=f.apply(this,arguments);
     if(NET.host)syncViews();
     return r;
@@ -5833,7 +5851,7 @@ function netPrune(){
   S.names=NET.m.map(x=>x.name);
 }
 function lobbyScreen(){
-  setLive(false);ACT=null;parEnd();PERM=null;NET.scr='lobby';TH=['var(--red2)','var(--red)'];stopAll();S.P=null;
+  setLive(false);ACT=null;parEnd();PERM=null;NET.scr='lobby';NET.setup=false;TH=['var(--red2)','var(--red)'];stopAll();S.P=null;
   const link=location.href.split('#')[0]+'#'+NET.code;
   let qr='';try{const q=qrcode(0,'M');q.addData(link);q.make();qr=q.createSvgTag({cellSize:6,margin:0,scalable:true})}catch(e){}
   scr(`<button class="sec back" onclick="home()">← Spiele</button>${logo('Lobby')}
