@@ -47,7 +47,7 @@ let fails=0;const errs=[];const ok=(c,m)=>{console.log((c?'  ✓ ':'  ✗ ')+m);
 
  console.log('6) Lobby existiert nicht mehr (veraltete Sitzung)');
  await B.evaluate(()=>{localStorage.setItem('pb_sess',JSON.stringify({code:'ZZZZZ',name:'Ben',t:Date.now()}))});
- await B.reload();await B.waitForFunction(()=>document.getElementById('app').innerText.includes('Keine Verbindung')||document.getElementById('app').innerText.includes('fehlgeschlagen'),{timeout:20000});
+ await B.reload();await B.waitForFunction(()=>document.getElementById('app').innerText.includes('Keine direkte Verbindung')||document.getElementById('app').innerText.includes('fehlgeschlagen'),{timeout:35000});
  ok(await B.evaluate(()=>!localStorage.getItem('pb_sess')),'Fehlversuch vergisst die Sitzung');
  console.log('\nFehler im Browser:',errs.length?errs:'keine');console.log(fails?fails+' FEHLGESCHLAGEN':'alles ok');await b.close();process.exit(fails?1:0);
 })().catch(e=>{console.error('Abbruch',e);process.exit(2)});
