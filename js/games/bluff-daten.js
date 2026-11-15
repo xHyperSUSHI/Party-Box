@@ -1,0 +1,71 @@
+/* ================= Bluff ================= */
+const BQ=[
+['Wie nennt man die Angst vor Clowns?','Coulrophobie'],['Wie nennt man die Angst vor der Zahl 13?','Triskaidekaphobie'],['Wie heißt die Angst vor langen Wörtern?','Hippopotomonstrosesquippedaliophobie'],
+['Wie heißt die Hauptstadt von Burkina Faso?','Ouagadougou'],['Wie heißt die Hauptstadt von Kasachstan?','Astana'],['Wie heißt die Hauptstadt von Bhutan?','Thimphu'],['Wie heißt die Hauptstadt von Myanmar?','Naypyidaw'],['Wie heißt die Hauptstadt von Tuvalu?','Funafuti'],['Wie heißt die Hauptstadt der Mongolei?','Ulaanbaatar'],['Wie heißt die Hauptstadt von Palau?','Ngerulmud'],
+['Wie heißt die Hauptstadt von Australien?','Canberra'],['Wie heißt die Hauptstadt der Schweiz?','Bern'],['Wie heißt die Hauptstadt von Kanada?','Ottawa'],['Wie heißt die Hauptstadt von Brasilien?','Brasília'],['Wie heißt die Hauptstadt von Neuseeland?','Wellington'],['Wie heißt die Hauptstadt der Türkei?','Ankara'],
+['Wie heißt der größte Mond des Saturn?','Titan'],['Wie heißt der größte Mond des Jupiter?','Ganymed'],['Wie heißen die beiden Marsmonde?','Phobos und Deimos'],['Welcher Planet hat den längsten Tag (Rotation)?','Venus'],
+['Wie nennt man ein männliches Kaninchen?','Rammler'],['Wie nennt man ein weibliches Schaf?','Aue'],
+['Wer erfand die Sicherheitsnadel?','Walter Hunt'],
+['Welches Element hat das chemische Symbol „W“?','Wolfram'],['Welches Element hat das chemische Symbol „Sn“?','Zinn'],['Welches Element hat das chemische Symbol „Hg“?','Quecksilber'],
+['Wie heißt der höchste frei fallende Wasserfall der Welt?','Salto Ángel (Angel Falls)'],['Wie heißt der größte See Afrikas?','Victoriasee'],['Wie heißt der tiefste See der Welt?','Baikalsee'],['Wie heißt das kleinste Land der Welt?','Vatikanstadt'],
+['Wie nennt man die Lehre von den Pilzen?','Mykologie'],['Wie nennt man die Lehre von den Flaggen?','Vexillologie'],['Wie nennt man die Lehre von den Wolken?','Nephologie'],['Wie nennt man das Sammeln von Briefmarken?','Philatelie'],['Wie nennt man die Lehre von den Münzen?','Numismatik'],
+['Wie heißt die japanische Kunst des Blumensteckens?','Ikebana'],['Welches Land hat die längste Küstenlinie der Welt?','Kanada'],['Welches Land hat die meisten Zeitzonen (mit Überseegebieten)?','Frankreich'],['Welcher Kontinent hat die meisten Länder?','Afrika'],
+['Wie viele Saiten hat eine Konzertharfe?','47']
+];
+BQ.push(
+['Wie heißt die Hauptstadt von Laos?','Vientiane'],['Wie heißt die Hauptstadt von Turkmenistan?','Aschgabat'],['Wie heißt die Hauptstadt von Usbekistan?','Taschkent'],['Wie heißt die Hauptstadt von Mauretanien?','Nouakchott'],['Wie heißt die Hauptstadt von Surinam?','Paramaribo'],['Wie heißt die Hauptstadt von Tansania?','Dodoma'],['Wie heißt die Hauptstadt von Nigeria?','Abuja'],['Wie heißt die Hauptstadt von Belize?','Belmopan'],
+['Wie heißt der größte Mond des Neptun?','Triton'],['Wie heißt der hellste Stern am Nachthimmel (ohne die Sonne)?','Sirius'],['Wie heißt die der Milchstraße nächste große Galaxie?','Andromeda'],['Welches Element hat das chemische Symbol „Pb“?','Blei'],['Welches Element hat das chemische Symbol „K“?','Kalium'],['Wie nennt man die Lehre von den Insekten?','Entomologie'],['Wie nennt man die Lehre von den Fischen?','Ichthyologie'],['Wie nennt man die Höhlenkunde (Lehre von den Höhlen)?','Speläologie'],
+['Wie nennt man ein junges Känguru?','Joey'],['Wie nennt man einen weiblichen Fuchs?','Fähe'],['Wie nennt man ein junges Wildschwein im ersten Lebensjahr?','Frischling'],['Wie nennt man ein weibliches Reh?','Ricke'],['Wie nennt man eine junge Gans?','Gössel'],['Wie nennt man ein männliches Schaf?','Widder'],
+['Wie nennt man das Sammeln von Streichholzschachteln?','Phillumenie'],['Wie nennt man das Sammeln von Bierdeckeln?','Tegestologie'],
+['Wie nennt man ein Wort, das vorwärts und rückwärts gleich gelesen wird?','Palindrom'],['Wie nennt man einen Satz, der alle Buchstaben des Alphabets enthält?','Pangramm'],['Wie nennt man ein Kurzwort aus Anfangsbuchstaben, zum Beispiel NATO?','Akronym'],
+['Welches Gewürz gilt als das teuerste der Welt?','Safran'],['Wie heißt der berühmte französische Blauschimmelkäse aus Schafsmilch?','Roquefort'],['Wie heißt die kalte spanische Gemüsesuppe?','Gazpacho'],['Wie heißt das koreanische Gericht aus eingelegtem, scharfem Kohl?','Kimchi'],['Wie heißt das japanische Getränk aus vergorenem Reis?','Sake'],['Wie heißt das georgische Käsebrot?','Chatschapuri'],
+['Wie heißt der längste Fluss Europas?','Wolga'],['Wie heißt die größte Insel der Welt?','Grönland'],['Wie heißt der größte See der Erde?','Kaspisches Meer'],
+['Wie hieß das Pferd Alexanders des Großen?','Bukephalos'],['Wie hieß das Forschungsschiff von Charles Darwin?','Beagle'],['Wie hieß das Schiff der Pilgerväter nach Amerika?','Mayflower'],
+['Wie nennt man beim Golf einen Schlag unter Par?','Birdie'],['Wie nennt man beim Bowling drei Strikes hintereinander?','Turkey']
+);
+Object.assign(BQI,{
+"Vientiane":"Laos ist ein Binnenstaat in Südostasien am Fluss Mekong.",
+"Aschgabat":"Turkmenistan liegt in Zentralasien und ist größtenteils von der Wüste Karakum bedeckt.",
+"Taschkent":"Usbekistan liegt in Zentralasien an der alten Seidenstraße.",
+"Nouakchott":"Mauretanien liegt in Westafrika, besteht großteils aus Sahara und grenzt an den Atlantik.",
+"Paramaribo":"Surinam ist das kleinste Land Südamerikas und war früher eine niederländische Kolonie.",
+"Dodoma":"Die Hauptstadt Tansanias ist nicht die größte Stadt Daressalam, sondern liegt im Landesinneren.",
+"Abuja":"Die Hauptstadt Nigerias ist nicht Lagos, sondern eine Planstadt im Landesinneren.",
+"Belmopan":"Belize liegt in Mittelamerika an der Karibik. Die Hauptstadt wurde nach einem Hurrikan neu gebaut.",
+"Triton":"Neptun ist der äußerste Planet des Sonnensystems. Sein größter Mond kreist rückwärts um ihn.",
+"Sirius":"Gesucht ist ein Stern im Sternbild Großer Hund, der hellste am Nachthimmel (ohne die Sonne).",
+"Andromeda":"Unsere Heimatgalaxie ist die Milchstraße. Gefragt ist die nächste große Nachbargalaxie, die man bei dunklem Himmel mit bloßem Auge als Fleck sehen kann.",
+"Blei":"Chemische Symbole sind Abkürzungen für Elemente. Dieses Symbol kommt vom lateinischen Namen (plumbum) des schweren, weichen Metalls.",
+"Kalium":"Chemische Symbole sind Abkürzungen für Elemente. Dieses Element ist wichtig für Nerven und Muskeln und steckt zum Beispiel in Bananen.",
+"Entomologie":"Die Fachbegriffe für Wissenschaften enden meist auf „-logie“. Gesucht ist die Lehre von einer sehr artenreichen Tiergruppe mit sechs Beinen.",
+"Ichthyologie":"Die Fachbegriffe für Wissenschaften enden meist auf „-logie“. Der Wortanfang kommt aus dem Griechischen.",
+"Speläologie":"Die Fachbegriffe für Wissenschaften enden meist auf „-logie“. Der Wortanfang kommt aus dem Griechischen und bedeutet „Grotte“.",
+"Joey":"Känguru-Junge verbringen die ersten Monate im Beutel der Mutter. Der englische Fachbegriff für das Jungtier wird auch im Deutschen verwendet.",
+"Fähe":"Das Weibchen mancher Tiere hat einen eigenen Fachbegriff aus der Jägersprache, zum Beispiel Bache oder Ricke. Hier ist das Weibchen beim Fuchs gemeint.",
+"Frischling":"Wildschweine haben im ersten Lebensjahr einen eigenen Namen aus der Jägersprache.",
+"Ricke":"Das Weibchen mancher Tiere hat einen eigenen Fachbegriff aus der Jägersprache, zum Beispiel Bache oder Fähe. Hier ist das Weibchen beim Rehwild gemeint.",
+"Gössel":"Gänse und Enten haben für ihre Küken besondere Namen. Hier ist das Junge der Gans gemeint.",
+"Widder":"Das Männchen mancher Tiere hat einen eigenen Fachbegriff, zum Beispiel Eber, Hengst oder Rüde. Hier ist das Männchen beim Schaf gemeint.",
+"Phillumenie":"Gefragt ist das Fachwort für ein Sammelhobby rund um kleine Schachteln, mit denen man Feuer macht.",
+"Tegestologie":"Gefragt ist das Fachwort für ein Sammelhobby rund um runde Pappstücke, die in Kneipen unter dem Glas liegen.",
+"Palindrom":"Beispiele sind „Anna“ oder „Reliefpfeiler“. Gefragt ist der Fachbegriff für solche Wörter.",
+"Pangramm":"Beispiel: „Franz jagt im komplett verwahrlosten Taxi quer durch Bayern“. Gefragt ist der Fachbegriff für einen solchen Satz.",
+"Akronym":"Beispiele sind UNO oder Laser. Gefragt ist der Fachbegriff für solche Kurzwörter aus Anfangsbuchstaben.",
+"Safran":"Dieses Gewürz stammt von den Fäden einer Krokusblüte, wird von Hand geerntet und färbt Speisen gelb.",
+"Roquefort":"Dieser französische Käse aus Schafsmilch ist ein berühmter Blauschimmelkäse und reift in Höhlen im Süden Frankreichs.",
+"Gazpacho":"Diese spanische Spezialität wird kalt serviert und besteht vor allem aus Tomaten, Gurken und Paprika.",
+"Kimchi":"Das koreanische Nationalgericht aus fermentiertem Kohl ist scharf eingelegt.",
+"Sake":"Dieses japanische Getränk wird aus Reis gebraut und oft warm oder kühl aus kleinen Schalen getrunken.",
+"Chatschapuri":"Dieses georgische Gebäck ist ein Brotteig, gefüllt mit geschmolzenem Käse und oft einem Ei.",
+"Wolga":"Dieser Fluss fließt durch Russland und mündet in das größte Binnengewässer der Erde.",
+"Grönland":"Diese Insel gehört politisch zu Dänemark und ist größtenteils von einem Eisschild bedeckt.",
+"Kaspisches Meer":"Dieses Gewässer liegt zwischen Europa und Asien und hat Anrainer wie Russland, Iran und Kasachstan, obwohl es salzig ist.",
+"Bukephalos":"Dieses berühmte Streitross gehörte einem makedonischen König und Feldherrn der Antike.",
+"Beagle":"Dieses britische Forschungsschiff brachte einen jungen Naturforscher bis zu den Galápagos-Inseln.",
+"Mayflower":"Dieses Segelschiff brachte im 17. Jahrhundert englische Siedler, die „Pilgerväter“, nach Nordamerika.",
+"Birdie":"Beim Golf wird die Schlagzahl pro Loch mit einer Vorgabe (Par) verglichen. Das gesuchte Wort ist ein Vogelname.",
+"Turkey":"Beim Bowling gibt es für besondere Serien englische Fachbegriffe. Das gesuchte Wort ist der Name eines Vogels, den man zu Thanksgiving isst."
+});
+const BQZ=[["Vervollständige das Zitat: „Mögen hätte ich schon wollen, aber dürfen habe ich mich nicht …“","getraut"],["Vervollständige das Zitat: „Ein jeder Wunsch, wenn er erfüllt, kriegt augenblicklich …“","Junge"],["Vervollständige das Zitat: „Es ist ein Brauch von altersher: Wer Sorgen hat, hat auch …“","Likör"],["Vervollständige das Zitat: „Enthaltsamkeit ist das Vergnügen an Sachen, welche wir nicht …“","kriegen"],["Vervollständige das Zitat: „Ich habe einen ganz einfachen Geschmack: Ich bin immer mit dem … zufrieden.“","Besten"],["Vervollständige das Zitat: „Erfahrung ist der Name, den jeder seinen … gibt.“","Fehlern"],["Vervollständige das Zitat: „Ich habe dich so lieb! Ich würde dir ohne Bedenken eine … aus meinem Ofen schenken.“","Kachel"],["Vervollständige das Zitat: „In Hamburg lebten zwei Ameisen, die wollten nach … reisen.“","Australien"],["Vervollständige das Zitat: „Ein Wiesel saß auf einem Kiesel inmitten …“","Bachgeriesel"],["Vervollständige das Zitat: „Es war einmal ein Lattenzaun, mit … hindurchzuschaun.“","Zwischenraum"],["Vervollständige das Zitat: „Das Gute – dieser Satz steht fest – ist stets das Böse, was man …“","lässt"]];
+const BQW=[["Was bedeutet das Wort „Quisquilien“ laut Duden? (kurz erklären)","Kleinigkeiten, Belangloses"],["Was bedeutet das Wort „Hurenkind“ laut Duden? (kurz erklären)","Letzte Absatzzeile allein oben auf der Seite"],["Was bedeutet das Wort „Schusterjunge“ laut Duden? (kurz erklären)","Erste Absatzzeile allein unten auf der Seite"],["Was bedeutet das Wort „Zwiebelfisch“ laut Duden? (kurz erklären)","Buchstabe in falscher Schrift (Druckfehler)"],["Was bedeutet das Wort „Muckefuck“ laut Duden? (kurz erklären)","Ersatzkaffee"],["Was bedeutet das Wort „Lamäng“ laut Duden? (kurz erklären)","aus der Lamäng = aus dem Handgelenk"],["Was bedeutet das Wort „Gschaftlhuber“ laut Duden? (kurz erklären)","Wichtigtuer"],["Was bedeutet das Wort „pomadig“ laut Duden? (kurz erklären)","träge, schwerfällig"],["Was bedeutet das Wort „Mesalliance“ laut Duden? (kurz erklären)","unstandesgemäße Ehe"],["Was bedeutet das Wort „kredenzen“ laut Duden? (kurz erklären)","feierlich anbieten"],["Was bedeutet das Wort „kolportieren“ laut Duden? (kurz erklären)","Gerücht weitererzählen"],["Was bedeutet das Wort „Pappenstiel“ laut Duden? (kurz erklären)","Kleinigkeit, fast nichts wert"],["Was bedeutet das Wort „Kapriole“ laut Duden? (kurz erklären)","Luftsprung, ausgefallener Einfall"],["Was bedeutet das Wort „Kalamität“ laut Duden? (kurz erklären)","Notlage"],["Was bedeutet das Wort „Backfisch“ laut Duden? (kurz erklären)","junges Mädchen (veraltet)"],["Was bedeutet das Wort „Pläsier“ laut Duden? (kurz erklären)","Vergnügen"],["Was bedeutet das Wort „Schlendrian“ laut Duden? (kurz erklären)","nachlässige Gewohnheit"],["Was bedeutet das Wort „Larifari“ laut Duden? (kurz erklären)","Unsinn, oberflächliches Gerede"],["Was bedeutet das Wort „Brimborium“ laut Duden? (kurz erklären)","unnötiger Aufwand"],["Was bedeutet das Wort „Kokolores“ laut Duden? (kurz erklären)","dummes Zeug"],["Was bedeutet das Wort „Hallodri“ laut Duden? (kurz erklären)","leichtsinniger Kerl"],["Was bedeutet das Wort „Schlawiner“ laut Duden? (kurz erklären)","schlauer, verschmitzter Kerl"],["Was bedeutet das Wort „Fisimatenten“ laut Duden? (kurz erklären)","Umstände, Ausflüchte"],["Was bedeutet das Wort „Schnurre“ laut Duden? (kurz erklären)","lustige kleine Geschichte"],["Was bedeutet das Wort „Lüftlmalerei“ laut Duden? (kurz erklären)","Fassadenmalerei im Alpenraum"],["Was bedeutet das Wort „Pfundskerl“ laut Duden? (kurz erklären)","prima Kerl"],["Was bedeutet das Wort „Fatzke“ laut Duden? (kurz erklären)","eingebildeter Mensch"],["Was bedeutet das Wort „Mumpitz“ laut Duden? (kurz erklären)","Unsinn"],["Was bedeutet das Wort „Grandezza“ laut Duden? (kurz erklären)","würdevolle Haltung"],["Was bedeutet das Wort „Sophisterei“ laut Duden? (kurz erklären)","spitzfindiges Argumentieren"]];
+const BPOOL={'Wissen 🧠':BQ,'Zitate 💬':BQZ,'Wörter 📖':BQW},BCATS=Object.keys(BPOOL);
