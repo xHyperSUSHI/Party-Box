@@ -4,7 +4,9 @@ const OPT={arsch:{rounds:10,timer:30,cats:{}},pant:{secs:60,rounds:2,cats:{}},sp
 const hue=i=>(i*47+350)%360;
 const nameOf=i=>(S.P&&S.P[i]!=null?S.P[i]:S.names[i]);
 const scr=h=>{app.innerHTML=`<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${h}</div>`;window.scrollTo(0,0);app.scrollTop=0;kbPrep()};
-const av=(i,cls,sz)=>`<div class="av ${cls||''}" style="${sz?`width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.45)}px;`:''}background:linear-gradient(135deg,hsl(${hue(i)} 85% 58%),hsl(${hue(i)+40} 80% 42%))">${esc((nameOf(i)||'?').trim().charAt(0).toUpperCase()||'?')}</div>`;
+/* Avatar von Spieler i: Charakter (09-charakter.js), sonst Initialen-Kreis wie bisher */
+const av=(i,cls,sz)=>{const c=charOf(i);return c?charAv(c,cls,sz):avIni(i,cls,sz)};
+const avIni=(i,cls,sz)=>`<div class="av ${cls||''}" style="${sz?`width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.45)}px;`:''}background:linear-gradient(135deg,hsl(${hue(i)} 85% 58%),hsl(${hue(i)+40} 80% 42%))">${esc((nameOf(i)||'?').trim().charAt(0).toUpperCase()||'?')}</div>`;
 const TN=[['🔥','Feuer',12],['🧊','Eis',200],['⚡','Blitz',48],['🌿','Natur',140]];
 const tcol=t=>`hsl(${TN[t][2]} 85% 55%)`;
 const tb=(t,sz,cls)=>`<div class="av ${cls||''}" style="${sz?`width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.55)}px;`:''}background:linear-gradient(135deg,hsl(${TN[t][2]} 85% 58%),hsl(${TN[t][2]+30} 80% 42%))">${TN[t][0]}</div>`;
@@ -21,9 +23,9 @@ function playersScreen(){
   setLive(false);S.P=null;TH=['var(--red2)','var(--red)'];
   scr(`<button class="sec back" onclick="savePlayers()">← Fertig</button>${logo('Mitspieler')}
   <div class="card"><div id="pl"></div><div class="row"><button class="sec" onclick="addP()">+ Spieler</button><button class="sec" onclick="delP()">− Spieler</button></div></div>
-  <p class="sm">Bis zu 10 Spieler. Allein geht nur 4 Gewinnt gegen den Computer, alle anderen Spiele brauchen mindestens 2 oder 3. Namen und Einstellungen merkt sich die Party Box auf diesem Gerät.</p>`);
+  <p class="sm">Bis zu 10 Spieler. Allein geht nur 4 Gewinnt gegen den Computer, alle anderen Spiele brauchen mindestens 2 oder 3. Namen und Einstellungen merkt sich die Party Box auf diesem Gerät. Tipp aufs Bild, um einen Charakter zu gestalten.</p>`);
   const pl=$('pl');
-  S.names.forEach((n,i)=>pl.insertAdjacentHTML('beforeend',`<div class="row" style="align-items:center;margin-top:10px">${av(i)}<input style="margin:0" data-i="${i}" value="${esc(/^Spieler \d+$/.test(n.trim())?'':n)}" maxlength="16" placeholder="Spieler ${i+1}"></div>`));
+  S.names.forEach((n,i)=>pl.insertAdjacentHTML('beforeend',`<div class="row" style="align-items:center;margin-top:10px"><div class="avb" onclick="charOpen(${i})" aria-label="Charakter bearbeiten">${av(i)}<i>✎</i></div><input style="margin:0" data-i="${i}" value="${esc(/^Spieler \d+$/.test(n.trim())?'':n)}" maxlength="16" placeholder="Spieler ${i+1}"></div>`));
 }
 function saveNames(){document.querySelectorAll('#pl input').forEach(e=>S.names[+e.dataset.i]=e.value)}
 function addP(){saveNames();if(S.names.length<10)S.names.push('Spieler '+(S.names.length+1));playersScreen()}

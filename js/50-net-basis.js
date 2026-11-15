@@ -191,8 +191,9 @@ function roomHTML(i){
   const st=NET.scr==='lobby'?'Alle versammeln sich – der Host startet gleich ein Spiel.':NET.scr==='settings'?'Der Host ist gerade in den Einstellungen …':(CUR&&GAMES[CUR]?`Der Host richtet <b>${esc(GAMES[CUR].name)}</b> ein …`:(NET.scr==='home'?'Der Host sucht ein Spiel aus …':'Der Host ist gerade im Menü …'));
   return `<div class="screen" style="--g1:${TH[0]};--g2:${TH[1]}">${logo('Lobby',1)}
   <div class="card room"><div class="sm">Lobby-Code</div><div class="big" style="letter-spacing:6px;font-size:38px">${esc(NET.code)}</div>
-  <div class="roomme">${av(i,'l')}<div><div class="sm">Du bist dabei als</div><b style="font-size:22px">${esc(me.name)}</b></div></div>
+  <div class="roomme"><div class="rmfig">${figSVG(me.av,{pose:'wave',ini:me.name})}</div><div><div class="sm">Du bist dabei als</div><b style="font-size:22px">${esc(me.name)}</b></div></div>
   <div class="roomst"><span class="rdots"><i></i><i></i><i></i></span><span>${st}</span></div></div>
+  ${roomScene()}
   <div class="card"><div class="sm" style="margin-bottom:4px">In der Lobby (${NET.m.length})</div>${NET.m.map((m,k)=>`<div class="row" style="align-items:center;margin-top:8px">${av(k,'',32)}<b style="flex:1">${esc(m.name)}${k===0?' <span class="sm">· Host</span>':''}${k===i?' <span class="sm">· du</span>':''}</b><i class="dot2${k===0||isOpen(m)?'':' off'}"></i></div>`).join('')}</div>
   <p class="sm" style="text-align:center;margin:10px 0">Lass die App offen – es geht gleich los. 🎉</p></div>`;
 }

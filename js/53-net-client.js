@@ -2,7 +2,7 @@
 function joinScreen(code){
   setLive(false);stopAll();TH=['var(--red2)','var(--red)'];
   scr(`${logo('Beitreten')}<div class="card"><div class="sm">Lobby</div><div class="big" style="letter-spacing:5px">${esc(code)}</div>
-  <h2 style="margin-top:14px">Dein Name</h2><input id="myn" maxlength="16" value="${esc(myName())}" placeholder="Name" autocomplete="off">
+  <h2 style="margin-top:14px">Dein Name</h2><input id="myn" maxlength="16" value="${esc(myName())}" placeholder="Name" autocomplete="off">${profMini('join:'+esc(code))}
   <button onclick="netJoinStart('${esc(code)}')">Beitreten</button></div><button class="sec" onclick="history.replaceState(null,'',location.pathname);home()">Abbrechen</button>`);
 }
 function netJoinStart(code){
@@ -39,7 +39,7 @@ function netJoin(code,name,quiet){
   p.on('open',()=>{
     if(jid!==NET.jid)return;
     const c=p.connect(PRE+code,{reliable:true,serialization:'json'});NET.conn=c;
-    c.on('open',()=>{clearTimeout(to);NET.lastHost=Date.now();c.send({t:'hi',n:name,id:myCid()});hbStart();wake()});
+    c.on('open',()=>{clearTimeout(to);NET.lastHost=Date.now();c.send({t:'hi',n:name,id:myCid(),av:charLocal(name)});hbStart();wake()});
     c.on('data',d=>{if(NET.conn===c)netClientData(d)});
     c.on('close',()=>{if(NET.client&&NET.conn===c)netWaitStart()});
     c.on('error',()=>{});

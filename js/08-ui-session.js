@@ -109,8 +109,9 @@ function finish(o){
   const top=idx[0],tie=G.ents.length>1&&vals[idx[1]]===vals[top];
   recordStats(vals,top);
   const m=Math.max(1,...vals),unit=o.unit||' P';
+  const pod=!G.team&&G.ents.length>=2; // Siegerehrung mit Charakteren auf dem Podest
   scr(`${logo(G.def.name,1)}
-  <div class="card win"><div class="crown">${G.team?G.ents[top].emoji:'👑'}</div>${G.ents[top].av(0,'l')}<div class="sm">${tie?'Gleichstand an der Spitze':(G.team?'Siegerteam':'Gewinner')}</div><div class="big">${esc(G.ents[top].name)}</div><div class="sm">${esc(G.ents[top].sub)}${G.ents[top].sub?' · ':''}${vals[top]}${unit}</div></div>
+  <div class="card win">${pod?podiumHTML(idx,vals,unit):`<div class="crown">${G.team?G.ents[top].emoji:'👑'}</div>${G.ents[top].av(0,'l')}`}${pod?`<div class="sm">${tie?'Gleichstand an der Spitze':'🏆 Gewinner: '+esc(G.ents[top].name)}</div>`:`<div class="sm">${tie?'Gleichstand an der Spitze':(G.team?'Siegerteam':'Gewinner')}</div><div class="big">${esc(G.ents[top].name)}</div><div class="sm">${esc(G.ents[top].sub)}${G.ents[top].sub?' · ':''}${vals[top]}${unit}</div>`}</div>
   <div class="card">${idx.map((i,k)=>`<div class="sb late" style="--d:${.6+k*.15}s"><span style="width:20px;color:var(--mu)">${k+1}.</span>${G.ents[i].av(30)}<span class="nm">${esc(G.ents[i].name.replace(/^Team /,''))}</span><div class="bar"><i style="width:0" data-w="${vals[i]/m*100}"></i></div><span class="pt">${vals[i]}${unit}</span></div>`).join('')}</div>
   ${o.extra||''}
   <button onclick="startSession('${G.id}')">Nochmal</button><button class="sec" onclick="gameSetup('${G.id}')">Einstellungen ändern</button><button class="sec" onclick="home()">← Alle Spiele</button>`);

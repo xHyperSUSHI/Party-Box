@@ -5,7 +5,7 @@ function onlineMenu(){
   setLive(false);stopAll();ACT=null;PERM=null;NET.scr=null;TH=['var(--red2)','var(--red)'];
   const nm=myName()||(/^Spieler \d+$/.test((S.names[0]||'').trim())?'':(S.names[0]||''));
   scr(`<button class="sec back" onclick="home()">← Zurück</button>${logo('Online')}
-  <div class="card"><h2>Dein Name</h2><input id="myn" maxlength="16" value="${esc(nm)}" placeholder="Name" autocomplete="off"></div>
+  <div class="card"><h2>Dein Name</h2><input id="myn" maxlength="16" value="${esc(nm)}" placeholder="Name" autocomplete="off">${profMini('online')}</div>
   <div class="card"><h2>Lobby erstellen</h2><p class="sm" style="margin-top:-4px">Dein Gerät ist der Host: Es steuert das Spiel und muss geöffnet bleiben. Die anderen scannen den QR-Code.</p><button onclick="netHostStart()">🎉 Lobby erstellen</button></div>
   <div class="card"><h2>Beitreten</h2><input id="jc" maxlength="${APP_CODE_LEN}" placeholder="Code" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;text-align:center;letter-spacing:4px;font-size:22px"><button class="sec" onclick="netJoinStart()">Beitreten</button></div>`);
 }
@@ -30,7 +30,7 @@ function netTryHost(tries,name){
   p.on('open',()=>{
     opened=true;NET.peer=p;NET.on=true;NET.host=true;NET.client=false;NET.code=code;NET.inGame=false;
     NET.localNames=S.names.slice();
-    NET.m=[{name,conn:null,last:Date.now(),view:'mirror',perm:true}];S.names=[name];
+    NET.m=[{name,av:charLocal(name),conn:null,last:Date.now(),view:'mirror',perm:true}];S.names=[name];
     startMirror();wake();hbStart();
     p.on('connection',netOnConn);
     hostSave();lobbyScreen();
@@ -57,7 +57,7 @@ function netHostRestore(h,tries){
   p.on('open',()=>{
     opened=true;NET.peer=p;NET.on=true;NET.host=true;NET.client=false;NET.code=h.code;NET.inGame=false;
     NET.localNames=S.names.slice();
-    NET.m=[{name:h.name,conn:null,last:Date.now(),view:'mirror',perm:true}];S.names=[h.name];
+    NET.m=[{name:h.name,av:charLocal(h.name),conn:null,last:Date.now(),view:'mirror',perm:true}];S.names=[h.name];
     startMirror();wake();hbStart();
     p.on('connection',netOnConn);
     hostSave();lobbyScreen();toast('🔄 Lobby '+h.code+' wiederhergestellt – deine Mitspieler kommen gleich zurück');
@@ -79,7 +79,7 @@ function netOnConn(c){
         let nm=nm0,k=2;while(NET.m.some(x=>x.name===nm))nm=nm0.slice(0,13)+' '+(k++);
         m={name:nm,cid};NET.m.push(m);
       }
-      m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;m.oh=null;m.rh=null;m.tmId=null;mem=m;
+      m.av=charOk(d.av);m.conn=c;m.last=Date.now();m.view='none';m.perm=null;m.wh=null;m.oh=null;m.rh=null;m.tmId=null;mem=m;
       sendTo(m,{t:'welcome',idx:NET.m.indexOf(m),name:m.name,code:NET.code});
       netMembersChanged();
       return;
@@ -111,6 +111,7 @@ function lobbyScreen(){
   <div class="card" style="text-align:center"><div class="sm">Lobby-Code</div><div class="big" style="letter-spacing:6px;font-size:42px">${NET.code}</div>
   <div class="qrbox">${qr}</div><p class="sm" style="margin:0">QR-Code scannen oder Link öffnen und den Code eingeben.</p>
   <button class="sec" onclick="netShare()">🔗 Link teilen</button></div>
+  ${roomScene()}
   <div class="card"><h2>Spieler (${NET.m.length})</h2>${NET.m.map((m,i)=>`<div class="row" style="align-items:center;margin-top:8px">${av(i,'',34)}<b style="flex:1">${esc(m.name)}${i===0?' <span class="sm">· Host</span>':''}</b><i class="dot2${i===0||isOpen(m)?'':' off'}"></i></div>`).join('')}
   ${NET.m.length<2?'<p class="sm" style="margin-bottom:0">Warte auf Mitspieler …</p>':''}</div>
   <button onclick="home()">Spiel auswählen ➜</button><button class="sec" onclick="lobClose()">🚪 Lobby schließen</button>`);

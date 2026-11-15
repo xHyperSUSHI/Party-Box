@@ -1,5 +1,5 @@
 /* Party Box – Service Worker: Netzwerk zuerst (immer die neueste Version), bei fehlendem Netz aus dem Cache. */
-const CACHE='pbox-v3';
+const CACHE='pbox-v4';
 const ASSETS=[
   'index.html',
   'manifest.webmanifest',
@@ -19,6 +19,7 @@ const ASSETS=[
   'js/06-ui-basis.js',
   'js/07-ui-einstellungen.js',
   'js/08-ui-session.js',
+  'js/09-charakter.js',
   'js/games/arsch.js',
   'js/games/pant.js',
   'js/games/spy.js',
