@@ -161,8 +161,8 @@ function figSVG(c,o){
   ][T]+`<path d="M78 84Q84 86 84 92L83 ${T===4?128:150}H74Z" fill="${shade}"/>`;
   if(neutral&&o.ini)body+=`<text x="60" y="126" text-anchor="middle" font-size="26" font-weight="800" fill="#fff" fill-opacity=".85" font-family="system-ui,sans-serif">${esc(String(o.ini).charAt(0).toUpperCase())}</text>`;
   // ----- Kopf
-  head+=`<circle cx="37" cy="52" r="6" fill="${sk}"/><circle cx="83" cy="52" r="6" fill="${sk}"/>`;
-  head+=`<ellipse cx="60" cy="48" rx="23" ry="26" fill="${sk}"/><path d="M74 30Q87 48 74 70Q80 50 74 30Z" fill="${shade}"/>`;
+  head+=`<circle cx="37" cy="51" r="6" fill="${sk}"/><circle cx="83" cy="51" r="6" fill="${sk}"/><path d="M36.5 47.5Q33.5 51 36.5 55M83.5 47.5Q86.5 51 83.5 55" stroke="rgba(0,0,0,.18)" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  head+=`<path d="M60 22C76 22 84 33 84 47C84 62 74 75 60 75C46 75 36 62 36 47C36 33 44 22 60 22Z" fill="${sk}"/><ellipse cx="54" cy="33" rx="12" ry="6" fill="#fff" opacity=".13"/><path d="M47 71Q60 79 73 71Q66 75 60 75Q54 75 47 71Z" fill="rgba(0,0,0,.08)"/>`;
   if(neutral){
     head+=`<circle cx="51" cy="50" r="3" fill="#2a2f45" opacity=".7"/><circle cx="69" cy="50" r="3" fill="#2a2f45" opacity=".7"/><path d="M53 62Q60 66 67 62" stroke="#2a2f45" stroke-opacity=".7" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
   }else{
@@ -184,22 +184,23 @@ function figSVG(c,o){
       `<path d="M37 42C37 26 47 21 60 21C73 21 83 26 83 42C79 33 71 29 60 29C49 29 41 33 37 42Z" fill="${hc}"/><path d="M37 42C37 26 47 21 60 21C73 21 83 26 83 42" stroke="${hc}" stroke-width="2" stroke-dasharray="1 3" fill="none" opacity=".6"/>`,
       `<path d="M35 48C34 24 47 16 60 16C73 16 86 24 85 48C80 38 70 30 60 30C50 30 40 38 35 48Z" fill="${hc}"/><path d="M60 16V30" stroke="${shade}" stroke-width="2"/>`
     ][c.h];
-    const ey=50,ec=CH_EYE[c.y];
-    const eye=x=>`<ellipse cx="${x}" cy="${ey}" rx="4.6" ry="5.2" fill="#fff"/><circle cx="${x+.5}" cy="${ey+.5}" r="3.4" fill="${ec}"/><circle cx="${x+.5}" cy="${ey+.5}" r="1.8" fill="${ink}"/><circle cx="${x+1.8}" cy="${ey-1.2}" r="1.1" fill="#fff"/>`;
-    const happy=x=>`<path d="M${x-4.5} ${ey+1}Q${x} ${ey-4.5} ${x+4.5} ${ey+1}" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
-    const sleepy=x=>`<path d="M${x-4.6} ${ey}H${x+4.6}" stroke="${sk}" stroke-width="0"/><ellipse cx="${x}" cy="${ey+1.5}" rx="4.4" ry="3" fill="#fff"/><circle cx="${x+.3}" cy="${ey+2}" r="2.6" fill="${ec}"/><path d="M${x-5} ${ey}H${x+5}" stroke="${ink}" stroke-width="2.2" stroke-linecap="round"/>`;
-    const lash=(x,d)=>eye(x)+`<path d="M${x+d*3} ${ey-4.4}L${x+d*6.5} ${ey-7}M${x+d*.5} ${ey-5.2}L${x+d*2} ${ey-8.5}" stroke="${ink}" stroke-width="1.6" stroke-linecap="round"/>`;
+    const ey=50,ec=CH_EYE[c.y],lid=x=>`<path d="M${x-4.8} ${ey-1.2}Q${x} ${ey-6.6} ${x+4.8} ${ey-1.2}" stroke="${ink}" stroke-width="1.9" fill="none" stroke-linecap="round"/>`;
+    const eye=x=>`<ellipse cx="${x}" cy="${ey}" rx="4.4" ry="4.9" fill="#fff"/><circle cx="${x}" cy="${ey+.6}" r="3.7" fill="${ec}"/><circle cx="${x}" cy="${ey+.6}" r="1.9" fill="${ink}"/><circle cx="${x+1.4}" cy="${ey-1}" r="1.2" fill="#fff"/><circle cx="${x-1.2}" cy="${ey+2}" r=".6" fill="#fff" opacity=".8"/>`+lid(x);
+    const happy=x=>`<path d="M${x-4.4} ${ey+1.2}Q${x} ${ey-4} ${x+4.4} ${ey+1.2}" stroke="${ink}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+    const sleepy=x=>`<path d="M${x-4.4} ${ey}Q${x} ${ey+5.4} ${x+4.4} ${ey}Z" fill="#fff"/><path d="M${x-3.4} ${ey+.4}Q${x} ${ey+5} ${x+3.4} ${ey+.4}Z" fill="${ec}"/><path d="M${x-4.8} ${ey}Q${x} ${ey-1.4} ${x+4.8} ${ey}" stroke="${ink}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    const lash=(x,d)=>eye(x)+`<path d="M${x+d*4.4} ${ey-2.6}L${x+d*6.8} ${ey-4.6}M${x+d*3} ${ey-4.4}L${x+d*4.6} ${ey-6.8}" stroke="${ink}" stroke-width="1.5" stroke-linecap="round"/>`;
     head+=[eye(51)+eye(69),happy(51)+happy(69),eye(51)+happy(69),sleepy(51)+sleepy(69),lash(51,-1)+lash(69,1)][c.e];
-    head+=`<path d="M45 41Q51 38 56 41M64 41Q69 38 75 41" stroke="${c.h===7?'rgba(0,0,0,.4)':hc}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
-    head+=`<path d="M57 52Q56 58 60 59" stroke="${shade}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-    const my=64,lip='#a0464f';
-    head+=[`<path d="M53 ${my}Q60 ${my+5} 67 ${my}" stroke="${lip}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
-      `<path d="M51 ${my-1}Q60 ${my+11} 69 ${my-1}Z" fill="${ink}"/><path d="M55 ${my+4}Q60 ${my+2} 65 ${my+4}Q60 ${my+7} 55 ${my+4}Z" fill="#ff6b81"/><path d="M53 ${my}H67" stroke="#fff" stroke-width="1.6"/>`,
-      `<path d="M54 ${my+1}H66" stroke="${lip}" stroke-width="2.6" stroke-linecap="round"/>`,
-      `<ellipse cx="60" cy="${my+2}" rx="3.6" ry="4.4" fill="${ink}"/>`,
-      `<path d="M53 ${my}Q60 ${my+4} 67 ${my}" stroke="${lip}" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M57 ${my+2}H64V${my+6}A3.5 3.5 0 0 1 57 ${my+6}Z" fill="#ff6b81"/>`,
-      `<path d="M53 ${my+1}Q62 ${my+5} 68 ${my-3}" stroke="${lip}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`][c.m];
-    head+=`<circle cx="45" cy="60" r="4" fill="#ff6b81" opacity=".22"/><circle cx="75" cy="60" r="4" fill="#ff6b81" opacity=".22"/>`;
+    const bc=c.h===7?'rgba(0,0,0,.35)':hc;
+    head+=`<path d="M45.5 42.8Q50.5 39.2 56 41.6Q50.6 40.9 45.5 42.8ZM74.5 42.8Q69.5 39.2 64 41.6Q69.4 40.9 74.5 42.8Z" fill="${bc}" stroke="${bc}" stroke-width="2.2" stroke-linejoin="round"/>`;
+    head+=`<path d="M58 55.6Q60 57.8 62 55.6" stroke="rgba(0,0,0,.22)" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    const my=63,lip='#9b3d4a',mo='#7a2638';
+    head+=[`<path d="M54 ${my}Q60 ${my+5} 66 ${my}" stroke="${lip}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+      `<path d="M52.5 ${my-.5}Q60 ${my+10} 67.5 ${my-.5}Z" fill="${mo}" stroke="${mo}" stroke-width="1.2" stroke-linejoin="round"/><path d="M54.3 ${my}H65.7Q65 ${my+2.2} 60 ${my+2.4}Q55 ${my+2.2} 54.3 ${my}Z" fill="#fff"/><path d="M56 ${my+6}Q60 ${my+3.6} 64 ${my+6}Q60 ${my+8.4} 56 ${my+6}Z" fill="#ff7a8a"/>`,
+      `<path d="M55 ${my+1}Q60 ${my+2.2} 65 ${my+1}" stroke="${lip}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+      `<ellipse cx="60" cy="${my+1.5}" rx="3.2" ry="3.8" fill="${mo}"/>`,
+      `<path d="M54 ${my}Q60 ${my+4.5} 66 ${my}" stroke="${lip}" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M57.4 ${my+2.2}H63.6V${my+5.6}A3.1 3.1 0 0 1 57.4 ${my+5.6}Z" fill="#ff7a8a"/>`,
+      `<path d="M54 ${my+1.2}Q61 ${my+4.6} 66.5 ${my-2}" stroke="${lip}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`][c.m];
+    head+=`<ellipse cx="45.5" cy="59" rx="4.6" ry="3" fill="#ff6b81" opacity=".2"/><ellipse cx="74.5" cy="59" rx="4.6" ry="3" fill="#ff6b81" opacity=".2"/>`;
     const ay=50;
     head+=['',
       `<g fill="none" stroke="${ink}" stroke-width="2.2"><circle cx="51" cy="${ay}" r="7.5"/><circle cx="69" cy="${ay}" r="7.5"/><path d="M58.5 ${ay}H61.5M43.5 ${ay-1}L37 ${ay-3}M76.5 ${ay-1}L83 ${ay-3}"/></g>`,
