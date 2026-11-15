@@ -1,14 +1,46 @@
 # Party Box – Arbeitsnotizen für Claude
 
-Party-Spiele-App von Sascha. **Die App ist eine einzige Datei: `index.html`** (Vanilla JS, kein Build, keine Frameworks), läuft auf GitHub Pages. Nicht aufteilen, solange Sascha es nicht ausdrücklich sagt. Daneben liegen nur die PWA-Dateien (von Sascha ausdrücklich erlaubt): `manifest.webmanifest`, `sw.js`, Icons (`icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-32.png`). Antworten auf Deutsch, knapp, ehrlich; Annahmen und Unsicherheit offen nennen.
+Party-Spiele-App von Sascha (Vanilla JS, kein Build, keine Frameworks, **keine ES-Module**), läuft auf GitHub Pages (Projektseite unter `/Party-Box/` → **nur relative Pfade**). Die App war früher eine einzige `index.html`; Sascha hat sie ausdrücklich **mechanisch in mehrere Dateien aufgeteilt** (Verhalten unverändert). Weiter aufteilen/umbauen nur nach Saschas Auftrag. Daneben liegen die PWA-Dateien: `manifest.webmanifest`, `sw.js`, Icons (`icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-32.png`). Antworten auf Deutsch, knapp, ehrlich; Annahmen und Unsicherheit offen nennen.
 
-## Aufbau von index.html
+## Dateikarte
 
-1. `<style>` (CSS, Themes über `body[data-theme]`: feuer/neon/ozean; `body.calm` = Animationen aus)
-2. Body: `#app` (Spiel), `#hw` (Host-Overlay "Gerade dran"), `#lv` (Client: Lobby verlassen), `canvas#fx`
-3. Zwei eingebettete Bibliotheken: PeerJS (minifiziert, 1 Zeile) und qrcode-generator. **Nicht verändern.** Zum Lesen/Suchen nur mit `grep`/Offset, nie ganz ins Fenster laden.
-4. Letztes `<script>` = die App, in dieser Reihenfolge (Abschnitte per `/* ===== … ===== */` markiert):
-   core (Hilfsfunktionen, Config, Verlauf, Haptik/Ton, Effekte) → Fragen `Q` + Generatoren `GEN` → Wortlisten `PW`, Twists `TW` → UI (Home, Spieler, Einstellungen, Setup, Glücksrad, Session, `plan`, `hand`, `boardHTML`, `finish`) → Spiele (`arsch`, `pant`, `spy`, `wave`, `bluff`, `react`, `bomb`, `c4`, `most`, `taboo`, `hilo`, `never`, `kings`, dazu Kategorien/Startseite/Trink-Infrastruktur) → Online (`net`, Host, Client).
+`index.html` ist nur das Skelett: `<head>`, Body-Elemente (`#app`, `#hw`, `#lv`, `#hm`, `#tmr`, `#fs`, `canvas#fx`), ein kleines **Inline-Skript mit `const APP_VERSION=…`** (muss inline bleiben: die Update-Prüfung liest die Version per Regex aus `index.html`) und danach die `<script src>`-Tags. Alle Skripte sind **klassische, synchrone Skripte** (kein `async`/`defer`/`type=module`); top-level `const`/`let`/`function` teilen sich den globalen Scope (nötig für Inline-`onclick` und `page.evaluate`-Tests). **Die Reihenfolge der Tags in `index.html` ist die Ladereihenfolge und entspricht dem alten Aufbau**; Funktionsdeklarationen werden nur innerhalb *einer* Datei gehoistet – Top-level-Code, der beim Laden eine Funktion aus einer *späteren* Datei aufruft, bricht.
+
+| Datei | Inhalt (wichtige Namen) |
+|---|---|
+| `css/style.css` | kompletter Stil, Themes über `body[data-theme]` (feuer/neon/ozean), `body.calm` = Animationen aus |
+| `lib/peerjs.min.js` | PeerJS (minifiziert, eine lange Zeile) – **nicht verändern**, nur per `grep`/Offset ansehen |
+| `lib/qrcode.js` | qrcode-generator – **nicht verändern** |
+| `js/01-core.js` | Hilfsfunktionen (`$`, `esc`, `shuffle`, `pick` …), `C`/`S`/`G`/`NET`, Verlauf (`HNS`, `ordered`, `mark`), Haptik/Ton (`sfx`), Effekte, `#hm` (`setLive`), Timer-Anzeige (`tmrShow`), Statistik-Funktionen |
+| `js/02-fragen.js` | Arschkarte-Fragen `Q` + `Q.push`, Datenlisten `EV`, `PEOPLE`, `MOUNT`, `BUILD`, `CITY`, Generatoren `GEN` |
+| `js/03-fragen-kategorien.js` | `QX`, `QCATS`, `QPOOL`, `QGEN` (Arschkarte-Kategorien) |
+| `js/04-info.js` | Info-Texte (`INFO`, `CITYI`, `MI`, `EVI`, `PEOPLEI`, `BQI`, `qInfo`, `qBtn`, `qBox`) |
+| `js/05-woerter-twists.js` | Wortlisten `PW`, Twists `TW`, Chaos-Mix (`MIX`, `MS`, `MA`) |
+| `js/06-ui-basis.js` | `GAMES`, `OPT`, `scr`, `av`, `prg`, `seg`, Spieler-Bildschirm, Statistik-Bildschirm (`statsScreen`) |
+| `js/07-ui-einstellungen.js` | Einstellungen (`settings`, `checkUpdate`, `applyUpdate`), Spiel-Setup (`gameSetup`), Teams |
+| `js/08-ui-session.js` | Glücksrad, Session (`startSession`, `plan`, `hand`, `boardHTML`, `finish`, `recordStats`) |
+| `js/games/<id>.js` | je ein Spiel: `arsch`, `pant`, `spy`, `wave`, `bluff`, `react`, `bomb`, `c4`, `most`, `taboo`, `hilo`, `memo`, `hang`, `code`, `ttt`, `dots`, `slf`, `bs`, `never`, `kings` |
+| `js/games/bluff-daten.js` | Bluff-Fragen `BQ`, `BQZ`, `BQW`, `BPOOL` (Daten) |
+| `js/games/taboo-daten.js` | Tabu-Karten `TBS`, `TBCATS` (Daten) |
+| `js/40-kategorien-trinken.js` | `CATS`, `GCAT`, `DRKV`, Trink-Infrastruktur (`drinkGate`, `drinkChip`, `drinkBox`, `sipsOn`) |
+| `js/41-startseite.js` | Startseite mit Kategorien (`home`, `pickGame`; `randomGame` steht in `40-kategorien-trinken.js`) |
+| `js/50-net-basis.js` | Online-Grundlagen: `ACT`/`PERM`/`WAIT`/`PAR`, Spiegelung Host→Client (MutationObserver), parallele Eingaben (`parBegin`, `parSub`, `parTick`) |
+| `js/51-net-rechte.js` | `hand`-Wrapper, `PUBW`, `PERMS`, `wrapPub` |
+| `js/52-net-host.js` | Host: Lobby (`lobbyScreen`), Eingaben der Clients (`netEvent`), Herzschlag |
+| `js/53-net-client.js` | Client: Beitritt (`netJoin`, `joinScreen`), Sitzung `pb_sess`, HTML einsetzen (`strip`), Eingaben → Host |
+| `js/60-vollbild-pwa.js` | Vollbild-Knopf, zur Laufzeit erzeugtes Manifest/Icon |
+| `js/61-tastatur.js` | Globaler Tastatur-Handler (`kbPrep`, `kbPrimary`, `kbRx`) |
+| `js/62-diagnose.js` | Diagnose für Anzeige-Probleme (5× aufs Logo tippen) |
+| `js/63-eingaben.js` | Fragezeichen-Info (`data-tg`), `data-sub`-Eingaben (`subGo`), Entwürfe (`draftSend`) |
+| `js/99-boot.js` | Service-Worker-Registrierung, `applyTheme()`, Start-IIFE (Beitritt per Link/`pb_sess` oder `home()`) – **muss als letzte Datei geladen werden** |
+
+Die Spiele-Dateien stehen in `index.html` in dieser Reihenfolge: arsch, pant, spy, wave, bluff-daten, bluff, react, bomb, c4, most, taboo-daten, taboo, hilo, memo (enthält die gemeinsamen Helfer `hueC`/`clsHead` der Klassiker), hang, code, ttt, dots, slf, bs, dann `40-kategorien-trinken`, never, kings, `41-startseite`, danach die Online-Dateien. Die frühere Abschnittsreihenfolge des alten Einzelskripts ist damit erhalten.
+
+**Suchen:** `grep -rn 'funktionsname' js/` (die Bibliotheken in `lib/` nie ganz lesen/greppen ohne `cut -c1-200`). Einzelne Spiele: `js/games/<id>.js`.
+
+**Neues Spiel anlegen:** (1) `js/games/<id>.js` mit `GAMES.<id>={…}` anlegen (ggf. `OPT.<id>=…`, Screens, Daten); (2) `<script src="js/games/<id>.js"></script>` in `index.html` eintragen, **vor** `js/40-kategorien-trinken.js` (bzw. vor `js/41-startseite.js`, falls es nach never/kings kommen soll) – nie hinter die Online-Dateien; (3) Pfad in `ASSETS` in `sw.js` eintragen und `CACHE` in `sw.js` erhöhen (`pbox-vN`), sonst fehlt die Datei offline; (4) `GCAT` (Startseite), bei öffentlichen Screens `PUBW`/`PERMS` (siehe Online-Modus), `HNS` bei neuem Verlaufs-Namespace; (5) `APP_VERSION` erhöhen. Große Datenlisten in eine eigene `<id>-daten.js` direkt davor.
+
+**Neue Datei allgemein:** Reihenfolge-Regel beachten (Top-level-Aufrufe zur Ladezeit dürfen nur Früheres benutzen), in `index.html` und `sw.js` `ASSETS` eintragen, `CACHE` erhöhen.
 
 ## Globale Zustände
 
@@ -46,7 +78,7 @@ Jedes Spiel ist `GAMES.<id>={name,e,tag,c,min,teams,desc,rules,opts(),start()}` 
 - **Bombe, "Falsch / schon genannt":** `boPass` merkt den Vorgänger (`G.bst`, inkl. Team-Zeiger `G.ht`/`G.hix`), `boBack` (Knopf `#bk`, Taste `F`) schickt die Bombe zurück, der Vorgänger muss ein neues Wort sagen; die Zündschnur läuft weiter. Online darf nur der aktuelle Halter drücken (`PERMS.boLight` = `G.hold`).
 - **Spion online:** `spyVote` → `spyVotePar`: geheime parallele Abstimmung (30 s), `spyTally`: eindeutig meiste Stimmen = Beschuldigter, Gleichstand/keine Stimmen = Spion kommt davon (`spyEnd('tie')`), Stimmenverteilung steht in der Auflösung (`G.cnt`).
 - **Namen:** Standardnamen `Spieler N` stehen nur als Platzhalter in den Feldern (nicht als Wert); sie werden nicht in der Statistik gezählt und nicht als Online-Name vorbelegt.
-- **Version/Update:** `APP_VERSION` (Format `JJJJ-MM-TT.n`) **bei jeder Auslieferung erhöhen**. Einstellungen → "Auf Update prüfen" lädt die Seite mit `cache:'no-store'`, vergleicht die Version und lädt auf Wunsch neu (`applyUpdate`). Fragen stecken in `index.html`; ein Update der Fragen ist immer ein neuer Push (keine Nachlade-Datei).
+- **Version/Update:** `APP_VERSION` (Format `JJJJ-MM-TT.n`) **bei jeder Auslieferung erhöhen**. Einstellungen → "Auf Update prüfen" lädt die Seite mit `cache:'no-store'`, vergleicht die Version und lädt auf Wunsch neu (`applyUpdate`). Fragen stecken in den `js/`-Dateien; ein Update der Fragen ist immer ein neuer Push (keine Nachlade-Datei). Die Version steht inline in `index.html` (Regex `const APP_VERSION='…'`).
 - **Wer würde am ehesten (`most`, min 3):** Aussagen in `MQ` (3 Kategorien, Chips in `OPT.most.cats`). Lokal reihum geheim (`moVote`, `hand`), online parallel (`moPar`, ein Schritt `v` mit `dur`); Man darf auch für sich selbst stimmen (Eintrag „(ich)"); `moResult` deckt auf (Stimmen, wer wen gewählt hat), Wer für den/die Meistgewählten gestimmt hat, bekommt +1. `moFinish` zeigt "Meiste Stimmen des Abends"; Statistik-Zusatzwerte `gewaehlt`/`stimmen`.
 - **Tabu (`taboo`, min 2, Teams):** Karten `TBS` (`'Begriff|v1|v2|v3|v4|v5'`, 4 Kategorien); Ablauf nach Vorbild Pantomime (`tHand` → `hand` → `tPlay`, Ring-Timer, `tOk`/`tTabu`/`tSkip`, `tEnd` in `PUBW`). Auftrittswert = max(0, Treffer − Tabus) für den Erklärer bzw. das Team, im Einzelmodus +1 für den Rater (`tPick`). Online nur der Erklärer sieht die Karte (wie Pantomime). Neue Karten: genau 5 verbotene Wörter, Begriff nicht selbst verboten, keine doppelten Begriffe (Test prüft das).
 - **Mehr oder weniger (`hilo`, min 2):** Duelle werden aus vorhandenen Listen erzeugt (`hiDuel`: Berge/Bauwerke, `HEV` Ereignisse, `HPOP`/`HARE` Länder (ungefähre Werte!), Entfernung von München, `PEOPLE` Lebensalter) mit Mindestabstand der Werte (`hiPair`). Lokal reihum, online parallel (`hiPar`); richtig = +1 (`hiOk`), kein Timer-Wert = falsch. `HNS` enthält jetzt auch `m`, `t`, `h`.
@@ -63,7 +95,7 @@ Jedes Spiel ist `GAMES.<id>={name,e,tag,c,min,teams,desc,rules,opts(),start()}` 
 - Pointer-Interaktionen (Balken, Brett) brauchen `data-ptr` am Element; Positionen laufen normiert (`rx`, `ry`).
 - Verbindung: Lobby-Code 5 Zeichen (`APP_CODE_LEN`), Host-Peer-ID `pbox-CODE`, Heartbeat alle 4 s, Timeout 16 s. Getrennte Spieler bleiben in `NET.m`, ihr Gerät fällt auf den Host zurück (`devIdx`); Identität eines Geräts = Geräte-ID (`pb_cid` in localStorage, wird in `hi` mitgeschickt): gleiche ID übernimmt den Platz, auch wenn die alte Verbindung noch offen wirkt; gleicher Name mit anderer ID wird "Name 2"; alte Clients ohne ID: Übernahme per Name nur bei getrennter Verbindung. **Neuladen/App-Neustart (Client):** die Sitzung (`pb_sess`: Code, Name, max. 3 h) wird beim Beitritt gemerkt und beim Start automatisch wieder aufgebaut; vergessen wird sie bei bewusstem Verlassen, `bye` (Lobby geschlossen/voll) und fehlgeschlagenem Beitritt. Der **Host** kann nach Neuladen nicht wiederhergestellt werden (Spielzustand liegt nur im Speicher). Max. 10 Spieler. Wake Lock auf dem Host.
 - Link-Beitritt: `index.html#CODE`.
-- **PWA / Offline:** `manifest.webmanifest` (standalone, Icons), `sw.js` (Service Worker, Cache `pbox-v1`): **Netzwerk zuerst** (5 s Timeout), bei fehlendem Netz aus dem Cache – so kommt jede neue Version sofort an, und die lokalen Spiele laufen offline. Fremde Hosts (PeerJS) und die Update-Prüfung (`?c=`) gehen am Cache vorbei, damit offline „Keine Verbindung" statt „aktuell" erscheint. Neue Dateien, die offline gebraucht werden, in `ASSETS` in `sw.js` eintragen. Registrierung am Ende von `index.html` (nur http/https). Online-Spiel braucht natürlich weiter Netz. Test: Service Worker aktiv, offline neu laden.
+- **PWA / Offline:** `manifest.webmanifest` (standalone, Icons), `sw.js` (Service Worker, Cache `pbox-v2`, bei Dateiänderungen/neuen Dateien erhöhen): **Netzwerk zuerst** (5 s Timeout, Anfragen mit `cache:'no-cache'`, damit nie alte und neue Dateien gemischt werden), bei fehlendem Netz aus dem Cache – so kommt jede neue Version sofort an, und die lokalen Spiele laufen offline. Fremde Hosts (PeerJS) und die Update-Prüfung (`?c=`) gehen am Cache vorbei, damit offline „Keine Verbindung" statt „aktuell" erscheint. **Alle** `css/`, `lib/`, `js/`-Dateien müssen in `ASSETS` in `sw.js` stehen (Installation schlägt sonst offline fehl bzw. Datei fehlt offline). Registrierung am Ende von `index.html` (nur http/https). Online-Spiel braucht natürlich weiter Netz. Test: Service Worker aktiv, offline neu laden.
 
 ## Bekannte Grenzen
 
@@ -74,6 +106,7 @@ Jedes Spiel ist `GAMES.<id>={name,e,tag,c,min,teams,desc,rules,opts(),start()}` 
 
 ## Testen
 
+- Im Repo liegt (Stand der Aufteilung) **kein** `tests/`-Ordner; Tests wurden bisher lokal bei Sascha/in früheren Sitzungen gefahren. Für die Aufteilung wurden ein Verlustfrei-Beweis (Skripte aneinandergehängt = altes Skript, CSS/Bibliotheken per sha256), Ladetest ohne `pageerror`/404, Start aller 20 Spiele, Screenshot 390×844 und PWA-Offline-Test außerhalb des Repos gefahren.
 - Playwright; Chrome liegt unter `/usr/bin/google-chrome` (`--no-sandbox`), in der Cloud-Umgebung reicht `chromium.launch()`. Scripts und temporäre Dateien **außerhalb** des Repos ablegen (Scratchpad).
 - Online-Tests: `Peer` per BroadcastChannel mocken (2–4 Tabs im **selben** Browser-Kontext, lokaler `http.server`; `localStorage` pro Tab mit Präfix trennen, sonst teilen sich die Tabs Geräte-ID und `pb_sess`), PeerJS-Cloud nicht nötig. Prüfen: Spiegelung, Rechte, **Privatsphäre** (kein Mitspieler sieht fremde Geheimnisse), Verbindungsabbruch/Wiederbeitritt.
 - Vor jedem Commit: keine JS-Fehler im Browser (`pageerror`, `console.error`), lokaler Modus und Online-Modus laufen. Ist etwas nicht getestet, im Bericht sagen.
