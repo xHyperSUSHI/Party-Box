@@ -2762,7 +2762,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-15.3';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-15.4';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4940,9 +4940,27 @@ const SLFP=[{n:'Klassisch',e:'📜',c:['Stadt','Land','Fluss','Tier','Beruf']},
 {n:'Film & Musik',e:'🎬',c:['Film / Serie','Schauspieler','Sänger / Band','Song','Instrument','Superheld']},
 {n:'Sport & Spiel',e:'⚽',c:['Sportart','Verein','Brettspiel','Hobby','Spielzeug','Fahrzeug']}];
 function slfSave(){try{localStorage.setItem('pb_slfc',JSON.stringify({sel:OPT.slf.sel,custom:OPT.slf.custom}))}catch(e){}}
-OPT.slf={rounds:5,timer:0,mode:'zettel',dtimer:90,stop:true,check:'hinweis',more:false,sel:{Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1},custom:[]};
+OPT.slf={rounds:5,timer:0,mode:'zettel',dtimer:90,stop:true,check:'hinweis',more:false,memOpen:false,sel:{Stadt:1,Land:1,Fluss:1,Tier:1,Beruf:1},custom:[]};
 try{const x=JSON.parse(localStorage.getItem('pb_slfc')||'null');if(x&&x.sel&&Array.isArray(x.custom)){OPT.slf.sel=x.sel;OPT.slf.custom=x.custom.filter(c=>typeof c==='string').slice(0,4)}}catch(e){}
 const slfAll=()=>SLFA.filter(c=>OPT.slf.sel[c]).concat(OPT.slf.custom);
+/* Gemerkte Entscheidungen des Hosts, pro Kategorie und Wort (ohne Groß-/Kleinschreibung/Umlaut-Unterschiede): ban = zählt nicht, ok = trotzdem werten */
+let SLFM={ban:{},ok:{}};
+try{const x=JSON.parse(localStorage.getItem('pb_slfm')||'null');if(x&&x.ban&&x.ok)SLFM=x}catch(e){}
+function slfMemSave(){try{localStorage.setItem('pb_slfm',JSON.stringify(SLFM))}catch(e){}}
+function slfMemHas(kind,cat,w){const f=slfFold(w);return !!f&&!!SLFM[kind][cat]&&Object.prototype.hasOwnProperty.call(SLFM[kind][cat],f)}
+function slfMemSet(kind,cat,w,on){
+  const f=slfFold(w);if(!f)return;const m=SLFM[kind][cat]=SLFM[kind][cat]||{};
+  if(on){m[f]=String(w).trim().slice(0,30);const ks=Object.keys(m);if(ks.length>300)delete m[ks[0]]}else delete m[f];
+  if(!Object.keys(m).length)delete SLFM[kind][cat];
+  slfMemSave();
+}
+function slfMemForget(kind,cat,f){if(SLFM[kind][cat]){delete SLFM[kind][cat][f];if(!Object.keys(SLFM[kind][cat]).length)delete SLFM[kind][cat];slfMemSave();slfKeepScroll(()=>gameSetup('slf'))}}
+function slfMemClear(){SLFM={ban:{},ok:{}};slfMemSave();slfKeepScroll(()=>gameSetup('slf'))}
+function slfMemUI(){
+  const items=[];['ban','ok'].forEach(kind=>Object.keys(SLFM[kind]).forEach(cat=>Object.keys(SLFM[kind][cat]).forEach(f=>items.push([kind,cat,f,SLFM[kind][cat][f]]))));
+  if(!items.length)return '';
+  return `<details style="margin-top:10px" ${OPT.slf.memOpen?'open':''} ontoggle="OPT.slf.memOpen=this.open"><summary class="sm" style="cursor:pointer;padding:6px 0">🧠 Gemerkte Wörter (${items.length})</summary><p class="sm" style="margin:4px 0 8px">Diese Entscheidungen übernimmt die App künftig automatisch. Tippen vergisst ein Wort wieder.</p><div class="chips">${items.map(x=>`<span class="chip ${x[0]==='ok'?'on':''}" onclick="slfMemForget('${x[0]}',${JSON.stringify(x[1]).replace(/"/g,'&quot;')},${JSON.stringify(x[2]).replace(/"/g,'&quot;')})">${x[0]==='ban'?'🚫':'✅'} ${esc(x[1])}: ${esc(x[3])} ✕</span>`).join('')}</div><button class="sec" style="margin-top:8px;padding:10px" onclick="slfMemClear()">Alles vergessen</button></details>`;
+}
 const slfKeepScroll=f=>{const sc=app.scrollTop;f();app.scrollTop=sc};
 function slfTog(i){   // Kategorie aus dem Pool hinzufügen/entfernen
   const c=SLFA[i],o=OPT.slf;
@@ -4968,7 +4986,7 @@ function slfCatUI(){
   return `<p class="sm" style="margin:0 0 8px">Vorlagen</p><div class="chips">${SLFP.map((p,i)=>p.adult&&!dr?'':`<span class="chip ${slfPresetOn(p)?'on':''}" onclick="slfPreset(${i})">${p.e} ${esc(p.n)}${p.adult?' (ab 18)':''}</span>`).join('')}</div>
   <p class="sm" style="margin:16px 0 8px">Deine Kategorien (<span id="slfcnt">${slfAll().length}</span> von 10, mindestens 3) – Tippen entfernt</p><div class="chips">${sel.map(x=>`<span class="chip on" onclick="slfTog(${x[1]})">${esc(x[0])} ✕</span>`).join('')}${o.custom.map((c,i)=>`<span class="chip on" onclick="slfDelCat(${i})">${esc(c)} ✕</span>`).join('')}</div>
   <details style="margin-top:10px" ${o.more?'open':''} ontoggle="OPT.slf.more=this.open"><summary class="sm" style="cursor:pointer;padding:6px 0">Mehr Kategorien (${rest.length})</summary><div class="chips" style="margin-top:6px">${rest.map(x=>`<span class="chip" onclick="slfTog(${x[1]})">＋ ${esc(x[0])}</span>`).join('')}</div></details>
-  <div class="row" style="margin-top:10px"><input id="slfn" class="txt" type="text" maxlength="20" autocomplete="off" placeholder="Eigene Kategorie …" style="margin:0;flex:1"><button class="sec ib" onclick="slfAddCat()" aria-label="Kategorie hinzufügen" style="margin:0">＋</button></div>`;
+  <div class="row" style="margin-top:10px"><input id="slfn" class="txt" type="text" maxlength="20" autocomplete="off" placeholder="Eigene Kategorie …" style="margin:0;flex:1"><button class="sec ib" onclick="slfAddCat()" aria-label="Kategorie hinzufügen" style="margin:0">＋</button></div>${slfMemUI()}`;
 }
 GAMES.slf={name:'Stadt, Land, Fluss',e:'✏️',tag:'Mit Zettel oder digital',c:['#22c55e','#16a34a'],min:2,teams:false,
   desc:'Ein Buchstabe, eure Kategorien: wer findet die meisten Wörter? Kategorien frei wählbar, mit Zettel und Stift oder direkt im Handy eingetippt.',
@@ -5019,7 +5037,7 @@ function slfScore(){
 /* --- Digital tippen --- */
 const slfDProg=()=>prg(G.r+G.i/S.P.length,G.rounds,`Runde ${G.r+1} von ${G.rounds}`);
 function slfDRound(){
-  G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=G.cats.map(()=>S.P.map(()=>false));G.i=0;G.stopT=null;G.stopBy=null;G.fix=G.cats.map(()=>S.P.map(()=>null));G.allow=G.cats.map(()=>S.P.map(()=>false));G.edit=null;
+  G.lt=G.pool[G.r];mark('g',G.lt);G.ans=[];G.bad=G.cats.map(()=>S.P.map(()=>false));G.i=0;G.stopT=null;G.stopBy=null;G.fix=G.cats.map(()=>S.P.map(()=>null));G.allow=G.cats.map(()=>S.P.map(()=>false));G.memDone=false;G.edit=null;
   slfReel(()=>{
     if(NET.host){slfDPar();return}
     hand(G.i,'Der Buchstabe steht fest – tippe deine Wörter!',slfDType,slfDProg());
@@ -5124,7 +5142,8 @@ function slfRow(k,i,c){
   const w=slfEff(k,i),v=slfValid(w),bad=G.bad[k][i],chk=slfChk(k,i),strict=G.o.check==='streng'&&!G.allow[k][i]&&(chk==='unk'||(chk&&chk.near)),
     no=bad||!v||strict,ed=G.edit&&G.edit.k===k&&G.edit.i===i,pt=c.det[k][i];
   let hint='';
-  if(!v)hint=`<div class="rh">zählt nicht: ${slfFilled(w)?'falscher Anfangsbuchstabe':'nur der Buchstabe'}</div>`;
+  if(bad&&G.memAuto&&G.memAuto[k][i])hint=`<div class="rh">🧠 gemerkt: zählt in „${esc(G.cats[k])}“ nicht – ↺ hebt das auf</div>`;
+  else if(!v)hint=`<div class="rh">zählt nicht: ${slfFilled(w)?'falscher Anfangsbuchstabe':'nur der Buchstabe'}</div>`;
   else if(chk&&chk.near&&!ed)hint=`<div class="rh">💡 Meintest du „${esc(chk.near)}“? <button class="sec rhb" onclick="slfTake(${k},${i},${JSON.stringify(chk.near).replace(/"/g,'&quot;')})">Übernehmen</button>${strict?' <button class="sec rhb" onclick="slfAllow('+k+','+i+')">Trotzdem werten</button>':''}</div>`;
   else if(chk==='unk'&&!ed)hint=`<div class="rh">❓ nicht in der Liste${strict?' – zählt nicht ':' – bitte prüfen '}${strict?'<button class="sec rhb" onclick="slfAllow('+k+','+i+')">Trotzdem werten</button>':''}</div>`;
   const word=ed
@@ -5135,7 +5154,16 @@ function slfRow(k,i,c){
     :`${v?`<button class="sec rb" onclick="slfBad(${k},${i})" aria-label="${bad?'Wieder zählen':'Streichen'}">${bad?'↺':'✕'}</button>`:''}<button class="sec rb" onclick="slfEdit(${k},${i})" aria-label="Korrigieren">✎</button>`;
   return `<div class="rv ${no?'no':''}"><span class="rn">${esc(S.P[i])}</span>${word}<span class="rp">${pt?'+'+pt:'0'}</span>${btns}${hint}</div>`;
 }
+function slfMemApply(){   // gemerkte Entscheidungen einmal pro Runde anwenden
+  G.memAuto=G.cats.map(()=>S.P.map(()=>false));
+  G.cats.forEach((cat,k)=>S.P.forEach((_,i)=>{
+    const w=slfEff(k,i);if(!String(w).trim())return;
+    if(slfMemHas('ban',cat,w)){G.bad[k][i]=true;G.memAuto[k][i]=true}
+    else if(slfMemHas('ok',cat,w))G.allow[k][i]=true;
+  }));
+}
 function slfReview(){
+  if(!G.memDone){G.memDone=true;slfMemApply()}
   const c=slfCalc(),last=G.r+1>=G.rounds;
   const rows=G.cats.map((cat,k)=>{
     const empty=S.P.filter((_,i)=>!String((G.ans[i]||[])[k]||'').trim()).map(esc).join(', ');
@@ -5157,8 +5185,12 @@ function slfFix(){
 function slfUnfix(k,i){slfKeep(()=>{G.fix[k][i]=null;G.edit=null})}
 function slfSame(k,i,j){slfKeep(()=>{G.fix[k][j]=slfEff(k,i)})}
 function slfTake(k,i,w){slfKeep(()=>{G.fix[k][i]=w})}
-function slfAllow(k,i){slfKeep(()=>{G.allow[k][i]=true})}
-function slfBad(k,i){slfKeep(()=>{G.bad[k][i]=!G.bad[k][i]})}
+function slfAllow(k,i){slfKeep(()=>{G.allow[k][i]=true;slfMemSet('ok',G.cats[k],slfEff(k,i),true);slfMemSet('ban',G.cats[k],slfEff(k,i),false)})}
+function slfBad(k,i){
+  const cat=G.cats[k],w=slfEff(k,i),on=!G.bad[k][i];
+  slfKeep(()=>{G.bad[k][i]=on;if(G.memAuto&&G.memAuto[k])G.memAuto[k][i]=false;slfMemSet('ban',cat,w,on);if(on)slfMemSet('ok',cat,w,false)});
+  if(on)toast('🧠 Gemerkt: „'+w+'“ zählt in '+cat+' künftig nicht');
+}
 function slfDCommit(){G.sc=slfCalc().pts;slfCommit()}
 function slfAdj(i,d){G.sc[i]=Math.max(0,Math.min(100,G.sc[i]+d));const e=$('sc'+i);if(e)e.textContent=G.sc[i]}
 function slfCommit(){
