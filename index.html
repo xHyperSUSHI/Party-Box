@@ -2762,7 +2762,7 @@ var qrcode = function() {
 </script>
 <script>
 /* ================= Core ================= */
-const APP_VERSION='2026-11-15.4';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
+const APP_VERSION='2026-11-15.5';   // bei jeder Auslieferung erhöhen (Einstellungen → Auf Update prüfen)
 const $=id=>document.getElementById(id);
 const app=$('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3326,7 +3326,9 @@ const tb=(t,sz,cls)=>`<div class="av ${cls||''}" style="${sz?`width:${sz}px;heig
 const logo=(txt,sm)=>`<div class="logo"><div class="rc"></div><h1${sm?' style="font-size:30px"':''}>${txt}</h1></div>`;
 const prg=(d,t,lab)=>`<div class="sm">${lab}</div><div class="prog"><i style="width:${Math.min(100,d/t*100)}%"></i></div>`;
 const seg=(g,k,vals,lab)=>`<div class="row">${vals.map(v=>`<button class="${OPT[g][k]===v?'':'sec'} sg" onclick="setOpt('${g}','${k}',${typeof v==='string'?`'${v}'`:v})">${lab?lab(v):v}</button>`).join('')}</div>`;
-function setOpt(g,k,v){OPT[g][k]=v;gameSetup(g)}
+/* Einstellungen ändern lädt den Bildschirm neu – die Scrollposition bleibt dabei erhalten */
+function keepScroll(f){const sc=app.scrollTop;f();app.scrollTop=sc}
+function setOpt(g,k,v){OPT[g][k]=v;keepScroll(()=>gameSetup(g))}
 
 /* ---------- Home ---------- */
 /* ---------- Spieler ---------- */
@@ -3376,7 +3378,7 @@ function statsScreen(sel){
 
 /* ---------- Einstellungen ---------- */
 const tg=(k,l,sub)=>`<div class="trow" onclick="setC('${k}',${!C[k]})"><span>${l}${sub?`<br><span class="sm">${sub}</span>`:''}</span><i class="sw ${C[k]?'on':''}"></i></div>`;
-function setC(k,v){C[k]=v;if(k==='sips'&&!v&&typeof DRKV!=='undefined')DRKV.forEach(g=>{OPT[g].drink=false});saveCfg();applyTheme();if(k==='sound'&&v)sfx.ok();settings()}
+function setC(k,v){C[k]=v;if(k==='sips'&&!v&&typeof DRKV!=='undefined')DRKV.forEach(g=>{OPT[g].drink=false});saveCfg();applyTheme();if(k==='sound'&&v)sfx.ok();keepScroll(settings)}
 async function checkUpdate(){
   const e=$('upd');if(!e)return;e.textContent='Prüfe …';
   try{
@@ -3426,8 +3428,8 @@ function gameSetup(id){
   <button onclick="startSession('${id}')">Los geht's</button>`);
 }
 const teamOn=()=>S.mode==='team'&&S.names.length>=4&&CUR&&GAMES[CUR].teams;
-function setMode(m){S.mode=m;gameSetup(CUR)}
-function setNt(k){S.nt=k;gameSetup(CUR)}
+function setMode(m){S.mode=m;keepScroll(()=>gameSetup(CUR))}
+function setNt(k){S.nt=k;keepScroll(()=>gameSetup(CUR))}
 const tmKey=()=>S.names.map(n=>n.trim()).join('\u0001')+'|'+S.nt;
 const validTm=()=>!!S.tm&&S.tmKey===tmKey();
 function tmList(tm,lastP){
@@ -4262,7 +4264,7 @@ function boFinish(){finish({asc:true,unit:' 💥'})}
 /* ================= 4 Gewinnt ================= */
 OPT.c4={vs:'mensch',lvl:'mittel',best:3,a:0,b:1};
 const nmSel=(k)=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.c4[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="c4Sel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
-function c4Sel(k,i){OPT.c4[k]=i;if(OPT.c4.a===OPT.c4.b)OPT.c4[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('c4')}
+function c4Sel(k,i){OPT.c4[k]=i;if(OPT.c4.a===OPT.c4.b)OPT.c4[k==='a'?'b':'a']=(i+1)%S.names.length;keepScroll(()=>gameSetup('c4'))}
 GAMES.c4={name:'4 Gewinnt',e:'🔴',tag:'Der Duell-Klassiker',c:['#3b82f6','#1d4ed8'],min:1,teams:true,nt2:true,
   desc:'Wirf abwechselnd Steine ein und bring vier in eine Reihe – waagerecht, senkrecht oder diagonal.',
   rules:'Tippe auf eine Spalte, der Stein fällt ganz nach unten. Wer zuerst vier eigene Steine in einer Reihe hat, gewinnt die Runde. Gespielt wird auf mehrere Gewinnrunden („Best of“). Der Startspieler wechselt jede Runde. Im Teammodus spielen zwei Teams gegeneinander, die Mitglieder wechseln sich ab. Gegen den Computer gibt es drei Stufen.',
@@ -4827,7 +4829,7 @@ function ckResult(){
 
 /* ---------- Drei gewinnt ---------- */
 OPT.ttt={best:3,vs:'mensch',lvl:'schwer',a:0,b:1};
-function ttSel(k,i){const o=OPT.ttt;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('ttt')}
+function ttSel(k,i){const o=OPT.ttt;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;keepScroll(()=>gameSetup('ttt'))}
 const ttNm=k=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.ttt[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="ttSel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
 GAMES.ttt={name:'Drei gewinnt',e:'❌',tag:'Der Schulhof-Klassiker',c:['#f43f5e','#f97316'],min:1,teams:false,
   desc:'Tic-Tac-Toe: Drei in einer Reihe gewinnt. Gegen einen Freund oder den Computer.',
@@ -4961,7 +4963,7 @@ function slfMemUI(){
   if(!items.length)return '';
   return `<details style="margin-top:10px" ${OPT.slf.memOpen?'open':''} ontoggle="OPT.slf.memOpen=this.open"><summary class="sm" style="cursor:pointer;padding:6px 0">🧠 Gemerkte Wörter (${items.length})</summary><p class="sm" style="margin:4px 0 8px">Diese Entscheidungen übernimmt die App künftig automatisch. Tippen vergisst ein Wort wieder.</p><div class="chips">${items.map(x=>`<span class="chip ${x[0]==='ok'?'on':''}" onclick="slfMemForget('${x[0]}',${JSON.stringify(x[1]).replace(/"/g,'&quot;')},${JSON.stringify(x[2]).replace(/"/g,'&quot;')})">${x[0]==='ban'?'🚫':'✅'} ${esc(x[1])}: ${esc(x[3])} ✕</span>`).join('')}</div><button class="sec" style="margin-top:8px;padding:10px" onclick="slfMemClear()">Alles vergessen</button></details>`;
 }
-const slfKeepScroll=f=>{const sc=app.scrollTop;f();app.scrollTop=sc};
+const slfKeepScroll=keepScroll;
 function slfTog(i){   // Kategorie aus dem Pool hinzufügen/entfernen
   const c=SLFA[i],o=OPT.slf;
   if(!o.sel[c]&&slfAll().length>=10){toast('Höchstens 10 Kategorien');return}
@@ -5201,7 +5203,7 @@ function slfCommit(){
 
 /* ---------- Schiffe versenken ---------- */
 OPT.bs={best:1,size:'klassisch',vs:'mensch',lvl:'schwer',again:'wechsel',a:0,b:1};
-function bsSel(k,i){const o=OPT.bs;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;gameSetup('bs')}
+function bsSel(k,i){const o=OPT.bs;o[k]=i;if(o.a===o.b)o[k==='a'?'b':'a']=(i+1)%S.names.length;keepScroll(()=>gameSetup('bs'))}
 const bsNm=k=>`<div class="row" style="flex-wrap:wrap">${S.names.map((n,i)=>`<button class="${OPT.bs[k]===i?'':'sec'} sg" style="flex:0 0 auto;padding:10px 14px" onclick="bsSel('${k}',${i})">${esc(n.trim()||'?')}</button>`).join('')}</div>`;
 GAMES.bs={name:'Schiffe versenken',e:'🚢',tag:'Der Klassiker auf dem Gitter',c:['#0ea5e9','#1d4ed8'],min:1,teams:false,
   desc:'Versteck deine Flotte, errate die Felder des Gegners und versenke alle seine Schiffe zuerst.',
